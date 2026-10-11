@@ -126,6 +126,25 @@ export async function refreshProfileServer() {
     if (subEl && st) {
       subEl.innerText = `Votre skin actuel et vos capes sont visibles immédiatement par l'ensemble des ${st.players.online.toLocaleString()} joueurs en ligne.`
     }
+    // Populate Athena status card
+    if (p.slug === 'athena') {
+      const citizenship = document.getElementById('athena-citizenship')
+      const job = document.getElementById('athena-job')
+      const city = document.getElementById('athena-city')
+      const playtime = document.getElementById('athena-playtime')
+      const wealth = document.getElementById('athena-wealth')
+      const achievements = document.getElementById('athena-achievements')
+      const reputation = document.getElementById('athena-reputation')
+      const lastseen = document.getElementById('athena-lastseen')
+      if (citizenship) citizenship.innerText = 'Citoyen confirmé'
+      if (job) job.innerText = '—' // TODO: API serveur
+      if (city) city.innerText = '—'
+      if (playtime) playtime.innerText = '—'
+      if (wealth) wealth.innerText = '—'
+      if (achievements) achievements.innerText = '0 / —'
+      if (reputation) reputation.innerText = 'Neutre'
+      if (lastseen) lastseen.innerText = new Date().toLocaleString('fr-FR')
+    }
   } catch {
     if (dotEl) (dotEl as HTMLElement).style.background = '#e53935'
     if (pingEl) pingEl.innerText = '—'
@@ -264,6 +283,11 @@ export function initProfile() {
 
   document.getElementById('btn-stats')?.addEventListener('click', async () => {
     await Dialog.show('Les statistiques détaillées (temps de jeu, succès) arrivent bientôt.', [{ text: 'OK', type: 'ok' }])
+  })
+
+  document.getElementById('btn-refresh-athena')?.addEventListener('click', async () => {
+    refreshProfileServer()
+    await Dialog.show('Statut citoyen Athéna rafraîchi.', [{ text: 'OK', type: 'ok' }])
   })
 
   document.getElementById('btn-toggle-email')?.addEventListener('click', () => {

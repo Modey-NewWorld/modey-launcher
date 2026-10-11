@@ -530,7 +530,7 @@
 
   div {
     border: 1px solid #e6eaf2;
-    border-radius: 10px;
+    border_radius: 10px;
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
@@ -546,6 +546,58 @@
     .muted {
       font-size: 10.5px;
     }
+  }
+}
+
+/* --- Carte Statut Athéna (citoyen, métier, temps, succès) --- */
+.athena-status-card {
+  .athena-status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .athena-status-item {
+    background: #f7fafd;
+    border: 1px solid #e6eaf2;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 11.5px;
+    color: #5b6b84;
+
+    .athena-status-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8a97ad;
+    }
+
+    .athena-status-value {
+      font-weight: 600;
+      color: #101b30;
+      font-size: 12.5px;
+    }
+  }
+
+  .athena-status-note {
+    margin-top: 10px;
+    font-size: 10.5px;
+    color: #8a97ad;
+    text-align: center;
+
+    .modey-link {
+      font-size: 10.5px;
+    }
+  }
+}
+
+@media (max-width: 1100px) {
+  .athena-status-grid {
+    grid-template-columns: 1fr;
   }
 }
 
