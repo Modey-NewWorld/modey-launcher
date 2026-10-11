@@ -820,7 +820,89 @@
   }
 }
 
-/* --- Sections --- */
+/* --- Athena Status Sidebar (Home page, right of hero) --- */
+.athena-status-sidebar {
+  width: 280px;
+  min-width: 280px;
+  flex-shrink: 0;
+}
+
+.athena-status-card {
+  background: #ffffff;
+  border: 1px solid #e6eaf2;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(30, 50, 100, 0.06);
+  min-width: 0;
+
+  .athena-status-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #101b30;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      i {
+        color: #1a73e8;
+        font-size: 13px;
+      }
+    }
+  }
+
+  .athena-status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .athena-status-item {
+    background: #f7fafd;
+    border: 1px solid #e6eaf2;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 11.5px;
+    color: #5b6b84;
+
+    .athena-status-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8a97ad;
+    }
+
+    .athena-status-value {
+      font-weight: 600;
+      color: #101b30;
+      font-size: 12.5px;
+    }
+  }
+
+  .athena-status-note {
+    margin-top: 12px;
+    font-size: 10.5px;
+    color: #8a97ad;
+    text-align: center;
+  }
+}
+
+@media (max-width: 1200px) {
+  .athena-status-sidebar {
+    display: none;
+  }
+}
 .modey-news,
 .modey-discovery {
   h3 {

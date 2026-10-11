@@ -48,6 +48,15 @@ export function initHome() {
   const serversPage = document.getElementById('servers-page')
   const profilePage = document.getElementById('profile-page')
   const settingsPage = document.getElementById('settings-page')
+  const athenaSidebar = document.getElementById('athena-status-sidebar')
+  const athenaCitizenship = document.getElementById('athena-citizenship')
+  const athenaJob = document.getElementById('athena-job')
+  const athenaCity = document.getElementById('athena-city')
+  const athenaPlaytime = document.getElementById('athena-playtime')
+  const athenaWealth = document.getElementById('athena-wealth')
+  const athenaAchievements = document.getElementById('athena-achievements')
+  const athenaReputation = document.getElementById('athena-reputation')
+  const athenaLastseen = document.getElementById('athena-lastseen')
   const profileScroll = document.getElementById('profile-scroll')
   const serverSearch = document.getElementById('server-search') as HTMLInputElement | null
   const serversFilters = document.getElementById('servers-filters')
@@ -84,6 +93,24 @@ export function initHome() {
     !profile || profile.slug === freeBuildConfig.slug || !profile.ip || !profile.port
 
   const isAthenaProfile = (profile: any) => !profile || profile.slug === 'athena'
+
+  // Met à jour la sidebar de statut Athéna (uniquement pour Athéna)
+  const updateAthenaSidebar = () => {
+    const isAthena = isAthenaProfile(selectedProfile)
+    if (athenaSidebar) athenaSidebar.style.display = isAthena ? 'block' : 'none'
+    if (isAthena) populateAthenaSidebar()
+  }
+
+  const populateAthenaSidebar = () => {
+    if (athenaCitizenship) athenaCitizenship.innerText = 'Citoyen confirmé'
+    if (athenaJob) athenaJob.innerText = '—'
+    if (athenaCity) athenaCity.innerText = '—'
+    if (athenaPlaytime) athenaPlaytime.innerText = '—'
+    if (athenaWealth) athenaWealth.innerText = '—'
+    if (athenaAchievements) athenaAchievements.innerText = '0 / —'
+    if (athenaReputation) athenaReputation.innerText = 'Neutre'
+    if (athenaLastseen) athenaLastseen.innerText = new Date().toLocaleString('fr-FR')
+  }
 
   const stripMarkdown = (md: string) =>
     md
@@ -138,6 +165,7 @@ export function initHome() {
     renderDiscovery()
     updateServerStatus()
     refreshProfileServer()
+    updateAthenaSidebar()
   }
 
   const ATHENA_TAGS = ['Survie RP', 'Économie', 'Villes & Métropoles', 'Quêtes scénarisées']
@@ -587,6 +615,11 @@ export function initHome() {
       activeFilter = (btn as HTMLElement).dataset.filter || 'tous'
       applyServersFilter()
     })
+  })
+
+  document.getElementById('btn-refresh-athena-sidebar')?.addEventListener('click', async () => {
+    updateAthenaSidebar()
+    await Dialog.show('Statut citoyen Athéna rafraîchi.', [{ text: 'OK', type: 'ok' }])
   })
 
   profileSelector?.querySelector('.selected-profile')?.addEventListener('click', () => {
