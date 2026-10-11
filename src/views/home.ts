@@ -47,6 +47,7 @@ export function initHome() {
   const accueilMain = document.getElementById('modey-main')
   const serversPage = document.getElementById('servers-page')
   const profilePage = document.getElementById('profile-page')
+  const settingsPage = document.getElementById('settings-page')
   const profileScroll = document.getElementById('profile-scroll')
   const serverSearch = document.getElementById('server-search') as HTMLInputElement | null
   const serversFilters = document.getElementById('servers-filters')
@@ -450,10 +451,19 @@ export function initHome() {
     setActiveNav(navProfile)
     if (accueilMain) accueilMain.style.display = 'none'
     if (serversPage) serversPage.style.display = 'none'
+    if (settingsPage) settingsPage.style.display = 'none'
     if (profilePage) profilePage.style.display = 'flex'
     refreshProfileIdentity()
     refreshProfileServer()
     profileScroll?.scrollTo({ top: 0 })
+  }
+
+  const showSettings = () => {
+    if (accueilMain) accueilMain.style.display = 'none'
+    if (serversPage) serversPage.style.display = 'none'
+    if (profilePage) profilePage.style.display = 'none'
+    if (settingsPage) settingsPage.style.display = 'flex'
+    document.querySelectorAll('.modey-nav-item').forEach((el) => el.classList.remove('active'))
   }
 
   let activeFilter = 'tous'
@@ -495,7 +505,7 @@ export function initHome() {
   })
   userMenuSettings?.addEventListener('click', () => {
     closeUserMenu()
-    setView('settings')
+    showSettings()
   })
   userMenuLogout?.addEventListener('click', async () => {
     closeUserMenu()

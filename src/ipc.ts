@@ -115,6 +115,8 @@ declare global {
       }
       system: {
         getInfo: () => Promise<ISystemInfo>
+        getLoginItem: () => Promise<boolean>
+        setLoginItem: (enabled: boolean) => Promise<boolean>
       }
     }
   }

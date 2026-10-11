@@ -27,6 +27,8 @@ export interface IGameSettings {
     fullscreen: boolean
   }
   launcherAction: 'close' | 'keep' | 'hide'
+  launchAtStartup: boolean
+  autoUpdateCheck: boolean
 }
 
 export const DEFAULT_SETTINGS: IGameSettings = {
@@ -40,7 +42,9 @@ export const DEFAULT_SETTINGS: IGameSettings = {
     height: 720,
     fullscreen: false
   },
-  launcherAction: 'close'
+  launcherAction: 'close',
+  launchAtStartup: false,
+  autoUpdateCheck: true
 }
 
 export function registerSettingsHandlers() {
@@ -88,6 +92,25 @@ export function registerSettingsHandlers() {
       filters: [{ name: 'Java Executable', extensions: ['exe', 'bin', ''] }]
     })
     return result.filePaths[0] ?? null
+  })
+
+  ipcMain.handle('system:get_login_item', () => {
+    try {
+      return app.getLoginItemSettings().openAtLogin
+    } catch (err) {
+      logger.error('Error reading login item settings:', err)
+      return false
+    }
+  })
+
+  ipcMain.handle('system:set_login_item', (_event, enabled: boolean) => {
+    try {
+      app.setLoginItemSettings({ openAtLogin: !!enabled })
+      return app.getLoginItemSettings().openAtLogin
+    } catch (err) {
+      logger.error('Error writing login item settings:', err)
+      return false
+    }
   })
 }
 

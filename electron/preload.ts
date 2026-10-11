@@ -130,7 +130,9 @@ contextBridge.exposeInMainWorld('api', {
     pickJava: (): Promise<string | null> => ipcRenderer.invoke('settings:pick_java')
   },
   system: {
-    getInfo: (): Promise<ISystemInfo> => ipcRenderer.invoke('system:info')
+    getInfo: (): Promise<ISystemInfo> => ipcRenderer.invoke('system:info'),
+    getLoginItem: (): Promise<boolean> => ipcRenderer.invoke('system:get_login_item'),
+    setLoginItem: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke('system:set_login_item', enabled)
   }
 })
 
