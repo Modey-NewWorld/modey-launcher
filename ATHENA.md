@@ -11,6 +11,7 @@ Fork de `EML Template` (Electron + Vite + `eml-lib 2.3.5`) renommé `Modey Launc
 * `src/views/home.ts` : si profil sans `ip/port` (ou slug `free-build`) → statut `Serveur non actif — Arrive bientôt`, bouton Jouer désactivé + dialogue récapitulatif, carte teaser latérale.
 * `electron/const.ts` : `ADMINTOOL_URL=http://localhost:8090`, `AUTH_SERVER_URL=http://localhost:3005/api/yggdrasil`.
 * `src/views/login.ts` : onglets **Se connecter / Créer compte joueur** (pseudo unique + email), Microsoft gardé en optionnel.
+* `src/views/profile.ts` + page `Mon Profil` (`#profile-page`) : studio 3D (Face/Dos, 360°, Classique/Slim, import .png, capes), identité, statut en jeu selon le serveur sélectionné, gestion du compte. La gestion des skins a quitté les paramètres.
 
 ## Dev
 

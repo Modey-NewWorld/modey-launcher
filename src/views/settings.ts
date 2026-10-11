@@ -1,8 +1,6 @@
-import { setView, closeOverlay } from '../state'
-import { auth, settings, system, skin } from '../ipc'
-import { Dialog } from './dialog'
+import { closeOverlay } from '../state'
+import { settings, system } from '../ipc'
 import type { IGameSettings } from '../../electron/handlers/settings'
-import shared from '../shared'
 
 const resolutionList = [
   { label: 'Auto (default)', value: '854x480', width: 854, height: 480 },
@@ -35,106 +33,13 @@ async function initUIListeners() {
   const closeBtn = document.getElementById('btn-close-settings')
   const tabContents = document.querySelectorAll('.tab-content')
   const tabButtons = document.querySelectorAll('.nav-btn')
-  const logoutBtn = document.getElementById('btn-logout')
-
-  const addSkinUrlBtn = document.getElementById('btn-add-skin-url')!
-  const addSkinFileBtn = document.getElementById('btn-add-skin-file')!
-
-  const addSkinFileForm = document.getElementById('form-add-skin-file')!
-  const addSkinFileInput = document.getElementById('input-add-skin-file') as HTMLInputElement
-  const addSkinFileButton = document.getElementById('btn-add-skin-choose-file') as HTMLButtonElement
-  const addSkinFileSelectedDiv = document.getElementById('div-add-skin-file-selected')!
-  const addSkinFileSelectedName = document.getElementById('span-add-skin-file-name')!
-  const addSkinFileResetBtn = document.getElementById('btn-selected-file-reset') as HTMLButtonElement
-
-  const addSkinUrlForm = document.getElementById('form-add-skin-url')!
-  const addSkinUrlInput = document.getElementById('input-add-skin-url') as HTMLInputElement
-
-  const addSkinSubmitBtn = document.getElementById('btn-add-skin-submit') as HTMLButtonElement
 
   closeBtn?.addEventListener('click', async () => {
     await saveSettings()
     closeOverlay('settings')
   })
 
-  logoutBtn?.addEventListener('click', async () => {
-    if (
-      await Dialog.show('Se déconnecter du compte Modey ?', [
-        { text: 'Annuler', type: 'cancel' },
-        { text: 'Déconnexion', type: 'danger' }
-      ])
-    ) {
-      await auth.logout()
-      closeOverlay('settings')
-      setView('login')
-    }
-  })
-
-  // Compte unique Modey : pas de changement de compte, pas de liste de comptes.
-
-  addSkinUrlBtn?.addEventListener('click', () => {
-    addSkinUrlBtn!.classList.add('active')
-    addSkinFileBtn!.classList.remove('active')
-    addSkinUrlForm!.style.display = 'block'
-    addSkinFileForm!.style.display = 'none'
-    addSkinFileInput.value = ''
-    addSkinUrlInput.value = ''
-    addSkinFileSelectedDiv.style.display = 'none'
-    addSkinFileButton.style.display = 'block'
-    addSkinSubmitBtn.disabled = true
-  })
-
-  addSkinFileBtn?.addEventListener('click', () => {
-    addSkinFileBtn!.classList.add('active')
-    addSkinUrlBtn!.classList.remove('active')
-    addSkinUrlForm!.style.display = 'none'
-    addSkinFileForm!.style.display = 'block'
-    addSkinUrlInput.value = ''
-    addSkinFileInput.value = ''
-    addSkinFileSelectedDiv.style.display = 'none'
-    addSkinFileButton.style.display = 'block'
-    addSkinSubmitBtn.disabled = true
-  })
-
-  addSkinFileButton?.addEventListener('click', async () => {
-    addSkinFileInput.click()
-  })
-
-  addSkinFileInput?.addEventListener('change', async () => {
-    const file = addSkinFileInput.files?.[0]
-    if (!file) {
-      addSkinFileButton.style.display = 'block'
-      addSkinSubmitBtn.disabled = true
-      addSkinFileSelectedDiv.style.display = 'none'
-      return
-    }
-
-    addSkinFileButton.style.display = 'none'
-    addSkinSubmitBtn.disabled = false
-    addSkinFileSelectedName.innerText = file.name
-    addSkinFileSelectedDiv.style.display = 'block'
-  })
-
-  addSkinUrlInput?.addEventListener('input', () => {
-    addSkinSubmitBtn.disabled = addSkinUrlInput.value.trim() === ''
-  })
-
-  addSkinFileResetBtn?.addEventListener('click', () => {
-    addSkinFileInput.value = ''
-    addSkinFileButton.style.display = 'block'
-    addSkinSubmitBtn.disabled = true
-    addSkinFileSelectedDiv.style.display = 'none'
-  })
-
-  addSkinSubmitBtn?.addEventListener('click', async () => {
-    addSkin()
-    addSkinUrlInput.value = ''
-    addSkinFileInput.value = ''
-    addSkinFileButton.style.display = 'block'
-    addSkinSubmitBtn.disabled = true
-    addSkinFileSelectedDiv.style.display = 'none'
-    document.getElementById('settings-content')?.scrollTo({ top: 0, behavior: 'smooth' })
-  })
+  // Compte unique Modey : gestion du compte déplacée vers la page Mon Profil (views/profile.ts).
 
   tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -245,45 +150,6 @@ async function saveSettings() {
 
   await settings.set(newSettings)
   currentSettings = newSettings
-}
-
-async function addSkin() {
-  const addSkinUrlBtn = document.getElementById('btn-add-skin-url')!
-  const addSkinFileBtn = document.getElementById('btn-add-skin-file')!
-  const addSkinFileInput = document.getElementById('input-add-skin-file') as HTMLInputElement
-  const addSkinUrlInput = document.getElementById('input-add-skin-url') as HTMLInputElement
-  const addSkinSlimVariant = document.getElementById('input-add-skin-variant-slim') as HTMLInputElement
-
-  let skinSource: string | ArrayBuffer | null = null
-  let variant: 'classic' | 'slim' = 'classic'
-
-  if (addSkinUrlBtn.classList.contains('active')) {
-    skinSource = addSkinUrlInput.value.trim()
-  } else if (addSkinFileBtn.classList.contains('active')) {
-    const file = addSkinFileInput.files?.[0]
-    if (file) {
-      skinSource = await file.arrayBuffer()
-    }
-  }
-
-  if (!skinSource) return
-
-  if (addSkinSlimVariant.checked) variant = 'slim'
-
-  try {
-    const result = await skin.updateSkin(skinSource, variant)
-    if (!result) {
-      await Dialog.show('Failed to add skin. Please check the URL or file and try again.', [{ text: 'Close', type: 'ok' }])
-      return
-    }
-
-    shared.skins = result
-    shared.resetMainView()
-    shared.resetSkinViews()
-  } catch (err) {
-    await Dialog.show('An error occurred while adding the skin. Please try again in few minutes.', [{ text: 'Close', type: 'ok' }])
-    return
-  }
 }
 
 function getAvailableResolutions(systemResolution: { width: number; height: number }) {

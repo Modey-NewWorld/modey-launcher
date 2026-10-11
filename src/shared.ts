@@ -16,10 +16,14 @@ const shared = {
   skins: null as ISkin[] | null,
   capes: null as ICape[] | null,
   avatar: null as IAvatar | null,
+  selectedProfile: null as any,
   mainSkinViewer: null as SkinViewer | null,
   auxiliarySkinViewer: null as SkinViewer | null,
   cachedSkinThumbnails: new Map<string, string>(),
   cachedCapeThumbnails: new Map<string, string>(),
+  /** Préférence studio 3D : animation de marche (persistée en local, survit au redémarrage). */
+  isStudioAnimationEnabled: () => localStorage.getItem('modey-studio-animation') !== 'off',
+  setStudioAnimationEnabled: (enabled: boolean) => localStorage.setItem('modey-studio-animation', enabled ? 'on' : 'off'),
   /**
    * `skins` should be updated before calling this function.
    */
@@ -43,6 +47,16 @@ const shared = {
       shared.mainSkinViewer.controls.enableZoom = false
       shared.mainSkinViewer.controls.enablePan = false
       shared.mainSkinViewer.controls.rotateSpeed = 0.3
+    }
+
+    // Respecte la préférence sauvegardée (bouton Animation de la page Mon Profil)
+    if (shared.isStudioAnimationEnabled()) {
+      if (!shared.mainSkinViewer.animation) {
+        shared.mainSkinViewer.animation = new WalkingAnimation()
+        shared.mainSkinViewer.animation.speed = 0.3
+      }
+    } else {
+      shared.mainSkinViewer.animation = null
     }
 
     shared.mainSkinViewer.loadSkin(activeSkin.url, { model: activeSkin.variant === 'slim' ? 'slim' : 'default' })
