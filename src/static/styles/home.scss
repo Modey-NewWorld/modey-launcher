@@ -911,8 +911,8 @@
     }
 
     .athena-status-sidebar {
-      width: 360px;
-      min-width: 360px;
+      width: 460px;
+      min-width: 460px;
       flex-shrink: 0;
     }
   }
@@ -1103,11 +1103,11 @@
 /* --- Carte découverte (Free Build) : fixée en bas de page --- */
 .modey-discovery {
   flex-shrink: 0;
-  background: #f4f6fb;
-  margin: 0 -28px 0 -28px;
-  padding: 10px 28px 16px 28px;
-  border-top: 1px solid #e6eaf2;
-  box-shadow: 0 -8px 20px rgba(30, 50, 100, 0.06);
+  background: transparent;
+  margin: 16px 0 0 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .discovery-card {
@@ -1179,8 +1179,10 @@
   }
 
   .modey-discovery {
-    margin: 0 -18px 0 -18px;
-    padding: 10px 18px 14px 18px;
+    margin: 16px 0 0 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
   }
 
   .modey-hero {
@@ -1266,8 +1268,10 @@
   }
 
   .modey-discovery {
-    margin: 0 -14px 0 -14px;
-    padding: 8px 14px 12px 14px;
+    margin: 16px 0 0 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
   }
 
   .modey-hero {
