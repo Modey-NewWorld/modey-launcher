@@ -1,0 +1,198 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  outline: none;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-base);
+  background-position: center;
+  background-size: cover;
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+  }
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.app-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(240, 244, 248, 0.55);
+    backdrop-filter: blur(6px);
+  }
+}
+
+/* --- Views Management --- */
+.view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+
+  &.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  &.overlay {
+    background: rgba(15, 25, 50, 0.55);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+/* --- GLOBAL BUTTON SYSTEM --- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 20px;
+
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+
+  border-radius: var(--btn-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  user-select: none;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Primary Button (Bleu Modey) */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px var(--primary-glow);
+
+  &:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px var(--primary-glow);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+/* Secondary Button (Light/Glass) */
+.btn-secondary {
+  background: rgba(30, 136, 229, 0.06);
+  border: 1px solid rgba(30, 136, 229, 0.2);
+  color: var(--text-secondary);
+
+  &:hover:not(:disabled) {
+    background: rgba(30, 136, 229, 0.12);
+    border-color: rgba(30, 136, 229, 0.4);
+    color: var(--primary);
+    text-decoration: none;
+  }
+}
+
+/* Danger Button (Red) */
+.btn-danger {
+  background: rgba(211, 47, 47, 0.08);
+  border: 1px solid rgba(211, 47, 47, 0.3);
+  color: #C62828;
+
+  &:hover:not(:disabled) {
+    background: rgba(211, 47, 47, 0.15);
+    border-color: #D32F2F;
+  }
+}
+
+/* Icon Button (Square/Round for icons only) */
+.btn-icon-only {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+
+  &:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+    text-decoration: none;
+  }
+}
+
+/* Link Button (Looks like text, behaves like button) */
+.btn-text {
+  background: transparent;
+  padding: 5px 10px;
+  color: var(--text-muted);
+
+  &:hover {
+    color: var(--primary);
+    background: var(--primary-light);
+  }
+}
+
+/* Brand Button: Microsoft */
+.btn-microsoft {
+  background: #F5F5F5;
+  color: #333;
+  border: 1px solid #DDD;
+  width: 100%;
+
+  &:hover {
+    background: #EBEBEB;
+    border-color: #CCC;
+  }
+}
