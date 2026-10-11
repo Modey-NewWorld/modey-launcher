@@ -822,12 +822,13 @@
 
 /* --- Athena Status Sidebar (Home page, right of hero) --- */
 .athena-status-sidebar {
-  width: 280px;
-  min-width: 280px;
-  flex-shrink: 0;
-}
+    width: 280px;
+    min-width: 280px;
+    flex-shrink: 0;
+    display: none;
+  }
 
-.athena-status-card {
+  .athena-status-card {
   background: #ffffff;
   border: 1px solid #e6eaf2;
   border-radius: 14px;
@@ -896,14 +897,39 @@
     color: #8a97ad;
     text-align: center;
   }
-}
-
-@media (max-width: 1200px) {
-  .athena-status-sidebar {
-    display: none;
   }
-}
-.modey-news,
+
+  /* Hero + Athena status sidebar side by side */
+  .hero-with-status {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+
+    .modey-hero {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .athena-status-sidebar {
+      width: 280px;
+      min-width: 280px;
+      flex-shrink: 0;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .athena-status-sidebar {
+      display: none;
+    }
+
+    .hero-with-status {
+      .modey-hero {
+        width: 100%;
+      }
+    }
+  }
+
+  .modey-news,
 .modey-discovery {
   h3 {
     font-size: 15px;
