@@ -70,48 +70,7 @@ async function initUIListeners() {
     }
   })
 
-  // Bouton "Changer de compte" → renvoie vers la page de login
-  const changeAccountBtn = document.getElementById('btn-change-account')
-  changeAccountBtn?.addEventListener('click', () => {
-    closeOverlay('settings')
-    setView('login')
-  })
-
-  // Afficher la liste des comptes enregistrés dans l'onglet Account
-  const savedAccountsList = document.getElementById('saved-accounts-list')
-  if (savedAccountsList) {
-    try {
-      const accounts = await auth.listAccounts()
-      savedAccountsList.innerHTML = ''
-      if (accounts.length === 0) {
-        savedAccountsList.innerHTML = '<p style="font-size:12px;color:rgba(255,255,255,0.3);">Aucun compte enregistré.</p>'
-      } else {
-        accounts.forEach((acc) => {
-          const row = document.createElement('div')
-          row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;background:rgba(255,255,255,0.05);margin-bottom:6px;'
-
-          const info = document.createElement('div')
-          info.innerHTML = `<span style="font-size:13px;font-weight:500;">${acc.name}</span>${acc.email ? `<br><span style="font-size:10px;color:rgba(255,255,255,0.35);">${acc.email}</span>` : ''}`
-
-          const removeBtn = document.createElement('button')
-          removeBtn.className = 'btn btn-danger'
-          removeBtn.style.cssText = 'padding:4px 10px;font-size:11px;'
-          removeBtn.innerHTML = '<i class="fa-solid fa-trash"></i>'
-          removeBtn.title = `Supprimer le compte ${acc.name}`
-          removeBtn.addEventListener('click', async () => {
-            await auth.removeAccount(acc.name)
-            row.remove()
-          })
-
-          row.appendChild(info)
-          row.appendChild(removeBtn)
-          savedAccountsList.appendChild(row)
-        })
-      }
-    } catch (err) {
-      console.warn('Impossible de charger les comptes :', err)
-    }
-  }
+  // Compte unique Modey : pas de changement de compte, pas de liste de comptes.
 
   addSkinUrlBtn?.addEventListener('click', () => {
     addSkinUrlBtn!.classList.add('active')

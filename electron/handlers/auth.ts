@@ -90,7 +90,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         fs.writeFileSync(sessionPath, JSON.stringify(account))
         saveAccount(account.name, account.uuid, data.user?.email)
 
-        logger.info(`Connexion sécurisée validée pour le citoyen : ${account.name}`)
+        logger.info(`Connexion sécurisée validée pour le joueur : ${account.name}`)
         return { success: true, account } as IAuthResponse
       } catch (apiErr) {
         logger.error('Serveur Modey Auth injoignable :', apiErr)
@@ -105,7 +105,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
     }
   })
 
-  // Inscription personnalisée (Création d'un nouveau compte citoyen)
+  // Inscription personnalisée (Création d'un nouveau compte joueur)
   ipcMain.handle('auth:register-custom', async (_event, payload: { email: string; username: string; password: string }) => {
     try {
       const resp = await fetch(`${AUTH_API_URL}/api/auth/register`, {
@@ -206,7 +206,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
 
         // Si c'est un ancien compte hors-ligne / crack, on ne le restaure pas automatiquement
         if ((savedSession.meta as any)?.type === 'crack') {
-          return { success: false, error: 'Compte local non authentifié. Veuillez vous connecter avec votre compte citoyen Modey.' } as any
+          return { success: false, error: 'Compte local non authentifié. Veuillez vous connecter avec votre compte joueur Modey.' } as any
         }
 
         // Si c'est un compte Microsoft

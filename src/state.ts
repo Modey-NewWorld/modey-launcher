@@ -100,13 +100,13 @@ function getAccountIcon(type: 'msa' | 'yggdrasil' | 'azuriom' | 'crack') {
     case 'msa':
       return '<i class="fa-brands fa-microsoft"></i>&nbsp;&nbsp;Compte Microsoft'
     case 'yggdrasil':
-      return '<i class="fa-solid fa-user"></i>&nbsp;&nbsp;Compte Yggdrasil'
+      return '<i class="fa-solid fa-user"></i>&nbsp;&nbsp;Compte Modey'
     case 'azuriom':
       return '<i class="fa-solid fa-globe"></i>&nbsp;&nbsp;Compte Azuriom'
     case 'crack':
-      return '<i class="fa-solid fa-city"></i>&nbsp;&nbsp;Citoyen Athéna — Modey'
+      return '<i class="fa-solid fa-user"></i>&nbsp;&nbsp;Compte local'
     default:
-      return '<i class="fa-solid fa-user"></i>&nbsp;&nbsp;Citoyen Athéna'
+      return '<i class="fa-solid fa-user"></i>&nbsp;&nbsp;Compte Modey'
   }
 }
 

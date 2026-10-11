@@ -4,6 +4,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import logger from 'electron-log/renderer'
 import profileConfig from '../../config/athena-profile.json'
+import freeBuildConfig from '../../config/free-build-profile.json'
 import { Dialog } from './dialog'
 
 marked.use({
@@ -55,6 +56,11 @@ export function initHome() {
   let totalToDownload = 0
   let totalDownloadedByType: { type: string; size: number }[] = []
 
+  // Un profil est "bientôt dispo" quand l'AdminTool ne lui a pas encore
+  // assigné d'IP/port (serveur non actif) ou slug free-build explicite.
+  const isComingSoonProfile = (profile: any) =>
+    !profile || profile.slug === freeBuildConfig.slug || !profile.ip || !profile.port
+
   const loadProfiles = async () => {
     allProfiles = (await profiles.get()) || []
     if (allProfiles.length > 0) {
@@ -89,6 +95,7 @@ export function initHome() {
     selectedProfile = profile
     if (currentProfileName) currentProfileName.innerText = profile.name
     renderDropdown()
+    renderProfileInfo()
     updateServerStatus()
   }
 
@@ -97,7 +104,76 @@ export function initHome() {
     port: selectedProfile?.port || profileConfig.server.port
   })
 
+  const renderProfileInfo = () => {
+    const card = document.getElementById('profile-info-card')
+    const play = document.getElementById('btn-play') as HTMLButtonElement | null
+    if (!card) return
+
+    if (isComingSoonProfile(selectedProfile)) {
+      const features = (freeBuildConfig.teaser.features as { icon: string; title: string; text: string }[])
+        .map(
+          (f) => `
+        <div class="freebuild-feature">
+          <i class="fa-solid ${f.icon} fa-fw"></i>
+          <div><strong>${f.title}</strong><span>${f.text}</span></div>
+        </div>`
+        )
+        .join('')
+
+      card.innerHTML = `
+        <div class="coming-soon-badge"><i class="fa-solid fa-hourglass-half"></i> ${freeBuildConfig.statusLabel}</div>
+        <h4><i class="fa-solid fa-cubes"></i> ${freeBuildConfig.teaser.headline}</h4>
+        <p class="freebuild-desc">${freeBuildConfig.teaser.description}</p>
+        <div class="freebuild-features">${features}</div>
+        <p class="freebuild-cta">${freeBuildConfig.teaser.cta}</p>
+        <div class="freebuild-meta">
+          <span><i class="fa-solid fa-cube fa-fw"></i> Minecraft ${freeBuildConfig.minecraftVersion}</span>
+          <span><i class="fa-solid fa-microchip fa-fw"></i> NeoForge ${freeBuildConfig.modLoader.version}</span>
+        </div>`
+
+      if (play) {
+        play.setAttribute('disabled', 'true')
+        play.classList.add('btn-disabled')
+        play.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Bientôt disponible'
+      }
+      return
+    }
+
+    // Profil actif (Athéna par défaut)
+    card.innerHTML = `
+      <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--color-primary, #1e88e5); display:flex; align-items:center; gap:6px;">
+        <i class="fa-solid fa-landmark"></i> Cité d'Athéna
+      </h4>
+      <p style="margin: 0; font-size: 11.5px; color: #666; line-height: 1.4;">
+        Monde communautaire & vivant de l'écosystème Modey.
+      </p>
+      <div style="margin-top: 10px; font-size: 11px; color: #888; display:flex; flex-direction:column; gap:4px;">
+        <span><i class="fa-solid fa-cube fa-fw"></i> Minecraft 1.21.1</span>
+        <span><i class="fa-solid fa-microchip fa-fw"></i> NeoForge 21.1.169</span>
+      </div>`
+
+    if (play) {
+      play.removeAttribute('disabled')
+      play.classList.remove('btn-disabled')
+      play.innerHTML = '<i class="fa-solid fa-play"></i> Jouer à Athéna'
+      if (selectedProfile && selectedProfile.name !== 'Athéna') {
+        play.innerHTML = `<i class="fa-solid fa-play"></i> Jouer à ${selectedProfile.name}`
+      }
+    }
+  }
+
   const updateServerStatus = async () => {
+    // Profil "bientôt" : pas de ping, on affiche directement non actif.
+    if (isComingSoonProfile(selectedProfile)) {
+      if (statusDot) {
+        statusDot.classList.remove('pinging', 'online')
+        statusDot.classList.add('offline')
+      }
+      if (statusText) statusText.innerHTML = freeBuildConfig.statusLabel
+      if (playerCount) playerCount.innerHTML = ''
+      return
+    }
+
     if (statusDot) {
       statusDot.classList.remove('online', 'offline')
       statusDot.classList.add('pinging')
@@ -116,7 +192,9 @@ export function initHome() {
       if (statusText) statusText.innerHTML = 'En ligne'
 
       if (playerCount) {
-        playerCount.innerHTML = `<i class="fa-fw fa-solid fa-users"></i>&nbsp;&nbsp;${status.players.online.toLocaleString()} / ${status.players.max.toLocaleString()} citoyens`
+        const isAthena = !selectedProfile || selectedProfile.slug === 'athena'
+        const occupantLabel = isAthena ? 'citoyens' : 'joueurs'
+        playerCount.innerHTML = `<i class="fa-fw fa-solid fa-users"></i>&nbsp;&nbsp;${status.players.online.toLocaleString()} / ${status.players.max.toLocaleString()} ${occupantLabel}`
       }
     } else {
       if (statusDot) {
@@ -201,6 +279,14 @@ export function initHome() {
   })
 
   playBtn?.addEventListener('click', async () => {
+    if (isComingSoonProfile(selectedProfile)) {
+      await Dialog.show(
+        `${freeBuildConfig.teaser.headline}.\n\n${freeBuildConfig.teaser.description}\n\nCe qu'il proposera :\n${(freeBuildConfig.teaser.features as { title: string; text: string }[]).map((f) => `• ${f.title} : ${f.text}`).join('\n')}`,
+        [{ text: 'Compris', type: 'ok' }]
+      )
+      return
+    }
+
     setIndeterminate(true)
     if (playBtn) playBtn.style.display = 'none'
     if (progressContainer) progressContainer.classList.remove('hidden')

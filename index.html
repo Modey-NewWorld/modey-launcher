@@ -103,6 +103,7 @@
           <img src="/src/static/images/logo.png" class="logo" alt="Logo" />
           <h1>Athéna — Modey</h1>
           <p class="subtitle">Identifiez-vous pour entrer dans la cité.</p>
+          <p style="font-size:11px;color:rgba(255,255,255,0.45);margin:-8px 0 16px 0;"><i class="fa-solid fa-server"></i>&nbsp;Serveur Modey — service compte</p>
 
           <div class="auth-tabs" style="display:flex;gap:8px;margin-bottom:16px;">
             <button type="button" id="tab-auth-login" class="btn btn-secondary active" style="flex:1;padding:8px;font-size:12px;font-weight:600;">Se connecter</button>
@@ -110,22 +111,15 @@
           </div>
 
           <form id="form-login-custom" class="login-custom-form">
-            <div id="account-selector-wrapper" class="input-group" style="display: none;">
-              <label for="select-saved-account"><i class="fa-solid fa-users"></i> Comptes enregistrés</label>
-              <select id="select-saved-account" class="input-field">
-                <option value="">-- Sélectionner un compte --</option>
-              </select>
-            </div>
-
             <div class="input-group" id="group-email" style="display:none;">
               <label for="input-email"><i class="fa-solid fa-envelope"></i> Adresse Email</label>
-              <input type="email" id="input-email" class="input-field" placeholder="citoyen@modey.net" autocomplete="off" />
+              <input type="email" id="input-email" class="input-field" placeholder="joueur@modey.net" autocomplete="off" />
             </div>
 
             <div class="input-group" id="group-username">
               <label for="input-username" id="label-username"><i class="fa-solid fa-user"></i> Pseudo ou Email</label>
               <input type="text" id="input-username" class="input-field" placeholder="Votre pseudo ou email" required minlength="3" maxlength="32" autocomplete="off" />
-              <small class="input-hint" id="username-hint">Votre pseudo unique de citoyen</small>
+              <small class="input-hint" id="username-hint">Votre pseudo unique de joueur</small>
             </div>
 
             <div class="input-group" id="group-password">
@@ -137,16 +131,12 @@
               <i class="fa-solid fa-right-to-bracket"></i>
               <span id="btn-submit-text">Se connecter à Athéna</span>
             </button>
+
+            <button type="button" id="btn-forgot-password" class="btn btn-secondary" disabled title="Bientôt disponible" style="width:100%;margin-top:8px;opacity:0.5;cursor:not-allowed;">
+              <i class="fa-solid fa-key"></i>
+              <span>Mot de passe oublié</span>
+            </button>
           </form>
-
-          <div class="login-divider">
-            <span>OU</span>
-          </div>
-
-          <button id="btn-login-ms" class="btn btn-secondary btn-ms-optional">
-            <i class="fa-brands fa-microsoft"></i>
-            <span>Connexion Microsoft (optionnel)</span>
-          </button>
 
           <div class="login-footer">
             <small>Serveur communautaire <strong>Athéna</strong> • Écosystème Modey</small>
@@ -170,7 +160,7 @@
           </div>
 
           <div class="sidebar-middle">
-            <div style="background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 14px; margin-top: 10px;">
+            <div id="profile-info-card" style="background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 14px; margin-top: 10px;">
               <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--color-primary, #1e88e5); display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-landmark"></i> Cité d'Athéna
               </h4>
@@ -346,7 +336,7 @@
             </section>
 
             <section id="tab-account" class="tab-content">
-              <h3>Gestion du compte citoyen</h3>
+              <h3>Gestion du compte joueur</h3>
 
               <div class="account-card">
                 <div class="account-header">
@@ -355,25 +345,17 @@
                     <span class="account-name" id="settings-user-name"></span>
                     <span class="account-uuid" id="settings-user-uuid">UUID: ...</span>
                     <span class="account-type" id="settings-user-type">
-                      <i class="fa-solid fa-city"></i>&nbsp;&nbsp;Citoyen Athéna — Modey
+                      <i class="fa-solid fa-user"></i>&nbsp;&nbsp;Compte Modey
                     </span>
                     <span class="account-email" id="settings-user-email" style="display:none;font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;"></span>
                   </div>
                 </div>
 
                 <div class="account-actions">
-                  <button id="btn-change-account" class="btn btn-secondary">
-                    <i class="fa-fw fa-solid fa-right-left"></i><span>Changer de compte</span>
-                  </button>
                   <button id="btn-logout" class="btn btn-danger">
                     <i class="fa-fw fa-solid fa-right-from-bracket"></i><span>Se déconnecter</span>
                   </button>
                 </div>
-              </div>
-
-              <div class="account-list-section" style="margin-top:20px;">
-                <h4 style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">Comptes enregistrés</h4>
-                <div id="saved-accounts-list" class="saved-accounts-list"></div>
               </div>
             </section>
           </main>
