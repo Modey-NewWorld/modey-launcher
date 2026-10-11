@@ -437,6 +437,7 @@ export function initHome() {
     if (accueilMain) accueilMain.style.display = 'flex'
     if (serversPage) serversPage.style.display = 'none'
     if (profilePage) profilePage.style.display = 'none'
+    if (settingsPage) settingsPage.style.display = 'none'
   }
 
   const showServers = () => {
@@ -444,6 +445,7 @@ export function initHome() {
     if (accueilMain) accueilMain.style.display = 'none'
     if (serversPage) serversPage.style.display = 'flex'
     if (profilePage) profilePage.style.display = 'none'
+    if (settingsPage) settingsPage.style.display = 'none'
     refreshAthenaCard()
   }
 
