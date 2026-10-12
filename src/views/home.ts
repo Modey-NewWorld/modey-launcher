@@ -58,7 +58,7 @@ export function initHome() {
   const athenaReputation = document.getElementById('athena-reputation')
   const athenaLastseen = document.getElementById('athena-lastseen')
   const profileScroll = document.getElementById('profile-scroll')
-  const serverSearch = document.getElementById('server-search') as HTMLInputElement | null
+  
   const serversFilters = document.getElementById('servers-filters')
   const srvStatusBadge = document.getElementById('srv-status-badge')
   const srvPing = document.getElementById('srv-ping')
@@ -499,14 +499,11 @@ export function initHome() {
   let activeFilter = 'tous'
 
   const applyServersFilter = () => {
-    const q = (serverSearch?.value || '').toLowerCase().trim()
     document.querySelectorAll('.servers-grid .server-card').forEach((card) => {
       const el = card as HTMLElement
       const tags = (el.dataset.tags || '').toLowerCase()
-      const name = (el.dataset.name || '').toLowerCase()
       const okFilter = activeFilter === 'tous' || tags.includes(activeFilter)
-      const okSearch = !q || name.includes(q)
-      el.style.display = okFilter && okSearch ? '' : 'none'
+      el.style.display = okFilter ? '' : 'none'
     })
   }
 
@@ -607,7 +604,7 @@ export function initHome() {
   })
   document.getElementById('btn-notify-servers')?.addEventListener('click', markNotified)
 
-  serverSearch?.addEventListener('input', applyServersFilter)
+  
   serversFilters?.querySelectorAll('.filter-pill[data-filter]').forEach((btn) => {
     btn.addEventListener('click', () => {
       serversFilters.querySelectorAll('.filter-pill').forEach((b) => b.classList.remove('active'))
