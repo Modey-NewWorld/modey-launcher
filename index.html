@@ -315,18 +315,8 @@
               </div>
             </header>
 
-            <div class="servers-toolbar">
-              <div class="servers-filters" id="servers-filters">
-                <button class="filter-pill active" data-filter="tous">Tous</button>
-                <button class="filter-pill" data-filter="survie">Survie</button>
-                <button class="filter-pill" data-filter="villes">Villes</button>
-                <button class="filter-pill" data-filter="aventure">Aventure</button>
-                <button class="filter-pill filter-icon" title="Plus de filtres"><i class="fa-solid fa-sliders"></i></button>
-              </div>
-            </div>
-
             <div class="servers-grid">
-              <article class="server-card" id="server-card-athena" data-tags="survie villes aventure communaute economie" data-name="athena monde principal">
+              <article class="server-card" id="server-card-athena">
                 <div class="server-banner">
                   <span class="hero-badge server-avail" id="srv-status-badge"><span class="status-dot pinging"></span>&nbsp;Vérification...</span>
                   <span class="hero-badge server-official-tag">Serveur Officiel</span>
@@ -343,11 +333,17 @@
                 </div>
                 <div class="server-body">
                   <p class="server-desc">Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.</p>
+                  <div class="server-specs">
+                    <div class="server-spec"><span>Version</span><strong>1.21.1</strong></div>
+                    <div class="server-spec"><span>Modloader</span><strong>NeoForge 21.1.169</strong></div>
+                    <div class="server-spec"><span>Localisation</span><strong>Europe (FR)</strong></div>
+                    <div class="server-spec"><span>Rendu</span><strong>Shaders intégrés</strong></div>
+                  </div>
                   <div class="server-tags">
                     <span>Survie</span><span>Villes</span><span>Aventure</span><span>Communauté</span><span><i class="fa-solid fa-bolt"></i>&nbsp;Économie dynamique</span>
                   </div>
                   <div class="server-foot">
-                    <span class="server-opt"><i class="fa-solid fa-circle-check"></i>&nbsp;Optimisé pour Modey Engine • Shaders intégrés</span>
+                    <span class="server-opt"><i class="fa-solid fa-circle-check"></i>&nbsp;Optimisé pour Modey Engine</span>
                     <div class="server-actions">
                       <button class="srv-btn srv-discover" id="btn-srv-discover"><i class="fa-solid fa-circle-info"></i>&nbsp;Découvrir</button>
                       <button class="srv-btn srv-select" id="btn-srv-select"><i class="fa-solid fa-check"></i>&nbsp;Sélectionner</button>
@@ -356,7 +352,7 @@
                 </div>
               </article>
 
-              <aside class="server-soon" id="server-card-freebuild" data-name="free build creatif bac a sable">
+              <aside class="server-soon" id="server-card-freebuild">
                 <div class="soon-top">
                   <span class="soon-pill">Arrive bientôt</span>
                   <i class="fa-solid fa-rocket soon-rocket"></i>
@@ -366,8 +362,11 @@
                   <strong>Free Build</strong>
                   <span class="soon-visual-sub">Créatif • En développement</span>
                 </div>
-                <h3>Free Build arrive bientôt</h3>
-                <p>Le bac à sable créatif de Modey n'est pas encore actif. Sélectionne-le pour découvrir ce qu'il proposera et être prêt le jour J.</p>
+                <div class="soon-specs">
+                  <div class="server-spec"><span>Version</span><strong>1.21.1</strong></div>
+                  <div class="server-spec"><span>Mode</span><strong>Créatif libre</strong></div>
+                </div>
+                <p>Le bac à sable créatif de Modey n'est pas encore actif. Sélectionne-le pour être prêt le jour J.</p>
                 <ul class="soon-checks">
                   <li><i class="fa-solid fa-cubes"></i>&nbsp;Monde créatif libre, sans limites</li>
                   <li><i class="fa-solid fa-users"></i>&nbsp;Ouvert à tous les joueurs Modey</li>

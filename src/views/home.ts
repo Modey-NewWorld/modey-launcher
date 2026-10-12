@@ -59,7 +59,6 @@ export function initHome() {
   const athenaLastseen = document.getElementById('athena-lastseen')
   const profileScroll = document.getElementById('profile-scroll')
   
-  const serversFilters = document.getElementById('servers-filters')
   const srvStatusBadge = document.getElementById('srv-status-badge')
   const srvPing = document.getElementById('srv-ping')
   const srvPlayers = document.getElementById('srv-players')
@@ -496,17 +495,6 @@ export function initHome() {
     document.querySelectorAll('.modey-nav-item').forEach((el) => el.classList.remove('active'))
   }
 
-  let activeFilter = 'tous'
-
-  const applyServersFilter = () => {
-    document.querySelectorAll('.servers-grid .server-card').forEach((card) => {
-      const el = card as HTMLElement
-      const tags = (el.dataset.tags || '').toLowerCase()
-      const okFilter = activeFilter === 'tous' || tags.includes(activeFilter)
-      el.style.display = okFilter ? '' : 'none'
-    })
-  }
-
   navHome?.addEventListener('click', () => {
     showAccueil()
     modeyScroll?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -603,16 +591,6 @@ export function initHome() {
     modeyScroll?.scrollTo({ top: 0, behavior: 'smooth' })
   })
   document.getElementById('btn-notify-servers')?.addEventListener('click', markNotified)
-
-  
-  serversFilters?.querySelectorAll('.filter-pill[data-filter]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      serversFilters.querySelectorAll('.filter-pill').forEach((b) => b.classList.remove('active'))
-      btn.classList.add('active')
-      activeFilter = (btn as HTMLElement).dataset.filter || 'tous'
-      applyServersFilter()
-    })
-  })
 
   document.getElementById('btn-refresh-athena-sidebar')?.addEventListener('click', async () => {
     updateAthenaSidebar()
