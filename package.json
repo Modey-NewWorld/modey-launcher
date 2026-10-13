@@ -1,7 +1,7 @@
 {
   "name": "modey-athena-launcher",
   "productName": "Modey Launcher — Athéna",
-  "author": "Modey Project",
+  "author": "FlowCreativeStudio",
   "description": "Launcher officiel du serveur Minecraft Athéna (Modey)",
   "private": true,
   "version": "1.0.0",
@@ -17,7 +17,7 @@
   "build": {
     "appId": "net.modey.athena.launcher",
     "productName": "Modey Launcher — Athéna",
-    "copyright": "Copyright © 2026 Modey Project",
+    "copyright": "Copyright © 2026 FlowCreativeStudio",
     "directories": {
       "output": "release",
       "buildResources": "build"

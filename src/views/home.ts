@@ -86,10 +86,17 @@ export function initHome() {
   let newsFeed: any[] = []
   let notified = false
 
-  // Un profil est "bientôt dispo" quand l'AdminTool ne lui a pas encore
-  // assigné d'IP/port (serveur non actif) ou slug free-build explicite.
-  const isComingSoonProfile = (profile: any) =>
-    !profile || profile.slug === freeBuildConfig.slug || !profile.ip || !profile.port
+  // Un profil est en travaux, bientôt disponible ou désactivé selon les flags Modey ou l'AdminTool
+  const getProfileModeyStatus = (profile: any): 'live' | 'maintenance' | 'comingSoon' | 'disabled' => {
+    if (!profile) return 'disabled'
+    if (profile.modey?.status) return profile.modey.status
+    if (profile.slug === freeBuildConfig.slug || !profile.ip || !profile.port) return 'comingSoon'
+    return 'live'
+  }
+
+  const isComingSoonProfile = (profile: any) => getProfileModeyStatus(profile) === 'comingSoon'
+  const isMaintenanceProfile = (profile: any) => getProfileModeyStatus(profile) === 'maintenance'
+  const isDisabledProfile = (profile: any) => getProfileModeyStatus(profile) === 'disabled' || profile.modey?.enabled === false
 
   const isAthenaProfile = (profile: any) => !profile || profile.slug === 'athena'
 
@@ -170,35 +177,71 @@ export function initHome() {
   const ATHENA_TAGS = ['Survie RP', 'Économie', 'Villes & Métropoles', 'Quêtes scénarisées']
 
   const renderHero = () => {
-    const comingSoon = isComingSoonProfile(selectedProfile)
-    const playLabel = comingSoon ? 'Bientôt disponible' : `Jouer à ${selectedProfile?.name ?? 'Athéna'}`
-    const playIcon = comingSoon ? 'fa-hourglass-half' : 'fa-play'
+    const isSoon = isComingSoonProfile(selectedProfile)
+    const isMaint = isMaintenanceProfile(selectedProfile)
+    const isDisabled = isDisabledProfile(selectedProfile)
+
+    const isBlocked = isSoon || isMaint || isDisabled
+
+    let playLabel = `Jouer à ${selectedProfile?.name ?? 'Athéna'}`
+    let playIcon = 'fa-play'
+    if (isSoon) {
+      playLabel = 'Bientôt disponible'
+      playIcon = 'fa-hourglass-half'
+    } else if (isMaint) {
+      playLabel = 'En maintenance'
+      playIcon = 'fa-wrench'
+    } else if (isDisabled) {
+      playLabel = 'Serveur désactivé'
+      playIcon = 'fa-ban'
+    }
+
     const heroVersion = document.getElementById('hero-version')
 
     if (heroVersion) {
-      const mc = comingSoon ? freeBuildConfig.minecraftVersion : profileConfig.minecraftVersion
-      const loader = comingSoon ? freeBuildConfig.modLoader.version : profileConfig.modLoader.version
+      const mc = isSoon ? freeBuildConfig.minecraftVersion : profileConfig.minecraftVersion
+      const loader = isSoon ? freeBuildConfig.modLoader.version : profileConfig.modLoader.version
       heroVersion.innerHTML = `<i class="fa-solid fa-cube"></i>&nbsp;Minecraft ${mc} • NeoForge ${loader}`
     }
 
-    if (heroTitle) heroTitle.innerText = comingSoon ? 'Free Build' : (selectedProfile?.name ?? 'Athéna')
-    if (heroDesc) heroDesc.innerText = comingSoon ? freeBuildConfig.teaser.description : 'Un monde vivant. Des villes à construire. Une aventure à partager.'
-    if (heroTags) {
-      const tags = comingSoon
-        ? (freeBuildConfig.teaser.features as { title: string }[]).map((f) => f.title)
-        : ATHENA_TAGS
-      heroTags.innerHTML = tags.map((t) => `<span class="hero-tag">${t}</span>`).join('')
+    if (heroTitle) heroTitle.innerText = selectedProfile?.name ?? (isSoon ? 'Free Build' : 'Athéna')
+    
+    // Description issue de l'admin Modey ou fallback
+    const customDesc = selectedProfile?.modey?.teaser?.description
+    if (heroDesc) {
+      if (customDesc) {
+        heroDesc.innerText = customDesc
+      } else if (isSoon) {
+        heroDesc.innerText = freeBuildConfig.teaser.description
+      } else {
+        heroDesc.innerText = 'Un monde vivant. Des villes à construire. Une aventure à partager.'
+      }
     }
+
+    if (heroTags) {
+      const modeyTags = selectedProfile?.modey?.tags
+      const tags = (modeyTags && modeyTags.length > 0)
+        ? modeyTags
+        : (isSoon ? (freeBuildConfig.teaser.features as { title: string }[]).map((f) => f.title) : ATHENA_TAGS)
+      heroTags.innerHTML = tags.map((t: string) => `<span class="hero-tag">${t}</span>`).join('')
+    }
+
     if (heroFoot) {
-      heroFoot.innerHTML = comingSoon
-        ? `<i class="fa-solid fa-hourglass-half"></i>&nbsp;${freeBuildConfig.statusLabel} • Minecraft ${freeBuildConfig.minecraftVersion}`
-        : `<i class="fa-solid fa-circle-check"></i>&nbsp;Prêt au lancement • Dernière version installée`
+      if (isMaint) {
+        heroFoot.innerHTML = `<i class="fa-solid fa-wrench" style="color:#f59e0b"></i>&nbsp;${selectedProfile?.modey?.maintenanceMessage || 'Maintenance technique en cours'}`
+      } else if (isSoon) {
+        heroFoot.innerHTML = `<i class="fa-solid fa-hourglass-half"></i>&nbsp;${freeBuildConfig.statusLabel} • Minecraft ${freeBuildConfig.minecraftVersion}`
+      } else if (isDisabled) {
+        heroFoot.innerHTML = `<i class="fa-solid fa-ban" style="color:#ef4444"></i>&nbsp;Lancement désactivé par l'administration`
+      } else {
+        heroFoot.innerHTML = `<i class="fa-solid fa-circle-check"></i>&nbsp;Prêt au lancement • Dernière version installée`
+      }
     }
 
     for (const btn of [playBtn, playHeroBtn]) {
       const b = btn as HTMLButtonElement | null
       if (!b) continue
-      if (comingSoon) {
+      if (isBlocked) {
         b.setAttribute('disabled', 'true')
         b.classList.add('btn-disabled')
       } else {
@@ -206,7 +249,7 @@ export function initHome() {
         b.classList.remove('btn-disabled')
       }
     }
-    if (playBtn) playBtn.innerHTML = `<i class="fa-solid fa-play"></i><span>${playLabel}</span>`
+    if (playBtn) playBtn.innerHTML = `<i class="fa-solid ${playIcon}"></i><span>${playLabel}</span>`
     if (playHeroBtn) playHeroBtn.innerHTML = `<i class="fa-solid ${playIcon}"></i>&nbsp;&nbsp;${playLabel}`
   }
 
@@ -309,6 +352,18 @@ export function initHome() {
       if (statusText) statusText.innerHTML = 'Hors ligne'
       if (playerCount) playerCount.innerHTML = ''
       if (chipPing) chipPing.innerHTML = '<span class="modey-ping-dot" style="background:#e53935"></span>&nbsp;Ping moyen: <strong>&nbsp;—</strong>'
+
+      // Si le serveur est hors-ligne et que l'option d'auto-blocage est activée
+      if (selectedProfile?.modey?.autoBlockIfOffline) {
+        for (const btn of [playBtn, playHeroBtn]) {
+          const b = btn as HTMLButtonElement | null
+          if (!b) continue
+          b.setAttribute('disabled', 'true')
+          b.classList.add('btn-disabled')
+        }
+        if (playBtn) playBtn.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><span>Serveur injoignable</span>`
+        if (playHeroBtn) playHeroBtn.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>&nbsp;&nbsp;Serveur injoignable`
+      }
     }
   }
 
