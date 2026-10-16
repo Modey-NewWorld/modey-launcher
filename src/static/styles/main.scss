@@ -16,6 +16,60 @@ body {
   overflow: hidden;
 }
 
+/* --- Titlebar custom (transparente, fondue avec la sidebar) --- */
+#titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: transparent;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 10000;
+  pointer-events: none;
+
+  .titlebar-drag {
+    flex: 1;
+    height: 100%;
+    -webkit-app-region: drag;
+  }
+
+  .titlebar-controls {
+    display: flex;
+    height: 100%;
+    pointer-events: all;
+    -webkit-app-region: no-drag;
+
+    .titlebar-btn {
+      width: 46px;
+      height: 100%;
+      border: none;
+      background: transparent;
+      color: #5b6b84;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s, color 0.12s;
+
+      &:hover {
+        background: rgba(30, 50, 100, 0.08);
+        color: #101b30;
+      }
+    }
+
+    .titlebar-close {
+      &:hover {
+        background: #e53935;
+        color: #ffffff;
+      }
+    }
+  }
+}
+
 a {
   color: var(--primary);
   text-decoration: none;
@@ -152,47 +206,5 @@ a {
   &:hover:not(:disabled) {
     background: rgba(211, 47, 47, 0.15);
     border-color: #D32F2F;
-  }
-}
-
-/* Icon Button (Square/Round for icons only) */
-.btn-icon-only {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid transparent;
-
-  &:hover {
-    background: var(--primary-light);
-    color: var(--primary);
-    text-decoration: none;
-  }
-}
-
-/* Link Button (Looks like text, behaves like button) */
-.btn-text {
-  background: transparent;
-  padding: 5px 10px;
-  color: var(--text-muted);
-
-  &:hover {
-    color: var(--primary);
-    background: var(--primary-light);
-  }
-}
-
-/* Brand Button: Microsoft */
-.btn-microsoft {
-  background: #F5F5F5;
-  color: #333;
-  border: 1px solid #DDD;
-  width: 100%;
-
-  &:hover {
-    background: #EBEBEB;
-    border-color: #CCC;
   }
 }

@@ -1,138 +1,113 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { IPC } from './ipc-channels'
 import type { IGameSettings, ISystemInfo } from './handlers/settings'
+import type { IFilesInfo, IInstanceInfo } from './handlers/files'
 import type { IAuthResponse } from './handlers/auth'
-import type {
-  Account,
-  BootstrapsEvents,
-  CleanerEvents,
-  DownloaderEvents,
-  FilesManagerEvents,
-  IAvatar,
-  IBackground,
-  IBootstraps,
-  ICape,
-  IMaintenance,
-  INews,
-  IServerStatus,
-  ISkin,
-  JavaEvents,
-  LauncherEvents,
-  PatcherEvents
-} from 'eml-lib'
+import type { Account, BootstrapsEvents, DownloaderEvents, IAvatar, IBackground, IBootstraps, ICape, IMaintenance, INews, IServerStatus, ISkin, LauncherEvents } from 'eml-lib'
 
 console.log('Preload script loaded')
 
 contextBridge.exposeInMainWorld('api', {
+  window: {
+    minimize: () => ipcRenderer.send(IPC.window.minimize),
+    maximize: () => ipcRenderer.send(IPC.window.maximize),
+    close: () => ipcRenderer.send(IPC.window.close),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke(IPC.window.isMaximized),
+    onMaximized: (callback: (maximized: boolean) => void) =>
+      ipcRenderer.on(IPC.window.maximized, (_event, maximized) => callback(maximized))
+  },
   auth: {
-    login: (): Promise<IAuthResponse> => ipcRenderer.invoke('auth:login'),
-    loginCustom: (identifier: string, password?: string): Promise<IAuthResponse> => ipcRenderer.invoke('auth:login-custom', identifier, password),
-    registerCustom: (payload: { email: string; username: string; password: string }): Promise<IAuthResponse> => ipcRenderer.invoke('auth:register-custom', payload),
-    listAccounts: (): Promise<any[]> => ipcRenderer.invoke('auth:list-accounts'),
-    removeAccount: (username: string): Promise<{ success: boolean }> => ipcRenderer.invoke('auth:remove-account', username),
-    refresh: (): Promise<IAuthResponse> => ipcRenderer.invoke('auth:refresh'),
-    logout: (): Promise<{ success: boolean }> => ipcRenderer.invoke('auth:logout')
+    loginCustom: (identifier: string, password?: string): Promise<IAuthResponse> =>
+      ipcRenderer.invoke(IPC.auth.loginCustom, identifier, password),
+    registerCustom: (payload: { email: string; username: string; password: string }): Promise<IAuthResponse> =>
+      ipcRenderer.invoke(IPC.auth.registerCustom, payload),
+    refresh: (): Promise<IAuthResponse> => ipcRenderer.invoke(IPC.auth.refresh),
+    logout: (): Promise<{ success: boolean }> => ipcRenderer.invoke(IPC.auth.logout)
   },
   profiles: {
-    get: (): Promise<any[]> => ipcRenderer.invoke('profiles:get')
+    get: (): Promise<any[]> => ipcRenderer.invoke(IPC.profiles.get)
   },
   game: {
     launch: (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number }) => {
-      ipcRenderer.invoke('game:launch', payload)
+      ipcRenderer.invoke(IPC.game.launch, payload)
     },
 
-    launchComputeDownload: (callback: () => void) => ipcRenderer.on('game:launch_compute_download', (_event) => callback()),
+    launchComputeDownload: (callback: () => void) => ipcRenderer.on(IPC.game.launchComputeDownload, (_event) => callback()),
 
     launchDownload: (callback: (value: LauncherEvents['launch_download'][0]) => void) =>
-      ipcRenderer.on('game:launch_download', (_event, value) => callback(value)),
+      ipcRenderer.on(IPC.game.launchDownload, (_event, value) => callback(value)),
     downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) =>
-      ipcRenderer.on('game:download_progress', (_event, value) => callback(value)),
-    downloadError: (callback: (value: DownloaderEvents['download_error'][0]) => void) =>
-      ipcRenderer.on('game:download_error', (_event, value) => callback(value)),
+      ipcRenderer.on(IPC.game.downloadProgress, (_event, value) => callback(value)),
     downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) =>
-      ipcRenderer.on('game:download_end', (_event, value) => callback(value)),
+      ipcRenderer.on(IPC.game.downloadEnd, (_event, value) => callback(value)),
 
     launchInstallLoader: (callback: (value: LauncherEvents['launch_install_loader'][0]) => void) =>
-      ipcRenderer.on('game:launch_install_loader', (_event, value) => callback(value)),
+      ipcRenderer.on(IPC.game.launchInstallLoader, (_event, value) => callback(value)),
 
-    launchExtractNatives: (callback: () => void) => ipcRenderer.on('game:launch_extract_natives', (_event) => callback()),
-    extractProgress: (callback: (value: FilesManagerEvents['extract_progress'][0]) => void) =>
-      ipcRenderer.on('game:extract_progress', (_event, value) => callback(value)),
-    extractEnd: (callback: (value: FilesManagerEvents['extract_end'][0]) => void) =>
-      ipcRenderer.on('game:extract_end', (_event, value) => callback(value)),
-    launchCopyAssets: (callback: () => void) => ipcRenderer.on('game:launch_copy_assets', (_event) => callback()),
-    copyProgress: (callback: (value: FilesManagerEvents['copy_progress'][0]) => void) =>
-      ipcRenderer.on('game:copy_progress', (_event, value) => callback(value)),
-    copyEnd: (callback: (value: FilesManagerEvents['copy_end'][0]) => void) => ipcRenderer.on('game:copy_end', (_event, value) => callback(value)),
-    launchPatchLoader: (callback: () => void) => ipcRenderer.on('game:launch_patch_loader', (_event) => callback()),
-    patchProgress: (callback: (value: PatcherEvents['patch_progress'][0]) => void) =>
-      ipcRenderer.on('game:patch_progress', (_event, value) => callback(value)),
-    patchError: (callback: (value: PatcherEvents['patch_error'][0]) => void) =>
-      ipcRenderer.on('game:patch_error', (_event, value) => callback(value)),
-    patchEnd: (callback: (value: PatcherEvents['patch_end'][0]) => void) => ipcRenderer.on('game:patch_end', (_event, value) => callback(value)),
-    launchCheckJava: (callback: () => void) => ipcRenderer.on('game:launch_check_java', (_event) => callback()),
-    javaInfo: (callback: (value: JavaEvents['java_info'][0]) => void) => ipcRenderer.on('game:java_info', (_event, value) => callback(value)),
+    launchExtractNatives: (callback: () => void) => ipcRenderer.on(IPC.game.launchExtractNatives, (_event) => callback()),
+    launchCopyAssets: (callback: () => void) => ipcRenderer.on(IPC.game.launchCopyAssets, (_event) => callback()),
+    launchPatchLoader: (callback: () => void) => ipcRenderer.on(IPC.game.launchPatchLoader, (_event) => callback()),
+    launchCheckJava: (callback: () => void) => ipcRenderer.on(IPC.game.launchCheckJava, (_event) => callback()),
 
-    launchClean: (callback: () => void) => ipcRenderer.on('game:launch_clean', (_event) => callback()),
-    cleanProgress: (callback: (value: CleanerEvents['clean_progress'][0]) => void) =>
-      ipcRenderer.on('game:clean_progress', (_event, value) => callback(value)),
-    cleanEnd: (callback: (value: CleanerEvents['clean_end'][0]) => void) => ipcRenderer.on('game:clean_end', (_event, value) => callback(value)),
+    launchClean: (callback: () => void) => ipcRenderer.on(IPC.game.launchClean, (_event) => callback()),
     launchLaunch: (callback: (value: LauncherEvents['launch_launch'][0]) => void) =>
-      ipcRenderer.on('game:launch_launch', (_event, value) => callback(value)),
-    launched: (callback: () => void) => ipcRenderer.on('game:launched', (_event) => callback()),
+      ipcRenderer.on(IPC.game.launchLaunch, (_event, value) => callback(value)),
+    launched: (callback: () => void) => ipcRenderer.on(IPC.game.launched, (_event) => callback()),
 
-    launchData: (callback: (value: LauncherEvents['launch_data'][0]) => void) =>
-      ipcRenderer.on('game:launch_data', (_event, value) => callback(value)),
-    launchClose: (callback: (value: any) => void) => ipcRenderer.on('game:launch_close', (_event, value) => callback(value)),
-    launchDebug: (callback: (value: LauncherEvents['launch_debug'][0]) => void) =>
-      ipcRenderer.on('game:launch_debug', (_event, value) => callback(value)),
-    patchDebug: (callback: (value: PatcherEvents['patch_debug'][0]) => void) => ipcRenderer.on('game:patch_debug', (_event, value) => callback(value)),
-    kill: (): Promise<{ success: boolean }> => ipcRenderer.invoke('game:kill')
+    launchClose: (callback: (value: number | null) => void) => ipcRenderer.on(IPC.game.launchClose, (_event, value) => callback(value))
   },
   skin: {
-    reload: (account: Account): Promise<void | null> => ipcRenderer.invoke('skin:reload', account),
-    getSkin: (account?: Account): Promise<ISkin[] | null> => ipcRenderer.invoke('skin:get_skin', account),
-    getCape: (account?: Account): Promise<ICape[] | null> => ipcRenderer.invoke('skin:get_cape', account),
-    getAvatar: (account?: Account): Promise<IAvatar | null> => ipcRenderer.invoke('skin:get_avatar', account),
-    updateSkin: (source: string | Blob, model?: 'classic' | 'slim'): Promise<ISkin[] | null> => ipcRenderer.invoke('skin:update_skin', source, model),
-    // updateCape: (source: string | Blob): Promise<ICape[] | null> => ipcRenderer.invoke('skin:update_cape', source), --- Not implemented with Microsoft accounts ---
-    switchCape: (id: string): Promise<ICape[] | null> => ipcRenderer.invoke('skin:switch_cape', id),
-    deleteSkin: (id: string): Promise<ISkin[] | null> => ipcRenderer.invoke('skin:delete_skin', id),
-    // deleteCape: (): Promise<ICape[] | null> => ipcRenderer.invoke('skin:delete_cape'), --- Not implemented with Microsoft accounts ---
-    hideCape: (): Promise<ICape[] | null> => ipcRenderer.invoke('skin:hide_cape')
+    reload: (account: Account): Promise<void | null> => ipcRenderer.invoke(IPC.skin.reload, account),
+    getSkin: (account?: Account): Promise<ISkin[] | null> => ipcRenderer.invoke(IPC.skin.getSkin, account),
+    getCape: (account?: Account): Promise<ICape[] | null> => ipcRenderer.invoke(IPC.skin.getCape, account),
+    getAvatar: (account?: Account): Promise<IAvatar | null> => ipcRenderer.invoke(IPC.skin.getAvatar, account),
+    updateSkin: (source: string | Blob, model?: 'classic' | 'slim'): Promise<ISkin[] | null> => ipcRenderer.invoke(IPC.skin.updateSkin, source, model),
+    switchCape: (id: string): Promise<ICape[] | null> => ipcRenderer.invoke(IPC.skin.switchCape, id),
+    deleteSkin: (id: string): Promise<ISkin[] | null> => ipcRenderer.invoke(IPC.skin.deleteSkin, id),
+    renameSkin: (id: string, name: string): Promise<ISkin[] | null> => ipcRenderer.invoke(IPC.skin.renameSkin, id, name),
+    hideCape: (): Promise<ICape[] | null> => ipcRenderer.invoke(IPC.skin.hideCape)
   },
   server: {
-    getStatus: (ip: string, port?: number): Promise<IServerStatus> => ipcRenderer.invoke('server:status', ip, port)
+    getStatus: (ip: string, port?: number): Promise<IServerStatus> => ipcRenderer.invoke(IPC.server.status, ip, port)
   },
   news: {
-    getNews: (): Promise<INews[]> => ipcRenderer.invoke('news:get_news'),
-    getCategories: (): Promise<any[]> => ipcRenderer.invoke('news:get_categories')
+    getNews: (): Promise<INews[]> => ipcRenderer.invoke(IPC.news.getNews)
   },
   background: {
-    get: (): Promise<IBackground | null> => ipcRenderer.invoke('background:get')
+    get: (): Promise<IBackground | null> => ipcRenderer.invoke(IPC.background.get)
   },
   maintenance: {
-    get: (): Promise<IMaintenance | null> => ipcRenderer.invoke('maintenance:get')
+    get: (): Promise<IMaintenance | null> => ipcRenderer.invoke(IPC.maintenance.get)
   },
   bootstraps: {
-    check: (): Promise<IBootstraps> => ipcRenderer.invoke('bootstraps:check'),
-    download: (): Promise<string> => ipcRenderer.invoke('bootstraps:download'),
-    install: (): Promise<void> => ipcRenderer.invoke('bootstraps:install'),
+    check: (): Promise<IBootstraps> => ipcRenderer.invoke(IPC.bootstraps.check),
+    download: (): Promise<string> => ipcRenderer.invoke(IPC.bootstraps.download),
+    install: (): Promise<void> => ipcRenderer.invoke(IPC.bootstraps.install),
     downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) =>
-      ipcRenderer.on('bootstraps:download_progress', (_event, value) => callback(value)),
+      ipcRenderer.on(IPC.bootstraps.downloadProgress, (_event, value) => callback(value)),
     downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) =>
-      ipcRenderer.on('bootstraps:download_end', (_event, value) => callback(value)),
+      ipcRenderer.on(IPC.bootstraps.downloadEnd, (_event, value) => callback(value)),
     error: (callback: (value: BootstrapsEvents['bootstraps_error'][0]) => void) =>
-      ipcRenderer.on('bootstraps:error', (_event, value) => callback(value))
+      ipcRenderer.on(IPC.bootstraps.error, (_event, value) => callback(value))
   },
   settings: {
-    get: (): Promise<IGameSettings> => ipcRenderer.invoke('settings:get'),
-    set: (s: IGameSettings): Promise<boolean> => ipcRenderer.invoke('settings:set', s),
-    pickJava: (): Promise<string | null> => ipcRenderer.invoke('settings:pick_java')
+    get: (): Promise<IGameSettings> => ipcRenderer.invoke(IPC.settings.get),
+    set: (s: IGameSettings): Promise<boolean> => ipcRenderer.invoke(IPC.settings.set, s)
   },
   system: {
-    getInfo: (): Promise<ISystemInfo> => ipcRenderer.invoke('system:info'),
-    getLoginItem: (): Promise<boolean> => ipcRenderer.invoke('system:get_login_item'),
-    setLoginItem: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke('system:set_login_item', enabled)
+    getInfo: (): Promise<ISystemInfo> => ipcRenderer.invoke(IPC.system.info)
+  },
+  files: {
+    info: (): Promise<IFilesInfo> => ipcRenderer.invoke(IPC.files.info),
+    openRoot: (): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke(IPC.files.openRoot),
+    pickDir: (): Promise<string | null> => ipcRenderer.invoke(IPC.files.pickDir),
+    setRoot: (dir: string, moveExisting: boolean): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke(IPC.files.setRoot, dir, moveExisting),
+    resetRoot: (): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke(IPC.files.resetRoot),
+    listInstances: (): Promise<IInstanceInfo[]> => ipcRenderer.invoke(IPC.files.listInstances),
+    deleteInstance: (slug: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke(IPC.files.deleteInstance, slug),
+    openInstance: (slug: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke(IPC.files.openInstance, slug)
   }
 })
-

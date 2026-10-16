@@ -1,8 +1,9 @@
-import { app, BrowserWindow, Menu, nativeTheme, shell } from 'electron'
+import { app, BrowserWindow, Menu, nativeTheme, shell, ipcMain } from 'electron'
 import path from 'node:path'
 import { registerAuthHandlers } from './handlers/auth'
-import { registerLauncherHandlers } from './handlers/launcher'
-import { registerSettingsHandlers } from './handlers/settings'
+import { registerLauncherHandlers } from './handlers/launcher/index'
+import { registerSettingsHandlers, getSavedUiScale } from './handlers/settings'
+import { registerFilesHandlers } from './handlers/files'
 import { registerServerHandlers } from './handlers/server'
 import { registerNewsHandlers } from './handlers/news'
 import { registerBackgroundHandlers } from './handlers/background'
@@ -11,9 +12,10 @@ import { registerBootstrapHandlers } from './handlers/bootstraps'
 import logger from 'electron-log/main'
 import { registerProfilesHandlers } from './handlers/profiles'
 import { registerSkinHandlers } from './handlers/skin'
+import { IPC } from './ipc-channels'
 
-const APP_TITLE = 'Modey — Athéna'
-const BG_COLOR = '#121212'
+const APP_TITLE = 'Modey Launcher'
+const BG_COLOR = '#F0F4F8'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -22,7 +24,7 @@ if (process.env.VITE_DEV_SERVER_URL) {
 }
 
 function createWindow() {
-  nativeTheme.themeSource = 'dark'
+  nativeTheme.themeSource = 'light'
 
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -33,6 +35,7 @@ function createWindow() {
     autoHideMenuBar: true,
     backgroundColor: BG_COLOR,
     show: false,
+    frame: false,
     icon: path.join(__dirname, '../build/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -41,6 +44,17 @@ function createWindow() {
       devTools: true
     }
   })
+
+  ipcMain.on(IPC.window.minimize, () => mainWindow?.minimize())
+  ipcMain.on(IPC.window.maximize, () => {
+    if (!mainWindow) return
+    if (mainWindow.isMaximized()) mainWindow.unmaximize()
+    else mainWindow.maximize()
+  })
+  ipcMain.on(IPC.window.close, () => mainWindow?.close())
+  ipcMain.handle(IPC.window.isMaximized, () => mainWindow?.isMaximized() ?? false)
+  mainWindow.on('maximize', () => mainWindow?.webContents.send(IPC.window.maximized, true))
+  mainWindow.on('unmaximize', () => mainWindow?.webContents.send(IPC.window.maximized, false))
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https:') || url.startsWith('http:')) {
@@ -55,6 +69,9 @@ function createWindow() {
     mainWindow?.show()
   })
 
+  // Échelle UI du launcher (Paramètres → Taille du launcher), réappliquée à chaque (re)chargement
+  mainWindow.webContents.on('did-finish-load', () => mainWindow?.webContents.setZoomFactor(getSavedUiScale()))
+
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
   } else {
@@ -67,7 +84,7 @@ function configureAppMenu() {
     applicationName: APP_TITLE,
     applicationVersion: app.getVersion(),
     version: 'Build 2026.1',
-    copyright: 'Copyright © 2026 EML',
+    copyright: 'Copyright Â© 2026 EML',
     credits: 'Developed with EML Lib & Electron',
     iconPath: path.join(__dirname, '../build/icon.png')
   })
@@ -128,6 +145,7 @@ app.whenReady().then(() => {
     registerBootstrapHandlers(mainWindow)
     registerLauncherHandlers(mainWindow)
     registerSettingsHandlers()
+    registerFilesHandlers()
   }
 })
 

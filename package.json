@@ -1,11 +1,11 @@
 {
-  "name": "modey-athena-launcher",
-  "productName": "Modey Launcher — Athéna",
+  "name": "modey-launcher",
+  "productName": "Modey Launcher",
   "author": "FlowCreativeStudio",
-  "description": "Launcher officiel du serveur Minecraft Athéna (Modey)",
+  "description": "Launcher officiel de la plateforme de jeu Modey",
   "private": true,
-  "version": "1.0.0",
-  "license": "MIT",
+  "version": "26.1.0",
+  "license": "UNLICENSED",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -15,8 +15,8 @@
     "release:lin": "npm run build && electron-builder --linux"
   },
   "build": {
-    "appId": "net.modey.athena.launcher",
-    "productName": "Modey Launcher — Athéna",
+    "appId": "net.modey.launcher",
+    "productName": "Modey Launcher",
     "copyright": "Copyright © 2026 FlowCreativeStudio",
     "directories": {
       "output": "release",
@@ -53,10 +53,10 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "EML Template",
+      "shortcutName": "Modey Launcher",
       "deleteAppDataOnUninstall": true,
       "artifactName": "${productName}-Setup-${version}.${ext}",
-      "uninstallDisplayName": "EML Template"
+      "uninstallDisplayName": "Modey Launcher"
     },
     "mac": {
       "target": [
@@ -102,7 +102,7 @@
       ],
       "icon": "build/icon.png",
       "category": "Game",
-      "description": "Template launcher with EML Lib",
+      "description": "Launcher officiel Modey",
       "artifactName": "${productName}-${version}.${ext}"
     }
   },

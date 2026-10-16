@@ -26,16 +26,68 @@ export function logout() {
   if (nameEl) nameEl.innerText = ''
 }
 
-async function updateUserInterface() {
+export async function updateAvatarFromSkinUrl(skinUrl: string) {
+  if (!skinUrl) return
+  try {
+    const res = await fetch(skinUrl)
+    const blob = await res.blob()
+    const img = await createImageBitmap(blob)
+    const canvas = document.createElement('canvas')
+    const size = 128
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.imageSmoothingEnabled = false
+    // Tête de base (8,8 8x8)
+    ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size)
+    // Couche chapeau / casque (40,8 8x8)
+    ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size)
+    const avatarUrl = canvas.toDataURL('image/png')
+    shared.avatar = { id: shared.account?.uuid ?? 'user', url: avatarUrl }
+
+    // Mettre à jour immédiatement les éléments DOM de photo de profil
+    const homeAvatar = document.getElementById('user-avatar') as HTMLImageElement | null
+    const profileAvatar = document.getElementById('profile-id-avatar') as HTMLImageElement | null
+    if (homeAvatar) homeAvatar.src = avatarUrl
+    if (profileAvatar) profileAvatar.src = avatarUrl
+  } catch (err) {
+    logger.warn('Failed to generate avatar from skin:', err)
+  }
+}
+
+export async function updateUserInterface() {
   if (!shared.account || !shared.skins) return
 
   logger.log('Updating UI for user:', shared.account.name)
 
   const nameEl = document.getElementById('user-name')
   const avatarEl = document.getElementById('user-avatar') as HTMLImageElement
+  const userCardEl = document.getElementById('user-card')
+  const roleBadgeEl = document.getElementById('user-role-badge')
 
   if (nameEl) nameEl.innerText = shared.account.name
   if (avatarEl) avatarEl.src = shared.avatar?.url ?? 'https://minotar.net/avatar/steve/256.png'
+
+  const rawRole = ((shared.account as any)?.role || 'citizen').toLowerCase()
+  const roleLabels: Record<string, string> = {
+    founder: 'Fondateur',
+    admin: 'Admin',
+    moderator: 'Modérateur',
+    developer: 'Développeur',
+    dev: 'Développeur',
+    builder: 'Builder',
+    citizen: 'Citoyen'
+  }
+  const displayRole = roleLabels[rawRole] || (rawRole.charAt(0).toUpperCase() + rawRole.slice(1))
+
+  if (userCardEl) {
+    userCardEl.setAttribute('data-role', rawRole)
+  }
+  if (roleBadgeEl) {
+    roleBadgeEl.innerText = displayRole
+    roleBadgeEl.setAttribute('data-role', rawRole)
+  }
 
   shared.resetMainView()
   shared.resetSkinViews()
@@ -47,8 +99,6 @@ export function setView(view: ViewName) {
   if (!target) return logger.error(`View ${view} not found`)
 
   const isOverlay = target.classList.contains('overlay')
-
-  if (view === 'settings') resetSettingsTab()
 
   if (!isOverlay) {
     document.querySelectorAll('.view').forEach((el) => {
@@ -68,19 +118,4 @@ export function setBlockingView(view: BlockingViewName) {
   setTimeout(() => {
     document.querySelector(`div#view-${view}`)?.classList.add('loaded')
   }, 200)
-}
-
-export function closeOverlay(view: ViewName) {
-  const target = document.querySelector(`.view[data-view="${view}"]`)
-  target?.classList.remove('active')
-}
-
-function resetSettingsTab() {
-  const tabButtons = document.querySelectorAll('.nav-btn')
-  const tabContents = document.querySelectorAll('.tab-content')
-  tabButtons.forEach((b) => b.classList.remove('active'))
-  tabContents.forEach((content) => content.classList.remove('active'))
-
-  tabButtons[0].classList.add('active')
-  tabContents[0].classList.add('active')
 }

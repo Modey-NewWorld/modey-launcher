@@ -5,6 +5,7 @@ import logger from 'electron-log/main'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { AUTH_SERVER_URL, AUTH_API_URL } from '../const'
+import { IPC } from '../ipc-channels'
 
 const sessionPath = path.join(app.getPath('userData'), 'session.json')
 const accountsPath = path.join(app.getPath('userData'), 'accounts.json')
@@ -49,7 +50,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
   const msAuth = new MicrosoftAuth(mainWindow)
 
   // Connexion personnalisée (Modey / Pseudo / Email + Mot de passe)
-  ipcMain.handle('auth:login-custom', async (_event, identifier: string, password?: string) => {
+  ipcMain.handle(IPC.auth.loginCustom, async (_event, identifier: string, password?: string) => {
     try {
       if (!identifier || identifier.trim().length < 3) {
         return { success: false, error: 'Identifiant invalide (minimum 3 caractères).' } as IAuthResponse
@@ -86,17 +87,18 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
           }
         }
         ;(account as any).email = data.user?.email
+        ;(account as any).role = data.user?.role || 'citizen'
 
         fs.writeFileSync(sessionPath, JSON.stringify(account))
         saveAccount(account.name, account.uuid, data.user?.email)
 
-        logger.info(`Connexion sécurisée validée pour le joueur : ${account.name}`)
+        logger.info(`Connexion sécurisée validée pour le joueur : ${account.name} (Rôle: ${(account as any).role})`)
         return { success: true, account } as IAuthResponse
       } catch (apiErr) {
         logger.error('Serveur Modey Auth injoignable :', apiErr)
         return {
           success: false,
-          error: `Impossible de joindre le serveur d'authentification Modey (${AUTH_API_URL}). Veuillez vérifier que le serveur est allumé.`
+          error: "Désolé, les serveurs d'authentification Modey sont actuellement indisponibles. Cela ne vient pas de vous, nous faisons le maximum pour réparer et rétablir le service au plus vite !"
         } as IAuthResponse
       }
     } catch (err: any) {
@@ -106,7 +108,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
   })
 
   // Inscription personnalisée (Création d'un nouveau compte joueur)
-  ipcMain.handle('auth:register-custom', async (_event, payload: { email: string; username: string; password: string }) => {
+  ipcMain.handle(IPC.auth.registerCustom, async (_event, payload: { email: string; username: string; password: string }) => {
     try {
       const resp = await fetch(`${AUTH_API_URL}/api/auth/register`, {
         method: 'POST',
@@ -131,6 +133,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         }
       }
       ;(account as any).email = data.user.email
+      ;(account as any).role = data.user?.role || 'citizen'
 
       fs.writeFileSync(sessionPath, JSON.stringify(account))
       saveAccount(account.name, account.uuid, data.user.email)
@@ -138,20 +141,28 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
       return { success: true, account } as IAuthResponse
     } catch (err: any) {
       logger.error('Failed register:', err)
-      return { success: false, error: 'Impossible de contacter le serveur d\'authentification Modey.' } as IAuthResponse
+      return { success: false, error: 'Désolé, les serveurs d\'authentification Modey sont momentanément indisponibles. Cela ne vient pas de vous, réessayez dans quelques instants.' } as IAuthResponse
     }
   })
 
   // Liste des comptes locaux enregistrés
-  ipcMain.handle('auth:list-accounts', async () => {
+  ipcMain.handle(IPC.auth.listAccounts, async () => {
     return loadSavedAccounts()
   })
 
   // Suppression d'un compte local
-  ipcMain.handle('auth:remove-account', async (_event, username: string) => {
+  ipcMain.handle(IPC.auth.removeAccount, async (_event, username: string) => {
     try {
       const list = loadSavedAccounts().filter((acc) => acc.name.toLowerCase() !== username.toLowerCase())
       fs.writeFileSync(accountsPath, JSON.stringify(list, null, 2))
+      if (fs.existsSync(sessionPath)) {
+        try {
+          const current = JSON.parse(fs.readFileSync(sessionPath, 'utf-8'))
+          if (current?.name?.toLowerCase() === username.toLowerCase()) {
+            fs.unlinkSync(sessionPath)
+          }
+        } catch (_) {}
+      }
       return { success: true }
     } catch (err: any) {
       return { success: false, error: err.message }
@@ -159,7 +170,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
   })
 
   // Connexion Microsoft (Optionnelle)
-  ipcMain.handle('auth:login', async () => {
+  ipcMain.handle(IPC.auth.login, async () => {
     try {
       const account = await msAuth.auth()
       fs.writeFileSync(sessionPath, JSON.stringify(account))
@@ -172,7 +183,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
   })
 
   // Rafraîchissement / Restauration de session
-  ipcMain.handle('auth:refresh', async () => {
+  ipcMain.handle(IPC.auth.refresh, async () => {
     if (!fs.existsSync(sessionPath)) {
       return { success: false } as { success: false }
     }
@@ -185,23 +196,40 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         // Si c'est un compte Modey (Yggdrasil)
         if ((savedSession.meta as any)?.type === 'yggdrasil') {
           try {
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 4000)
             const valResp = await fetch(`${AUTH_API_URL}/api/auth/validate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ accessToken: savedSession.accessToken, clientToken: savedSession.clientToken })
+              body: JSON.stringify({ accessToken: savedSession.accessToken, clientToken: savedSession.clientToken }),
+              signal: controller.signal
             })
+            clearTimeout(timeoutId)
             const valData = await valResp.json()
             if (valResp.ok && valData.valid) {
               if (!(savedSession.meta as any)?.url) {
                 (savedSession.meta as any).url = AUTH_SERVER_URL
               }
+              if (valData.user?.role) {
+                (savedSession as any).role = valData.user.role
+              } else if (!(savedSession as any).role) {
+                (savedSession as any).role = 'citizen'
+              }
+              fs.writeFileSync(sessionPath, JSON.stringify(savedSession))
               return { success: true, account: savedSession } as IAuthResponse
             }
-          } catch (e) {
-            logger.warn('Impossible de valider la session auprès de Modey Auth:', e)
+            // Réponse explicite du serveur : la session est révoquée ou invalide
+            return { success: false, error: 'Session expirée. Veuillez vous reconnecter.' } as any
+          } catch (e: any) {
+            logger.warn('Serveur Modey Auth injoignable ou erreur réseau lors du rafraîchissement :', e)
+            // NE PAS DÉCONNECTER LE JOUEUR : Le serveur est éteint ou le joueur n'a pas Internet
+            return {
+              success: false,
+              isServiceUnavailable: true,
+              account: savedSession,
+              error: 'Services Modey momentanément indisponibles'
+            } as any
           }
-          // Si la session est expirée ou invalide sur l'Auth-Server, forcer la reconnexion
-          return { success: false, error: 'Session expirée. Veuillez vous reconnecter.' } as any
         }
 
         // Si c'est un ancien compte hors-ligne / crack, on ne le restaure pas automatiquement
@@ -225,7 +253,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
     }
   })
 
-  ipcMain.handle('auth:logout', async () => {
+  ipcMain.handle(IPC.auth.logout, async () => {
     if (fs.existsSync(sessionPath)) {
       fs.unlinkSync(sessionPath)
     }

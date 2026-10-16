@@ -1,90 +1,76 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EML Template</title>
+    <title>Modey Launcher</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-      body {
-        background-color: #121212;
-        overflow: hidden;
+      /* CSS critique anti-FOUC : appliqué avant le bundle, harmonisé avec le thème clair Modey */
+      html, body { margin: 0; height: 100%; background-color: #F0F4F8; overflow: hidden; font-family: 'Poppins', sans-serif; }
+      div.view:not(.active) { display: none; }
+      body:not(.loaded) div#app { opacity: 0 !important; visibility: hidden; }
+      div#view-loading {
+        position: fixed; top: 0; left: 0;
+        display: flex; justify-content: center; align-items: center;
+        height: 100vh; width: 100vw;
+        background-color: #F0F4F8; color: #3D5268;
+        font-family: 'Poppins', sans-serif; font-size: 13px;
+        opacity: 1; transition: opacity 0.25s ease-out;
+        z-index: 9999;
       }
-
-      body:not(.loaded) div#app {
-        opacity: 0 !important;
-        visibility: hidden;
-        transition: opacity 0.4s ease-in-out;
+      div#view-loading.loaded { opacity: 0; pointer-events: none !important; visibility: hidden; }
+      div#view-loading .loading-logo {
+        width: 48px; height: 48px; object-fit: contain; margin-bottom: 10px;
       }
-
-      body.loaded div#app {
-        transition: opacity 0.4s ease-in-out;
-        opacity: 1;
-        visibility: visible;
-      }
-
-      div.view:not(.active) {
-        display: none;
-      }
-
-      div.loading,
-      div.maintenance,
-      div.update {
-        position: fixed;
-        top: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        width: 100vw;
-        background-color: #121212;
-        transition: opacity 0.4s ease-in-out;
-      }
-
-      div.loading {
-        opacity: 1;
-      }
-
-      div.loading.loaded {
-        opacity: 0;
-      }
-
-      div.maintenance,
-      div.update {
-        opacity: 0;
-      }
-
-      div.maintenance.loaded,
-      div.update.loaded {
-        opacity: 1;
+      div#view-loading .spinner {
+        font-size: 1.5rem; color: #1E88E5; margin: 4px 0 8px 0;
       }
     </style>
   </head>
   <body>
+    <div id="titlebar">
+      <div class="titlebar-drag"></div>
+      <div class="titlebar-controls">
+        <button id="btn-win-minimize" class="titlebar-btn" title="Réduire"><i class="fa-solid fa-minus"></i></button>
+        <button id="btn-win-maximize" class="titlebar-btn" title="Agrandir / Restaurer"><i class="fa-regular fa-square" id="win-max-icon"></i></button>
+        <button id="btn-win-close" class="titlebar-btn titlebar-close" title="Fermer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+
     <div id="view-loading" class="loading" data-view="loading">
       <div class="loading-card">
+        <img src="/src/static/images/logo.png" class="loading-logo" alt="Modey" />
         <p class="spinner"><i class="fa-solid fa-circle-notch fa-spin"></i></p>
-        <p class="text">Loading...</p>
+        <p class="text">Chargement...</p>
       </div>
     </div>
 
     <div id="view-maintenance" class="maintenance" data-view="maintenance">
       <div class="maintenance-card">
-        <p class="gears"><i class="fa-solid fa-gears"></i></p>
-        <h3>Maintenance</h3>
+        <p class="gears" id="maintenance-icon"><i class="fa-solid fa-gears"></i></p>
+        <h3 id="maintenance-title">Maintenance</h3>
         <p class="dates" id="maintenance-dates"></p>
         <p class="text" id="maintenance-reason"></p>
+        <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;" id="maintenance-actions">
+          <button id="btn-maint-retry" class="btn btn-primary" style="padding: 10px 22px; font-weight: 600; border-radius: 8px; background: #1E88E5; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; box-shadow: 0 4px 12px rgba(30,136,229,0.3);">
+            <i class="fa-solid fa-rotate-right"></i> Réessayer
+          </button>
+          <button id="btn-maint-logout" class="btn btn-secondary" style="padding: 10px 18px; font-weight: 600; border-radius: 8px; background: #E2E8F0; color: #475569; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-family: inherit;">
+            <i class="fa-solid fa-right-from-bracket"></i> Changer de compte
+          </button>
+        </div>
       </div>
     </div>
 
     <div id="view-update" class="update" data-view="update">
       <div class="maintenance-card">
         <p class="up"><i class="fa-solid fa-circle-up"></i></p>
-        <h3>An update is available</h3>
-        <p class="text" id="update-text">Please wait while we update your launcher...</p>
+        <h3>Une mise à jour est disponible</h3>
+        <p class="text" id="update-text">Merci de patienter pendant la mise à jour du launcher...</p>
         <div class="progress-container" id="update-progress-container">
           <div class="progress-info">
-            <span id="update-progress-label">Downloading...</span>
+            <span id="update-progress-label">Téléchargement...</span>
             <span id="update-progress-percent">0%</span>
           </div>
           <div class="progress-bar-bg">
@@ -96,592 +82,11 @@
 
     <div id="app">
       <div class="app-background"></div>
-
-      <div id="view-login" class="view" data-view="login">
-        <div class="login-card">
-          <img src="/src/static/images/logo.png" class="logo" alt="Logo" />
-          <h1>Athéna — Modey</h1>
-          <p class="subtitle">Identifiez-vous pour entrer dans la cité.</p>
-          <p style="font-size:11px;color:rgba(255,255,255,0.45);margin:-8px 0 16px 0;"><i class="fa-solid fa-server"></i>&nbsp;Serveur Modey — service compte</p>
-
-          <div class="auth-tabs" style="display:flex;gap:8px;margin-bottom:16px;">
-            <button type="button" id="tab-auth-login" class="btn btn-secondary active" style="flex:1;padding:8px;font-size:12px;font-weight:600;">Se connecter</button>
-            <button type="button" id="tab-auth-register" class="btn btn-secondary" style="flex:1;padding:8px;font-size:12px;font-weight:600;">Créer un compte</button>
-          </div>
-
-          <form id="form-login-custom" class="login-custom-form">
-            <div class="input-group" id="group-email" style="display:none;">
-              <label for="input-email"><i class="fa-solid fa-envelope"></i> Adresse Email</label>
-              <input type="email" id="input-email" class="input-field" placeholder="joueur@modey.net" autocomplete="off" />
-            </div>
-
-            <div class="input-group" id="group-username">
-              <label for="input-username" id="label-username"><i class="fa-solid fa-user"></i> Pseudo ou Email</label>
-              <input type="text" id="input-username" class="input-field" placeholder="Votre pseudo ou email" required minlength="3" maxlength="32" autocomplete="off" />
-              <small class="input-hint" id="username-hint">Votre pseudo unique de joueur</small>
-            </div>
-
-            <div class="input-group" id="group-password">
-              <label for="input-password"><i class="fa-solid fa-lock"></i> Mot de passe</label>
-              <input type="password" id="input-password" class="input-field" placeholder="••••••••" required minlength="6" autocomplete="current-password" />
-            </div>
-
-            <button type="submit" id="btn-login-custom" class="btn btn-primary btn-submit-custom">
-              <i class="fa-solid fa-right-to-bracket"></i>
-              <span id="btn-submit-text">Se connecter à Athéna</span>
-            </button>
-
-            <button type="button" id="btn-forgot-password" class="btn btn-secondary" disabled title="Bientôt disponible" style="width:100%;margin-top:8px;opacity:0.5;cursor:not-allowed;">
-              <i class="fa-solid fa-key"></i>
-              <span>Mot de passe oublié</span>
-            </button>
-          </form>
-
-          <div class="login-footer">
-            <small>Serveur communautaire <strong>Athéna</strong> • Écosystème Modey</small>
-          </div>
-        </div>
-      </div>
-
-      <div id="view-home" class="view" data-view="home">
-        <aside class="modey-sidebar">
-          <div class="modey-brand">
-            <img src="/src/static/images/logo.png" class="modey-brand-logo" alt="Modey" />
-            <div class="modey-brand-text">
-              <strong>Modey Launcher</strong>
-              <span>Version 1.0.0</span>
-            </div>
-          </div>
-
-          <div class="profile-selector-container" id="profile-selector">
-            <div class="selected-profile">
-              <span id="current-profile-name">Athéna</span>
-              <i class="fa-solid fa-chevron-right"></i>
-            </div>
-            <div class="profile-dropdown" id="profile-dropdown"></div>
-          </div>
-
-          <nav class="modey-nav">
-            <button class="modey-nav-item active" id="nav-home"><i class="fa-solid fa-house fa-fw"></i><span>Accueil</span></button>
-            <button class="modey-nav-item" id="nav-servers"><i class="fa-solid fa-server fa-fw"></i><span>Serveurs</span></button>
-            <button class="modey-nav-item" id="nav-profile"><i class="fa-solid fa-user fa-fw"></i><span>Mon profil</span></button>
-          </nav>
-
-          <div class="user-menu-wrap">
-            <button id="btn-play" class="modey-play-btn"><i class="fa-solid fa-play"></i><span>Jouer à Athéna</span></button>
-
-            <div class="progress-container hidden" id="launch-progress-container">
-              <div class="progress-info">
-                <span id="launch-progress-label">Préparation...</span>
-                <span id="launch-progress-percent">0%</span>
-              </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="launch-progress-bar"></div>
-              </div>
-            </div>
-
-            <div class="user-menu" id="user-menu">
-              <button class="user-menu-item" id="user-menu-profile"><i class="fa-solid fa-user fa-fw"></i><span>Mon profil</span></button>
-              <button class="user-menu-item" id="user-menu-settings"><i class="fa-solid fa-gear fa-fw"></i><span>Paramètres</span></button>
-              <div class="user-menu-sep"></div>
-              <button class="user-menu-item danger" id="user-menu-logout"><i class="fa-solid fa-right-from-bracket fa-fw"></i><span>Se déconnecter</span></button>
-            </div>
-            <div class="modey-user-card" id="user-card" title="Gérer mon compte">
-              <img src="" id="user-avatar" alt="Skin" />
-              <div class="modey-user-details">
-                <span id="user-name">Undefined</span>
-                <span class="modey-user-status"><span class="modey-status-dot"></span>Prêt</span>
-              </div>
-              <i class="fa-solid fa-chevron-up modey-user-chevron" id="user-chevron"></i>
-            </div>
-          </div>
-        </aside>
-
-        <main class="modey-main" id="modey-main">
-          <div class="modey-scroll" id="modey-scroll">
-          <header class="modey-header">
-            <div class="modey-header-text">
-              <div class="modey-greeting">
-                <span class="modey-hello" id="home-hello">Bonjour 👋</span>
-                <span class="modey-account-badge" id="home-account-badge"></span>
-              </div>
-              <h1>Bienvenue sur Modey</h1>
-              <p>Explorez des mondes vivants et rejoignez l'aventure communautaire.</p>
-            </div>
-            <div class="modey-chips">
-              <span class="modey-chip" id="chip-ram"><i class="fa-solid fa-memory"></i>&nbsp;RAM allouée: <strong>&nbsp;—</strong></span>
-              <span class="modey-chip" id="chip-ping"><span class="modey-ping-dot"></span>&nbsp;Ping moyen: <strong>&nbsp;—</strong></span>
-            </div>
-          </header>
-
-          <div class="hero-with-status" id="hero-with-status">
-            <section class="modey-hero" id="hero">
-            <div class="modey-hero-top">
-              <div class="modey-hero-badges">
-                <span class="hero-badge hero-badge-version" id="hero-version"><i class="fa-solid fa-cube"></i>&nbsp;Minecraft 1.21.1</span>
-                <span class="hero-badge hero-badge-status" id="hero-status">
-                  <span class="status-dot pinging" id="server-status-dot"></span>&nbsp;<span id="server-status-text">Vérification...</span>
-                </span>
-              </div>
-              <span class="hero-badge hero-badge-players" id="player-count"></span>
-            </div>
-            <div class="modey-hero-body">
-              <div class="modey-hero-info">
-                <h2><span id="hero-title">Athéna</span></h2>
-                <p id="hero-desc">Un monde vivant. Des villes à construire. Une aventure à partager.</p>
-                <div class="hero-tags" id="hero-tags"></div>
-              </div>
-              <div class="modey-hero-actions">
-                <button id="btn-play-hero" class="hero-play"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Jouer à Athéna</button>
-                <button id="btn-details" class="hero-details"><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;Détails du serveur</button>
-              </div>
-            </div>
-            <div class="modey-hero-foot">
-              <span id="hero-foot-note"><i class="fa-solid fa-circle-check"></i>&nbsp;Prêt au lancement • Dernière version installée</span>
-            </div>
-          </section>
-
-          <aside class="athena-status-sidebar" id="athena-status-sidebar" style="display:none">
-            <div class="athena-status-card">
-              <div class="athena-status-head">
-                <h3><i class="fa-solid fa-landmark"></i>&nbsp;&nbsp;Statut Citoyen — Athéna</h3>
-                <button class="modey-link" id="btn-refresh-athena-sidebar">Rafraîchir</button>
-              </div>
-              <div class="athena-status-grid">
-                <div class="athena-status-item">
-                  <span class="athena-status-label">Citoyenneté</span>
-                  <span class="athena-status-value" id="athena-citizenship">Citoyen confirmé</span>
-                </div>
-                <div class="athena-status-item">
-                  <span class="athena-status-label">Métier</span>
-                  <span class="athena-status-value" id="athena-job">—</span>
-                </div>
-                <div class="athena-status-item">
-                  <span class="athena-status-label">Ville / Quartier</span>
-                  <span class="athena-status-value" id="athena-city">—</span>
-                </div>
-                <div class="athena-status-item">
-                  <span class="athena-status-label">Temps sur le serveur</span>
-                  <span class="athena-status-value" id="athena-playtime">—</span>
-                </div>
-                <div class="athena-status-item">
-                  <span class="athena-status-label">Richesse (économie)</span>
-                  <span class="athena-status-value" id="athena-wealth">—</span>
-                </div>
-                <div class="athena-status-item">
-                  <span class="athena-status-label">Succès Athéna</span>
-                  <span class="athena-status-value" id="athena-achievements">0 / —</span>
-                </div>
-                <div class="athena-status-item">
-                  <span class="athena-status-label">Réputation</span>
-                  <span class="athena-status-value" id="athena-reputation">Neutre</span>
-                </div>
-                <div class="athena-status-item">
-                  <span class="athena-status-label">Dernière connexion</span>
-                  <span class="athena-status-value" id="athena-lastseen">—</span>
-                </div>
-              </div>
-              <p class="muted athena-status-note">Données synchronisées depuis le serveur Athéna.</p>
-            </div>
-          </aside>
-        </div>
-
-          <section class="modey-news">
-            <div class="modey-section-head">
-              <h3><i class="fa-solid fa-newspaper"></i>&nbsp;&nbsp;Les actualités de Modey</h3>
-              <button class="modey-link" id="btn-news-all">Tout voir&nbsp;&nbsp;→</button>
-            </div>
-            <div class="news-list" id="news-list"></div>
-          </section>
-          </div>
-
-          <section class="modey-discovery">
-            <h3><i class="fa-solid fa-compass"></i>&nbsp;&nbsp;À découvrir</h3>
-            <div class="discovery-card" id="discovery-card"></div>
-          </section>
-        </main>
-
-        <main class="servers-page" id="servers-page" style="display:none">
-          <div class="servers-scroll" id="servers-scroll">
-            <header class="servers-header">
-              <div class="servers-header-text">
-                <span class="servers-pill"><i class="fa-solid fa-earth-europe"></i>&nbsp;Univers Multi-joueurs</span>
-                <h1>Les serveurs Modey</h1>
-                <p>Choisis ton prochain univers Minecraft parmi les serveurs compatibles</p>
-              </div>
-              <div class="servers-info">
-                <i class="fa-solid fa-circle-info"></i>
-                <p><strong>Athéna est le premier serveur officiel ouvert aux joueurs.</strong> De nouveaux mondes seront ajoutés au fil des saisons.</p>
-              </div>
-            </header>
-
-            <div class="servers-grid">
-              <article class="server-card" id="server-card-athena">
-                <div class="server-banner">
-                  <span class="hero-badge server-avail" id="srv-status-badge"><span class="status-dot pinging"></span>&nbsp;Vérification...</span>
-                  <span class="hero-badge server-official-tag">Serveur Officiel</span>
-                  <div class="server-banner-bottom">
-                    <div class="server-banner-title">
-                      <span class="server-kicker">Monde principal</span>
-                      <h2>Athéna</h2>
-                    </div>
-                    <div class="server-live">
-                      <span id="srv-ping"><i class="fa-solid fa-signal"></i>&nbsp;—</span>
-                      <span id="srv-players"><i class="fa-solid fa-users"></i>&nbsp;—</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="server-body">
-                  <p class="server-desc">Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.</p>
-                  <div class="server-specs">
-                    <div class="server-spec"><span>Version</span><strong>1.21.1</strong></div>
-                    <div class="server-spec"><span>Modloader</span><strong>NeoForge 21.1.169</strong></div>
-                    <div class="server-spec"><span>Localisation</span><strong>Europe (FR)</strong></div>
-                    <div class="server-spec"><span>Rendu</span><strong>Shaders intégrés</strong></div>
-                  </div>
-                  <div class="server-tags">
-                    <span>Survie</span><span>Villes</span><span>Aventure</span><span>Communauté</span><span><i class="fa-solid fa-bolt"></i>&nbsp;Économie dynamique</span>
-                  </div>
-                  <div class="server-foot">
-                    <span class="server-opt"><i class="fa-solid fa-circle-check"></i>&nbsp;Optimisé pour Modey Engine</span>
-                    <div class="server-actions">
-                      <button class="srv-btn srv-discover" id="btn-srv-discover"><i class="fa-solid fa-circle-info"></i>&nbsp;Découvrir</button>
-                      <button class="srv-btn srv-select" id="btn-srv-select"><i class="fa-solid fa-check"></i>&nbsp;Sélectionner</button>
-                    </div>
-                  </div>
-                </div>
-              </article>
-
-              <aside class="server-soon" id="server-card-freebuild">
-                <div class="soon-top">
-                  <span class="soon-pill">Arrive bientôt</span>
-                  <i class="fa-solid fa-rocket soon-rocket"></i>
-                </div>
-                <div class="soon-visual">
-                  <span class="soon-visual-icon"><i class="fa-solid fa-cubes"></i></span>
-                  <strong>Free Build</strong>
-                  <span class="soon-visual-sub">Créatif • En développement</span>
-                </div>
-                <div class="soon-specs">
-                  <div class="server-spec"><span>Version</span><strong>1.21.1</strong></div>
-                  <div class="server-spec"><span>Mode</span><strong>Créatif libre</strong></div>
-                </div>
-                <p>Le bac à sable créatif de Modey n'est pas encore actif. Sélectionne-le pour être prêt le jour J.</p>
-                <ul class="soon-checks">
-                  <li><i class="fa-solid fa-cubes"></i>&nbsp;Monde créatif libre, sans limites</li>
-                  <li><i class="fa-solid fa-users"></i>&nbsp;Ouvert à tous les joueurs Modey</li>
-                </ul>
-                <button class="srv-btn srv-select soon-select" id="btn-select-freebuild"><i class="fa-solid fa-check"></i>&nbsp;Sélectionner</button>
-                <button class="discovery-notify soon-notify" id="btn-notify-servers"><i class="fa-solid fa-bell"></i>&nbsp;Être notifié des sorties</button>
-              </aside>
-            </div>
-
-            <div class="servers-perks">
-              <div class="perk-card">
-                <span class="perk-icon"><i class="fa-solid fa-microchip"></i></span>
-                <div><strong>Allocation Mémoire</strong><span id="perk-ram">Optimisation auto (8 Go recommandés)</span></div>
-              </div>
-              <div class="perk-card">
-                <span class="perk-icon"><i class="fa-solid fa-tower-broadcast"></i></span>
-                <div><strong>Hébergement Dédié</strong><span>Serveurs européens haute fréquence</span></div>
-              </div>
-              <div class="perk-card">
-                <span class="perk-icon"><i class="fa-brands fa-discord"></i></span>
-                <div><strong>Communauté Discord</strong><span id="perk-players">Rejoins les aventuriers en ligne</span></div>
-              </div>
-            </div>
-          </div>
-        </main>
-
-        <main class="profile-page" id="profile-page" style="display:none">
-          <div class="profile-scroll" id="profile-scroll">
-            <header class="profile-header">
-              <div class="profile-header-text">
-                <span class="profile-pill">Atelier de personnalisation&nbsp;&nbsp;•&nbsp;&nbsp;Synchronisation Cloud activée</span>
-                <h1>Mon Profil</h1>
-                <p>Gérez votre identité Minecraft, personnalisez votre apparence et configurez votre compte.</p>
-              </div>
-              <span class="modey-chip profile-client-chip"><span class="modey-ping-dot"></span>&nbsp;Client prêt • Minecraft 1.21.1</span>
-            </header>
-
-            <div class="profile-grid">
-              <section class="profile-card studio-card">
-                <div class="profile-card-head">
-                  <h3><i class="fa-solid fa-cube"></i>&nbsp;&nbsp;Studio d'Aperçu 3D</h3>
-                  <span class="studio-skin-pill" id="studio-skin-name">Steve</span>
-                  <div class="face-toggle">
-                    <button class="face-btn active" id="btn-face">Face</button>
-                    <button class="face-btn" id="btn-back">Dos</button>
-                  </div>
-                </div>
-                <div class="studio-badges">
-                  <span class="studio-badge" id="studio-format">Format standard 64*64 HD</span>
-                  <span class="studio-badge" id="studio-cape">Aucune cape</span>
-                </div>
-                <canvas id="skin-container"></canvas>
-                <div class="studio-view-btns">
-                  <button class="rotate-btn" id="btn-rotate"><i class="fa-solid fa-rotate"></i>&nbsp;Vue 360°</button>
-                  <button class="rotate-btn" id="btn-animation" title="Activer / couper l'animation de marche"><i class="fa-solid fa-film" id="animation-btn-icon"></i>&nbsp;<span id="animation-btn-label">Animation : ON</span></button>
-                </div>
-
-                <div class="studio-row">
-                  <div class="studio-mini">
-                    <div class="studio-mini-head"><strong>Modèle de personnage</strong><i class="fa-solid fa-up-down"></i></div>
-                    <div class="model-btns">
-                      <button class="model-btn" id="btn-model-classic">Classique (4px)</button>
-                      <button class="model-btn" id="btn-model-slim">Fin / Slim (3px Alex)</button>
-                    </div>
-                  </div>
-                  <div class="studio-mini">
-                    <div class="studio-mini-head"><strong>Cape de Guilde</strong></div>
-                    <label class="cape-check"><input type="checkbox" id="check-cape" /> <span id="cape-check-label">Afficher la cape</span></label>
-                    <div id="cape-gallery"></div>
-                  </div>
-                </div>
-
-                <div class="studio-actions">
-                  <button class="srv-btn srv-select" id="btn-import-skin"><i class="fa-solid fa-upload"></i>&nbsp;Importer un skin (.png)</button>
-                  <input type="file" id="input-import-skin" accept=".png" style="display:none" />
-                  <button class="srv-btn srv-discover" id="btn-download-skin"><i class="fa-solid fa-download"></i>&nbsp;Télécharger le modèle actuel</button>
-                </div>
-
-                <div class="studio-gallery">
-                  <strong>Mes skins</strong>
-                  <div id="skin-gallery"></div>
-                </div>
-
-                <div class="studio-foot">
-                  <span class="studio-saved"><i class="fa-solid fa-cloud-arrow-up"></i>&nbsp;Tous les changements sont sauvegardés en local</span>
-                  <div class="studio-foot-btns">
-                    <button class="srv-btn srv-discover" id="btn-skin-cancel">Annuler</button>
-                    <button class="srv-btn srv-select" id="btn-skin-save">Enregistrer les modifications</button>
-                  </div>
-                </div>
-              </section>
-
-              <div class="profile-side">
-                <section class="profile-card">
-                  <div class="profile-card-head">
-                    <h3><i class="fa-solid fa-id-card"></i>&nbsp;&nbsp;Identité du joueur</h3>
-                    <span class="soon-pill">Officiel</span>
-                  </div>
-                  <div class="identity-head">
-                    <img src="" id="profile-id-avatar" alt="Avatar" />
-                    <div>
-                      <strong id="profile-id-name">—</strong>
-                      <span id="profile-id-badge">Compte joueur vérifié</span>
-                    </div>
-                  </div>
-                  <div class="identity-rows">
-                    <div><span>UUID Modey</span><code id="profile-uuid">—</code></div>
-                    <div><span>Email</span><span class="email-wrap"><code id="profile-email">••••••••</code><button class="eye-btn" id="btn-toggle-email" title="Afficher / masquer l'email"><i class="fa-solid fa-eye" id="email-eye-icon"></i></button></span></div>
-                    <div><span>Date d'inscription</span><span id="profile-created">—</span></div>
-                    <div><span>Édition Minecraft</span><span class="tag">Java Edition</span></div>
-                  </div>
-                </section>
-
-                <section class="profile-card">
-                  <div class="profile-card-head">
-                    <h3><i class="fa-solid fa-trophy"></i>&nbsp;&nbsp;Statut en jeu</h3>
-                    <button class="modey-link" id="btn-stats">Voir statistiques</button>
-                  </div>
-                  <div class="ingame-fav">
-                    <span class="perk-icon"><i class="fa-solid fa-server"></i></span>
-                    <div>
-                      <span>Serveur favori : <strong id="profile-fav-server">Athéna</strong></span>
-                      <span>Rang : <span id="profile-rank">Citoyen de la Cité</span></span>
-                    </div>
-                    <span class="modey-ping-dot" id="profile-server-dot"></span>
-                  </div>
-                  <div class="ingame-stats">
-                    <div><span><i class="fa-solid fa-clock"></i>&nbsp;Temps de jeu</span><strong id="stat-time">—</strong><span class="muted">Suivi à venir</span></div>
-                    <div><span><i class="fa-solid fa-medal"></i>&nbsp;Succès débloqués</span><strong id="stat-achv">—</strong><span class="muted">Suivi à venir</span></div>
-                  </div>
-                </section>
-
-                <section class="profile-card athena-status-card">
-                  <div class="profile-card-head">
-                    <h3><i class="fa-solid fa-landmark"></i>&nbsp;&nbsp;Statut Citoyen — Athéna</h3>
-                  </div>
-                  <div class="athena-status-grid">
-                    <div class="athena-status-item">
-                      <span class="athena-status-label">Citoyenneté</span>
-                      <span class="athena-status-value" id="athena-citizenship">Citoyen confirmé</span>
-                    </div>
-                    <div class="athena-status-item">
-                      <span class="athena-status-label">Métier</span>
-                      <span class="athena-status-value" id="athena-job">—</span>
-                    </div>
-                    <div class="athena-status-item">
-                      <span class="athena-status-label">Ville / Quartier</span>
-                      <span class="athena-status-value" id="athena-city">—</span>
-                    </div>
-                    <div class="athena-status-item">
-                      <span class="athena-status-label">Temps sur le serveur</span>
-                      <span class="athena-status-value" id="athena-playtime">—</span>
-                    </div>
-                    <div class="athena-status-item">
-                      <span class="athena-status-label">Richesse (économie)</span>
-                      <span class="athena-status-value" id="athena-wealth">—</span>
-                    </div>
-                    <div class="athena-status-item">
-                      <span class="athena-status-label">Succès Athéna</span>
-                      <span class="athena-status-value" id="athena-achievements">0 / —</span>
-                    </div>
-                    <div class="athena-status-item">
-                      <span class="athena-status-label">Réputation</span>
-                      <span class="athena-status-value" id="athena-reputation">Neutre</span>
-                    </div>
-                    <div class="athena-status-item">
-                      <span class="athena-status-label">Dernière connexion</span>
-                      <span class="athena-status-value" id="athena-lastseen">—</span>
-                    </div>
-                  </div>
-                  <p class="muted athena-status-note">Les données citoyennes sont synchronisées depuis le serveur Athéna. <button class="modey-link" id="btn-refresh-athena">Rafraîchir</button></p>
-                </section>
-
-                <section class="profile-card">
-                  <div class="profile-card-head">
-                    <h3><i class="fa-solid fa-user-gear"></i>&nbsp;&nbsp;Gestion du compte</h3>
-                  </div>
-                  <p class="muted">Configurez vos jetons d'accès. Votre compte est géré par Modey.</p>
-                  <p class="account-rule"><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Il n'est pas autorisé par les règles du serveur d'avoir plusieurs comptes.</p>
-                  <div class="account-row static"><i class="fa-solid fa-circle-check"></i>&nbsp;Compte géré sur Modey</div>
-                  <button class="account-row logout" id="btn-logout-profile"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Déconnexion du compte</button>
-                </section>
-              </div>
-            </div>
-
-            <div class="profile-syncbar">
-              <span class="perk-icon"><i class="fa-solid fa-house"></i></span>
-              <div>
-                <strong id="sync-title">Synchronisé avec le Royaume d'Athéna</strong>
-                <span id="sync-sub">Votre skin actuel et vos capes sont visibles immédiatement par l'ensemble des joueurs en ligne.</span>
-              </div>
-              <span class="sync-ping">Ping : <strong id="sync-ping">—</strong></span>
-              <button class="srv-btn srv-discover" id="btn-refresh-cache">Rafraîchir le cache</button>
-            </div>
-          </div>
-        </main>
-
-        <main class="settings-page" id="settings-page" style="display:none">
-          <div class="settings-scroll" id="settings-scroll">
-            <header class="settings-header">
-              <div class="settings-header-text">
-                <span class="settings-pill"><i class="fa-solid fa-gear"></i>&nbsp;Configuration</span>
-                <h1>Paramètres</h1>
-                <p>Configurez le comportement du launcher, les ressources et Java.</p>
-              </div>
-              <span class="modey-chip"><i class="fa-solid fa-memory"></i>&nbsp;<strong id="settings-ram-chip">—</strong></span>
-            </header>
-
-            <section class="settings-card">
-              <div class="settings-card-head">
-                <h3><i class="fa-solid fa-memory"></i>&nbsp;&nbsp;Mémoire allouée</h3>
-              </div>
-              <div class="dual-slider-container" id="ram-slider">
-                <div class="slider-track"></div>
-                <div class="slider-fill" id="ram-track-fill"></div>
-                <input type="range" id="ram-min" min="0.5" max="16" step="0.5" value="2" />
-                <input type="range" id="ram-max" min="0.5" max="16" step="0.5" value="8" />
-              </div>
-              <div class="ram-labels">
-                <span id="ram-min-label">2 Go</span>
-                <span id="ram-max-label">8 Go</span>
-              </div>
-            </section>
-
-            <section class="settings-card">
-              <div class="settings-card-head">
-                <h3><i class="fa-solid fa-window-maximize"></i>&nbsp;&nbsp;Taille de la fenêtre</h3>
-              </div>
-              <div class="select-wrapper">
-                <select id="resolution-select"></select>
-              </div>
-            </section>
-
-            <section class="settings-card">
-              <div class="settings-card-head">
-                <h3><i class="fa-solid fa-power-off"></i>&nbsp;&nbsp;Action après le lancement</h3>
-              </div>
-              <div class="select-wrapper">
-                <select id="launcher-action-select">
-                  <option value="close">Fermer le launcher</option>
-                  <option value="keep">Garder le launcher ouvert</option>
-                  <option value="hide">Masquer le launcher (minimiser)</option>
-                </select>
-              </div>
-            </section>
-
-            <section class="settings-card">
-              <div class="settings-card-head">
-                <h3><i class="fa-brands fa-java"></i>&nbsp;&nbsp;Version de Java</h3>
-              </div>
-              <div class="java-selector">
-                <select id="java-select">
-                  <option value="bundled">Java fourni (recommandé)</option>
-                  <option value="system">Java système (PATH)</option>
-                </select>
-              </div>
-              <p class="muted">Le launcher détecte automatiquement Java 21. Le mode fourni garantit la compatibilité.</p>
-            </section>
-
-            <section class="settings-card">
-              <div class="settings-card-head">
-                <h3><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;À propos</h3>
-              </div>
-              <div class="about-grid">
-                <div><span>Version launcher</span><strong id="settings-version">—</strong></div>
-                <div><span>EML Lib</span><strong id="settings-emllib">2.3.5</strong></div>
-                <div><span>Electron</span><strong id="settings-electron">—</strong></div>
-                <div><span>OS</span><strong id="settings-os">—</strong></div>
-              </div>
-              <div class="about-project">
-                <h4>Modey Launcher</h4>
-                <p>Ce launcher a été développé pour le projet <strong>Modey</strong>, une plateforme de serveurs Minecraft communautaire basée sur <strong>EML (Electron Minecraft Launcher)</strong> — le launcher open-source maintenu par <a href="https://emlproject.com/" target="_blank" rel="noopener noreferrer">EML Project</a>.</p>
-                <p>Modey propose une architecture « 1 compte, 1 launcher, N serveurs » : un seul identifiant citoyen pour accéder à plusieurs mondes (Athéna, Free Build, etc.) sans réinstallation.</p>
-              </div>
-              <div class="about-links">
-                <a href="https://emlproject.com/" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i>&nbsp;EML Project — https://emlproject.com/
-                </a>
-                <a href="https://github.com/electron-minecraft-launcher/eml-lib" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <i class="fa-brands fa-github"></i>&nbsp;EML Lib sur GitHub
-                </a>
-              </div>
-              <div class="about-legal">
-                <p><strong>Licence :</strong> MIT (EML) / Licence Modey pour les spécificités du projet.</p>
-                <p><strong>Données :</strong> Aucune donnée personnelle n'est collectée sans consentement. Les réglages sont stockés localement.</p>
-                <p><strong>Contact :</strong> <a href="mailto:contact@flowcrea.fr">contact@flowcrea.fr</a> · Discord : nayrolf_rdgs</p>
-              </div>
-              <div class="about-infra">
-                <h4>Infrastructure & services</h4>
-                <ul>
-                  <li><strong>Authentification :</strong> Modey Auth Server (Yggdrasil custom + authlib-injector) — gestion des comptes citoyens, sessions, skins</li>
-                  <li><strong>Distribution modpacks :</strong> EML AdminTool (Files Updater) — sync mods/configs/resourcepacks par serveur</li>
-                  <li><strong>Launcher :</strong> EML Lib 2.3.5 (Electron + eml-lib) — installation, mise à jour, lancement</li>
-                  <li><strong>Hébergement :</strong> Serveurs dédiés européens (Athéna : NeoForge 21.1.169, 1.21.1)</li>
-                </ul>
-              </div>
-            </section>
-
-            <footer class="settings-footer">
-              <p class="muted"><i class="fa-solid fa-shield-halved"></i>&nbsp;Tous les réglages sont sauvegardés localement. Aucune donnée ne quitte votre machine.</p>
-            </footer>
-</div>
-        </main>
-      </div>
-
-    <div id="custom-dialog" class="dialog-overlay hidden">
-      <div class="dialog-box">
-        <h3 id="dialog-title" class="hidden">Notification</h3>
-        <p id="dialog-message"></p>
-        <div id="dialog-buttons" class="dialog-actions"></div>
-      </div>
+      <div id="view-login" class="view" data-view="login"></div>
+      <div id="view-home" class="view" data-view="home"></div>
     </div>
 
     <script type="module" src="/src/app.ts"></script>
-    <img src="/src/static/images/bg.png" alt="default background preload" style="display: none" />
+    <img src="/src/static/images/bg.png" alt="" style="display: none" />
   </body>
 </html>
-

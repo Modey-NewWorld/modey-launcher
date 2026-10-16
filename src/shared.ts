@@ -1,7 +1,7 @@
 import type { Account, IAvatar, ICape, ISkin } from 'eml-lib'
 import { SkinViewer, WalkingAnimation } from 'skinview3d'
 import { skin } from './ipc'
-import { Dialog } from './views/dialog'
+import { Dialog } from './components/dialog'
 import logger from 'electron-log/renderer'
 
 const DEFAULT_SKIN = {
@@ -29,24 +29,51 @@ const shared = {
    */
   resetMainView: async () => {
     const skinCanvasSettingsEl = document.getElementById('skin-container') as HTMLCanvasElement
+    if (!skinCanvasSettingsEl) return
 
     const activeSkin = shared.skins?.find((s) => s.state === 'active') ?? DEFAULT_SKIN
     const activeCape = shared.capes?.find((c) => c.state === 'active')
 
+    const parent = skinCanvasSettingsEl.parentElement
+    const targetWidth = parent ? Math.max(parent.clientWidth, 400) : 560
+    const targetHeight = parent ? Math.max(parent.clientHeight, 520) : 560
+
     if (!shared.mainSkinViewer) {
       shared.mainSkinViewer = new SkinViewer({
         canvas: skinCanvasSettingsEl,
-        width: 530,
-        height: 250,
+        width: targetWidth,
+        height: targetHeight,
         preserveDrawingBuffer: true
       })
 
       shared.mainSkinViewer.animation = new WalkingAnimation()
       shared.mainSkinViewer.animation!.speed = 0.3
       shared.mainSkinViewer.camera.position.set(-20, -2, 35)
-      shared.mainSkinViewer.controls.enableZoom = false
+      // Activer le zoom avec des limites contrôlées (évite de traverser le joueur ou de s'éloigner trop)
+      shared.mainSkinViewer.controls.enableZoom = true
+      shared.mainSkinViewer.controls.minDistance = 15
+      shared.mainSkinViewer.controls.maxDistance = 75
       shared.mainSkinViewer.controls.enablePan = false
-      shared.mainSkinViewer.controls.rotateSpeed = 0.3
+      shared.mainSkinViewer.controls.rotateSpeed = 0.5
+
+      // Observer les changements de taille de la fenêtre et du conteneur en temps réel
+      if (parent && typeof ResizeObserver !== 'undefined') {
+        const resizeObs = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            const w = Math.round(entry.contentRect.width)
+            const h = Math.round(entry.contentRect.height)
+            if (w > 100 && h > 100 && shared.mainSkinViewer) {
+              shared.mainSkinViewer.setSize(w, h)
+            }
+          }
+        })
+        resizeObs.observe(parent)
+      }
+    } else {
+      shared.mainSkinViewer.setSize(targetWidth, targetHeight)
+      shared.mainSkinViewer.controls.enableZoom = true
+      shared.mainSkinViewer.controls.minDistance = 15
+      shared.mainSkinViewer.controls.maxDistance = 75
     }
 
     // Respecte la préférence sauvegardée (bouton Animation de la page Mon Profil)
@@ -59,7 +86,8 @@ const shared = {
       shared.mainSkinViewer.animation = null
     }
 
-    shared.mainSkinViewer.loadSkin(activeSkin.url, { model: activeSkin.variant === 'slim' ? 'slim' : 'default' })
+    // Toujours charger le modèle standard classic 4px
+    shared.mainSkinViewer.loadSkin(activeSkin.url, { model: 'default' })
     if (activeCape) shared.mainSkinViewer.loadCape(activeCape.url)
     else shared.mainSkinViewer.resetCape()
   },
@@ -68,68 +96,140 @@ const shared = {
    */
   resetSkinViews: async () => {
     const skinGallerySettingsEl = document.getElementById('skin-gallery')!
+    if (!skinGallerySettingsEl) return
 
     skinGallerySettingsEl.innerHTML = ''
 
     if (!shared.auxiliarySkinViewer) {
       shared.auxiliarySkinViewer = new SkinViewer({
         canvas: document.createElement('canvas'),
-        width: 159.3,
-        height: 180
+        width: 240,
+        height: 300
       })
 
       shared.auxiliarySkinViewer.animation = new WalkingAnimation()
       shared.auxiliarySkinViewer.animation!.progress = 0.5
       shared.auxiliarySkinViewer.animation!.speed = 0
-      shared.auxiliarySkinViewer.zoom = 0.8
+      shared.auxiliarySkinViewer.zoom = 0.95
       shared.auxiliarySkinViewer.camera.position.set(-20, -2, 35)
       shared.auxiliarySkinViewer.controls.enabled = false
     }
 
+    // Ordonner : les skins personnalisés en premier, et Steve / Alex toujours en dernier
+    const customSkins: ISkin[] = []
+    const defaultSkins: ISkin[] = []
+
     for (const s of shared.skins ?? []) {
+      if (s.id === 'steve' || s.id === 'alex') {
+        defaultSkins.push(s)
+      } else {
+        customSkins.push(s)
+      }
+    }
+
+    // Steve puis Alex en fin de casier
+    defaultSkins.sort((a) => (a.id === 'steve' ? -1 : 1))
+    const orderedSkins = [...customSkins, ...defaultSkins]
+
+    for (const s of (orderedSkins as (ISkin & { name?: string })[])) {
       const skinDiv = document.createElement('div')
       skinDiv.classList.add('skin-preview')
       if (s.state === 'active') skinDiv.classList.add('active')
+
+      // Sélection d'un skin dans le casier
       skinDiv.addEventListener('click', async () => {
         if (s.state === 'active') return
         try {
-          shared.skins = await skin.updateSkin(s.url, s.variant)
-          shared.resetMainView()
-          shared.resetSkinViews()
-          document.getElementById('settings-content')?.scrollTo({ top: 0, behavior: 'smooth' })
+          shared.skins = await skin.updateSkin(s.url, 'classic')
+          await shared.resetMainView()
+          await shared.resetSkinViews()
+          // Mettre à jour immédiatement la photo de profil (avatar) et les infos d'identité
+          const { updateAvatarFromSkinUrl } = await import('./state')
+          await updateAvatarFromSkinUrl(s.url)
+          const { refreshProfileIdentity } = await import('./pages/profile/profile')
+          refreshProfileIdentity()
+          document.getElementById('profile-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
         } catch (err) {
           logger.error('Error occurred while changing the skin:', err)
-          await Dialog.show('An error occurred while changing the skin. Please try again in few minutes.', [{ text: 'Close', type: 'ok' }])
+          await Dialog.show('Une erreur est survenue lors de la sélection du skin. Veuillez réessayer.', [{ text: 'Fermer', type: 'ok' }])
         }
       })
 
-      if (s.state === 'inactive' && s.id !== 'steve' && s.id !== 'alex') {
-        const deleteBtn = document.createElement('button')
-        deleteBtn.classList.add('btn-delete-skin', 'btn', 'btn-secondary')
-        deleteBtn.innerHTML = '<i class="fa-solid fa-times"></i>'
-        deleteBtn.addEventListener('click', async (e) => {
+      const isSteve = s.id === 'steve'
+      const isAlex = s.id === 'alex'
+      const isDefault = isSteve || isAlex
+
+      // Barre d'actions au survol (Renommer + Supprimer) pour les skins personnalisés
+      if (!isDefault) {
+        const actionsWrap = document.createElement('div')
+        actionsWrap.classList.add('skin-card-actions')
+
+        // Bouton Renommer
+        const editBtn = document.createElement('button')
+        editBtn.classList.add('btn-skin-action', 'btn-rename-skin')
+        editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'
+        editBtn.title = 'Renommer ce skin'
+        editBtn.addEventListener('click', async (e) => {
           e.stopPropagation()
-          try {
-            shared.skins = await skin.deleteSkin(s.id)
-            shared.resetMainView()
-            shared.resetSkinViews()
-          } catch (err) {
-            logger.error('Error occurred while deleting the skin:', err)
-            await Dialog.show('An error occurred while deleting the skin.', [{ text: 'OK', type: 'ok' }])
+          const currentName = s.name || 'Personnalisé'
+          const newName = await Dialog.prompt('Entrez un nouveau nom pour ce skin :', currentName, 'Renommer le skin')
+          if (newName !== null && newName.trim() !== '') {
+            try {
+              shared.skins = await skin.renameSkin(s.id, newName.trim())
+              await shared.resetSkinViews()
+              const { refreshProfileIdentity } = await import('./pages/profile/profile')
+              refreshProfileIdentity()
+            } catch (err) {
+              logger.error('Erreur renommage skin:', err)
+              await Dialog.show('Impossible de renommer le skin.', [{ text: 'OK', type: 'ok' }])
+            }
           }
         })
+        actionsWrap.appendChild(editBtn)
 
-        skinDiv.appendChild(deleteBtn)
+        // Bouton Supprimer
+        const deleteBtn = document.createElement('button')
+        deleteBtn.classList.add('btn-skin-action', 'btn-delete-skin')
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>'
+        deleteBtn.title = 'Supprimer ce skin du casier'
+        deleteBtn.addEventListener('click', async (e) => {
+          e.stopPropagation()
+          const confirmed = await Dialog.show(
+            `Êtes-vous sûr de vouloir supprimer le skin "${s.name || 'Personnalisé'}" de votre casier ?`,
+            [
+              { text: 'Annuler', type: 'cancel' },
+              { text: 'Supprimer', type: 'danger' }
+            ],
+            'Supprimer le skin'
+          )
+          if (!confirmed) return
+
+          try {
+            shared.skins = await skin.deleteSkin(s.id)
+            await shared.resetMainView()
+            await shared.resetSkinViews()
+          } catch (err) {
+            logger.error('Error occurred while deleting the skin:', err)
+            await Dialog.show('Une erreur est survenue lors de la suppression du skin.', [{ text: 'OK', type: 'ok' }])
+          }
+        })
+        actionsWrap.appendChild(deleteBtn)
+
+        skinDiv.appendChild(actionsWrap)
       }
 
-      const source = `${s.url}-${s.variant}`
+      const source = `${s.url}-classic`
       const skinImg = document.createElement('img') as HTMLImageElement
+      const skinLabel = document.createElement('span')
+      const displayName = s.name || (isSteve ? 'Steve' : isAlex ? 'Alex' : 'Personnalisé')
+      skinLabel.innerText = displayName
+      skinLabel.title = displayName
+      skinDiv.title = `${displayName} (${s.state === 'active' ? 'Actif' : 'Cliquer pour équiper'})`
+
       if (shared.cachedSkinThumbnails.has(source)) {
         skinImg.src = shared.cachedSkinThumbnails.get(source)!
-        skinDiv.appendChild(skinImg)
-        skinGallerySettingsEl?.appendChild(skinDiv)
       } else {
-        await shared.auxiliarySkinViewer.loadSkin(s.url, { model: s.variant === 'slim' ? 'slim' : 'default' })
+        await shared.auxiliarySkinViewer.loadSkin(s.url, { model: 'default' })
         shared.auxiliarySkinViewer.render()
 
         skinImg.src = shared.auxiliarySkinViewer.canvas.toDataURL()
@@ -137,6 +237,7 @@ const shared = {
       }
 
       skinDiv.appendChild(skinImg)
+      skinDiv.appendChild(skinLabel)
       skinGallerySettingsEl?.appendChild(skinDiv)
     }
   },
@@ -144,7 +245,8 @@ const shared = {
    * `capes` should be updated before calling this function.
    */
   resetCapesViews: async () => {
-    const capeGallerySettingsEl = document.getElementById('cape-gallery')!
+    const capeGallerySettingsEl = document.getElementById('cape-gallery')
+    if (!capeGallerySettingsEl) return
     const inactive = !shared.capes?.some((c) => c.state === 'active')
 
     capeGallerySettingsEl.innerHTML = ''
@@ -158,7 +260,7 @@ const shared = {
           shared.capes = await skin.hideCape()
           shared.resetMainView()
           shared.resetCapesViews()
-          document.getElementById('settings-content')?.scrollTo({ top: 0, behavior: 'smooth' })
+          document.getElementById('profile-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
         } catch (err) {
           logger.error('Error occurred while unequipping the cape:', err)
           await Dialog.show('An error occurred while unequipping the cape. Please try again in few minutes.', [{ text: 'Close', type: 'ok' }])
@@ -181,7 +283,7 @@ const shared = {
           shared.capes = await skin.switchCape(c.id)
           shared.resetMainView()
           shared.resetCapesViews()
-          document.getElementById('settings-content')?.scrollTo({ top: 0, behavior: 'smooth' })
+          document.getElementById('profile-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
         } catch (err) {
           logger.error('Error occurred while changing the cape:', err)
           await Dialog.show('An error occurred while changing the cape. Please try again in few minutes.', [{ text: 'Close', type: 'ok' }])

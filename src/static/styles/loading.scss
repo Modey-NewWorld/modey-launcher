@@ -4,15 +4,40 @@ div.loading-card {
   align-items: center;
   justify-content: center;
   height: 100%;
+  text-align: center;
+  gap: 8px;
+
+  .loading-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 4px 10px rgba(30, 136, 229, 0.22));
+    animation: gentle-pulse 2s infinite ease-in-out;
+  }
 
   .spinner {
-    font-size: 2rem;
-    color: #ffffff;
-    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: var(--primary, #1E88E5);
+    margin: 4px 0 8px 0;
   }
 
   .text {
-    opacity: 0.8;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #3D5268;
+    letter-spacing: 0.3px;
+  }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
   }
 }
 

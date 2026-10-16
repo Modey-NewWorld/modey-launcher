@@ -1,0 +1,128 @@
+        <main class="profile-page" id="profile-page" style="display:none">
+          <div class="profile-scroll" id="profile-scroll">
+            <div class="profile-layout-clean">
+              
+              <!-- Colonne GAUCHE : Casier / Équipements + Identité Joueur -->
+              <div class="profile-left-col">
+                
+                <!-- Casier du Citoyen (Skins, Capes & Équipements futurs) -->
+                <section class="profile-card locker-card">
+                  <div class="profile-card-head">
+                    <h3><i class="fa-solid fa-shirt"></i>&nbsp;&nbsp;Mon Casier</h3>
+                    <span class="locker-tag"><i class="fa-solid fa-sparkles"></i> Équipements</span>
+                  </div>
+                  
+                  <!-- Section Skin -->
+                  <div class="locker-section">
+                    <div class="locker-section-head">
+                      <strong><i class="fa-solid fa-user"></i>&nbsp;&nbsp;Apparence & Skin</strong>
+                      <span class="studio-skin-pill" id="studio-skin-name">Classique (4px)</span>
+                    </div>
+                    
+                    <div class="locker-actions">
+                      <button class="srv-btn srv-select" id="btn-import-skin">
+                        <i class="fa-solid fa-upload"></i>&nbsp;Importer un skin (.png)
+                      </button>
+                      <input type="file" id="input-import-skin" accept=".png" style="display:none" />
+                      <button class="srv-btn srv-discover" id="btn-download-skin" title="Télécharger l'image de votre skin actuel">
+                        <i class="fa-solid fa-download"></i>
+                      </button>
+                    </div>
+
+                    <div class="studio-gallery">
+                      <div class="studio-gallery-title">Mes skins enregistrés</div>
+                      <div id="skin-gallery"></div>
+                    </div>
+                  </div>
+
+                  <!-- Section Équipements Futurs (Capes, Cosmétiques...) -->
+                  <div class="locker-section locker-future">
+                    <div class="locker-section-head">
+                      <strong><i class="fa-solid fa-gem"></i>&nbsp;&nbsp;Accessoires & Cosmétiques</strong>
+                      <span class="modey-soon-badge">Bientôt</span>
+                    </div>
+                    <p class="muted">Capes de guilde, chapeaux, familiers et artefacts de cité seront déblocables et équipables ici.</p>
+                  </div>
+                </section>
+
+                <!-- Informations Joueur (sous le casier) -->
+                <section class="profile-card identity-card">
+                  <div class="profile-card-head">
+                    <h3><i class="fa-solid fa-id-card"></i>&nbsp;&nbsp;Informations joueur</h3>
+                    <span class="soon-pill">Officiel</span>
+                  </div>
+
+                  <div class="identity-head">
+                    <img src="" id="profile-id-avatar" alt="Avatar" />
+                    <div>
+                      <strong id="profile-id-name">—</strong>
+                      <span id="profile-id-badge">Compte joueur vérifié</span>
+                    </div>
+                  </div>
+
+                  <div class="identity-rows">
+                    <div>
+                      <span>UUID Modey</span>
+                      <code id="profile-uuid">—</code>
+                    </div>
+                    <div>
+                      <span>Email</span>
+                      <span class="email-wrap">
+                        <code id="profile-email">••••••••</code>
+                        <button class="eye-btn" id="btn-toggle-email" title="Afficher / masquer l'email">
+                          <i class="fa-solid fa-eye" id="email-eye-icon"></i>
+                        </button>
+                      </span>
+                    </div>
+                    <div>
+                      <span>Édition Minecraft</span>
+                      <span class="tag">Java Edition (1.21.1)</span>
+                    </div>
+                  </div>
+                </section>
+
+              </div>
+
+              <!-- Colonne DROITE : Studio 3D Pleine Hauteur -->
+              <section class="profile-card full-studio-card">
+                <div class="profile-card-head studio-overlay-head">
+                  <div class="studio-title-wrap">
+                    <h3><i class="fa-solid fa-cube"></i>&nbsp;&nbsp;Studio d'Aperçu 3D</h3>
+                    <span class="studio-badge" id="studio-format"><i class="fa-solid fa-server"></i> Modey Core</span>
+                  </div>
+                  <div class="face-toggle">
+                    <button class="face-btn active" id="btn-face">Face</button>
+                    <button class="face-btn" id="btn-back">Dos</button>
+                  </div>
+                </div>
+
+                <!-- Canvas Skin 3D pleine hauteur -->
+                <div class="studio-canvas-container">
+                  <canvas id="skin-container"></canvas>
+
+                  <!-- Contrôles flottants en overlay sur le studio 3D -->
+                  <div class="studio-floating-controls">
+                    <div class="zoom-controls">
+                      <button class="rotate-btn zoom-btn" id="btn-zoom-in" title="Zoomer sur le skin">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i>
+                      </button>
+                      <button class="rotate-btn zoom-btn" id="btn-zoom-out" title="Dézoomer sur le skin">
+                        <i class="fa-solid fa-magnifying-glass-minus"></i>
+                      </button>
+                      <button class="rotate-btn zoom-btn" id="btn-zoom-reset" title="Réinitialiser la vue et le zoom">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                      </button>
+                    </div>
+                    <button class="rotate-btn" id="btn-rotate">
+                      <i class="fa-solid fa-rotate"></i>&nbsp;Vue 360°
+                    </button>
+                    <button class="rotate-btn active" id="btn-animation" title="Activer / couper l'animation de marche">
+                      <i class="fa-solid fa-film" id="animation-btn-icon"></i>&nbsp;<span id="animation-btn-label">Animation : ON</span>
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </div>
+        </main>

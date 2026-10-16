@@ -2,9 +2,10 @@ import { ipcMain } from 'electron'
 import { Background } from 'eml-lib'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL } from '../const'
+import { IPC } from '../ipc-channels'
 
 export function registerBackgroundHandlers() {
-  ipcMain.handle('background:get', async () => {
+  ipcMain.handle(IPC.background.get, async () => {
     const background = new Background(ADMINTOOL_URL)
 
     try {

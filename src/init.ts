@@ -1,5 +1,7 @@
 import { setBlockingView, setUser, setView } from './state'
-import { auth, background, bootstraps, maintenance, skin } from './ipc'
+import { auth, background, bootstraps, maintenance } from './ipc'
+import { createProgressBar } from './components/progressBar'
+import { loadSkinAssets } from './services/skin'
 import logger from 'electron-log/renderer'
 
 const DEFAULT_BACKGROUND = '/src/static/images/bg.png'
@@ -26,21 +28,12 @@ export async function bootstrap() {
   const bgElement = document.querySelector('.app-background') as HTMLElement
   const maintenanceDates = document.getElementById('maintenance-dates')!
   const maintenanceReason = document.getElementById('maintenance-reason')!
-  const progressBar = document.getElementById('update-progress-bar')
-  const progressLabel = document.getElementById('update-progress-label')
-  const progressPercent = document.getElementById('update-progress-percent')
-
-  const setIndeterminate = (active: boolean) => {
-    if (!progressBar || !progressPercent) return
-
-    if (active) {
-      progressBar.classList.add('indeterminate')
-      progressPercent.style.display = 'none'
-    } else {
-      progressBar.classList.remove('indeterminate')
-      progressPercent.style.display = 'block'
-    }
-  }
+  const updateProgress = createProgressBar({
+    container: 'update-progress-container',
+    bar: 'update-progress-bar',
+    label: 'update-progress-label',
+    percent: 'update-progress-percent'
+  })
 
   const up = await bootstraps.check()
   const bg = await background.get()
@@ -48,21 +41,21 @@ export async function bootstrap() {
   const bgUrl = bg?.file?.url ?? DEFAULT_BACKGROUND
 
   if (up.updateAvailable) {
-    setIndeterminate(false)
-    progressBar!.style.width = '0%'
-    progressLabel!.innerText = 'Preparing update...'
-    progressPercent!.innerText = '0%'
+    updateProgress.setIndeterminate(false)
+    updateProgress.reset()
+    updateProgress.setLabel('Préparation de la mise à jour...')
+    updateProgress.setPercent('0%')
     setBlockingView('update')
     await new Promise((r) => setTimeout(r, 500))
     bootstraps.downloadProgress((value) => {
-      progressLabel!.innerText = `Downloading update...`
-      const percent = ((value.downloaded.size / value.total.amount) * 100).toFixed(2)
-      progressPercent!.innerText = `${percent}%`
-      progressBar!.style.width = `${percent}%`
+      updateProgress.setLabel('Téléchargement de la mise à jour...')
+      const ratio = value.downloaded.size / value.total.amount
+      updateProgress.setWidth(ratio)
+      updateProgress.setPercent(`${(ratio * 100).toFixed(2)}%`)
     })
     bootstraps.downloadEnd(async () => {
-      setIndeterminate(true)
-      progressLabel!.innerText = `Installing...`
+      updateProgress.setIndeterminate(true)
+      updateProgress.setLabel('Installation...')
       await bootstraps.install()
     })
     bootstraps.error((err) => {
@@ -78,37 +71,75 @@ export async function bootstrap() {
   }
 
   if (mn) {
-    const start = new Date(mn.startTime as Date)
-    const end = new Date(mn.endTime as Date)
-    maintenanceDates.innerText = `From ${start.toLocaleString([], dateFormatOptions)} to ${end.toLocaleString([], dateFormatOptions)}`
-    maintenanceReason.innerText = mn.message ?? 'Please come back later.'
+    const start = mn.startTime ? new Date(mn.startTime as Date) : null
+    const end = mn.endTime ? new Date(mn.endTime as Date) : null
+    const maintenanceTitle = document.getElementById('maintenance-title')
+    const maintenanceIcon = document.getElementById('maintenance-icon')
+    if (maintenanceTitle) maintenanceTitle.innerText = 'Maintenance du Launcher'
+    if (maintenanceIcon) maintenanceIcon.innerHTML = '<i class="fa-solid fa-gears"></i>'
+    if (start && end) {
+      maintenanceDates.innerText = `Du ${start.toLocaleString([], dateFormatOptions)} au ${end.toLocaleString([], dateFormatOptions)}`
+    } else if (end) {
+      maintenanceDates.innerText = `Fin estimée : ${end.toLocaleString([], dateFormatOptions)}`
+    } else {
+      maintenanceDates.innerText = 'Maintenance générale en cours'
+    }
+    maintenanceReason.innerText = mn.message ?? 'Le launcher est actuellement en maintenance. Nous serons de retour très vite !'
+
+    const btnRetry = document.getElementById('btn-maint-retry')
+    if (btnRetry) btnRetry.onclick = () => window.location.reload()
+    const btnLogout = document.getElementById('btn-maint-logout')
+    if (btnLogout) {
+      btnLogout.onclick = async () => {
+        await auth.logout()
+        window.location.reload()
+      }
+    }
     setBlockingView('maintenance')
     return
   }
   try {
-    const [_, session] = await Promise.all([
-      preloadImage(bgUrl),
-      auth.refresh(),
-    ])
+    const [_, session] = await Promise.all([preloadImage(bgUrl), auth.refresh()])
 
     if (bgElement) bgElement.style.backgroundImage = `url('${bgUrl}')`
 
     if (session.success) {
-      let skins: any = []
-      let capes: any = []
-      let avatar: any = null
-
-      try {
-        const [__, s, c, a] = await Promise.all([skin.reload(session.account), skin.getSkin(), skin.getCape(), skin.getAvatar()])
-        skins = s
-        capes = c
-        avatar = a
-      } catch (skinErr) {
-        logger.warn('Skin loading skipped:', skinErr)
-      }
-
+      const { skins, capes, avatar } = await loadSkinAssets(session.account)
       setUser(session.account, { skins, capes, avatar })
       setView('home')
+    } else if ((session as any).isServiceUnavailable) {
+      // Services Modey injoignables ou hors-ligne, mais session locale préservée !
+      const isOnline = navigator.onLine
+      const maintenanceTitle = document.getElementById('maintenance-title')
+      const maintenanceIcon = document.getElementById('maintenance-icon')
+      if (maintenanceTitle) {
+        maintenanceTitle.innerText = isOnline ? 'Services Modey Indisponibles' : 'Connexion Réseau Requise'
+      }
+      if (maintenanceIcon) {
+        maintenanceIcon.innerHTML = isOnline ? '<i class="fa-solid fa-server"></i>' : '<i class="fa-solid fa-wifi"></i>'
+      }
+      if (maintenanceDates) {
+        maintenanceDates.innerText = isOnline
+          ? `Compte : ${(session as any).account?.name || 'Joueur'} (Session sauvegardée)`
+          : 'Vous êtes actuellement hors-ligne'
+      }
+      if (maintenanceReason) {
+        maintenanceReason.innerText = isOnline
+          ? "Désolé, les serveurs d'authentification Modey sont momentanément déconnectés ou en cours de maintenance.\nCela ne vient pas de vous, nous faisons le maximum pour réparer et rétablir le service au plus vite !"
+          : "Vous n'êtes pas connecté à Internet. Veuillez vérifier votre câble Ethernet ou votre connexion Wi-Fi, puis cliquez sur Réessayer."
+      }
+
+      const btnRetry = document.getElementById('btn-maint-retry')
+      if (btnRetry) btnRetry.onclick = () => window.location.reload()
+      const btnLogout = document.getElementById('btn-maint-logout')
+      if (btnLogout) {
+        btnLogout.onclick = async () => {
+          await auth.logout()
+          window.location.reload()
+        }
+      }
+      setBlockingView('maintenance')
+      return
     } else {
       setView('login')
     }
@@ -117,10 +148,7 @@ export async function bootstrap() {
     if (bgElement) bgElement.style.backgroundImage = `url('${DEFAULT_BACKGROUND}')`
     setView('login')
   } finally {
-    await new Promise((resolve) => setTimeout(resolve, 400))
-    document.querySelector('div#view-loading')?.classList.add('loaded')
-    await new Promise((resolve) => setTimeout(resolve, 200))
     document.body.classList.add('loaded')
+    document.querySelector('div#view-loading')?.classList.add('loaded')
   }
 }
-

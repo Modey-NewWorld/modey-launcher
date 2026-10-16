@@ -4,25 +4,35 @@ div.maintenance-card {
   align-items: center;
   justify-content: center;
   height: 100%;
+  text-align: center;
+  padding: 30px;
+  max-width: 480px;
+  margin: 0 auto;
 
   h3 {
-    font-size: 21px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #1A2332;
   }
 
   .gears {
-    font-size: 2rem;
-    color: #ffffff;
-    margin-bottom: 1rem;
+    font-size: 2.8rem;
+    color: var(--primary, #1E88E5);
+    margin-bottom: 1.2rem;
+    filter: drop-shadow(0 4px 12px rgba(30, 136, 229, 0.25));
   }
 
   .dates {
-    opacity: 0.8;
-    margin-bottom: 0.7rem;
-    margin-top: 0.2rem;
-    font-size: 14px;
+    color: #5B6B84;
+    font-weight: 500;
+    margin-bottom: 0.8rem;
+    margin-top: 0.4rem;
+    font-size: 13.5px;
   }
 
   .text {
-    opacity: 1;
+    color: #3D5268;
+    font-size: 14px;
+    line-height: 1.5;
   }
 }

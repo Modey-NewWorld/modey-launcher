@@ -2,9 +2,10 @@ import { ipcMain } from 'electron'
 import { Maintenance } from 'eml-lib'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL } from '../const'
+import { IPC } from '../ipc-channels'
 
 export function registerMaintenanceHandlers() {
-  ipcMain.handle('maintenance:get', async () => {
+  ipcMain.handle(IPC.maintenance.get, async () => {
     const maintenance = new Maintenance(ADMINTOOL_URL)
 
     try {

@@ -2,9 +2,10 @@ import { ipcMain } from 'electron'
 import { Profiles } from 'eml-lib'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL, AUTH_API_URL } from '../const'
+import { IPC } from '../ipc-channels'
 
 export function registerProfilesHandlers() {
-  ipcMain.handle('profiles:get', async () => {
+  ipcMain.handle(IPC.profiles.get, async () => {
     const profiles = new Profiles(ADMINTOOL_URL)
 
     try {
@@ -27,6 +28,14 @@ export function registerProfilesHandlers() {
       // Fusionner les profils avec les métadonnées Modey
       const enriched = list.map((p) => {
         const meta = modeyMeta[p.slug]
+        if (meta) {
+          if (meta.bannerUrl && meta.bannerUrl.startsWith('/')) {
+            meta.bannerUrl = `${AUTH_API_URL}${meta.bannerUrl}`
+          }
+          if (meta.iconUrl && meta.iconUrl.startsWith('/')) {
+            meta.iconUrl = `${AUTH_API_URL}${meta.iconUrl}`
+          }
+        }
         return {
           ...p,
           modey: meta || {
@@ -35,6 +44,7 @@ export function registerProfilesHandlers() {
             autoBlockIfOffline: true,
             maintenanceMessage: '',
             bannerUrl: '',
+            iconUrl: '',
             tags: [],
             teaser: null
           }

@@ -3,6 +3,7 @@ import { ipcMain } from 'electron'
 import { Bootstraps } from 'eml-lib'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL } from '../const'
+import { IPC } from '../ipc-channels'
 
 let bootstraps: Bootstraps | null = null
 
@@ -11,19 +12,19 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
     bootstraps = new Bootstraps(ADMINTOOL_URL)
 
     bootstraps.on('download_progress', (data) => {
-      mainWindow.webContents.send('bootstraps:download_progress', data)
+      mainWindow.webContents.send(IPC.bootstraps.downloadProgress, data)
     })
 
     bootstraps.on('download_end', (data) => {
-      mainWindow.webContents.send('bootstraps:download_end', data)
+      mainWindow.webContents.send(IPC.bootstraps.downloadEnd, data)
     })
 
     bootstraps.on('bootstraps_error', (data) => {
-      mainWindow.webContents.send('bootstraps:error', data)
+      mainWindow.webContents.send(IPC.bootstraps.error, data)
     })
   }
 
-  ipcMain.handle('bootstraps:check', async () => {
+  ipcMain.handle(IPC.bootstraps.check, async () => {
     try {
       return await bootstraps?.checkForUpdate()
     } catch (err) {
@@ -32,11 +33,11 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
     }
   })
 
-  ipcMain.handle('bootstraps:download', async () => {
+  ipcMain.handle(IPC.bootstraps.download, async () => {
     return await bootstraps?.download()
   })
 
-  ipcMain.handle('bootstraps:install', async () => {
+  ipcMain.handle(IPC.bootstraps.install, async () => {
     return await bootstraps?.runUpdate()
   })
 }

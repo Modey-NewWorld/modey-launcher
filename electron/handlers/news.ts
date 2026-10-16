@@ -3,9 +3,10 @@ import { News } from 'eml-lib'
 import type { INews} from 'eml-lib'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL } from '../const'
+import { IPC } from '../ipc-channels'
 
 export function registerNewsHandlers() {
-  ipcMain.handle('news:get_news', async () => {
+  ipcMain.handle(IPC.news.getNews, async () => {
     try {
       const news = new News(ADMINTOOL_URL)
       const feed = (await news.getNews()) as INews[]
@@ -16,7 +17,7 @@ export function registerNewsHandlers() {
     }
   })
 
-  ipcMain.handle('news:get_categories', async () => {
+  ipcMain.handle(IPC.news.getCategories, async () => {
     try {
       const news = new News(ADMINTOOL_URL)
       const feed = await news.getCategories()

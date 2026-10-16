@@ -1,8 +1,9 @@
-import { ipcMain, app, screen, dialog } from 'electron'
+import { ipcMain, app, screen, BrowserWindow } from 'electron'
 import logger from 'electron-log/main'
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
+import { IPC } from '../ipc-channels'
 
 const settingsPath = path.join(app.getPath('userData'), 'settings.json')
 
@@ -29,6 +30,7 @@ export interface IGameSettings {
   launcherAction: 'close' | 'keep' | 'hide'
   launchAtStartup: boolean
   autoUpdateCheck: boolean
+  uiScale: number
 }
 
 export const DEFAULT_SETTINGS: IGameSettings = {
@@ -44,11 +46,38 @@ export const DEFAULT_SETTINGS: IGameSettings = {
   },
   launcherAction: 'close',
   launchAtStartup: false,
-  autoUpdateCheck: true
+  autoUpdateCheck: true,
+  uiScale: 1
+}
+
+export const UI_SCALE_MIN = 0.75
+export const UI_SCALE_MAX = 1.5
+
+function clampScale(value: number): number {
+  return Math.min(UI_SCALE_MAX, Math.max(UI_SCALE_MIN, value))
+}
+
+export function getSavedUiScale(): number {
+  try {
+    if (!fs.existsSync(settingsPath)) return DEFAULT_SETTINGS.uiScale
+    const data = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
+    const scale = Number(data.uiScale)
+    return Number.isFinite(scale) ? clampScale(scale) : DEFAULT_SETTINGS.uiScale
+  } catch (err) {
+    logger.error('Error reading uiScale:', err)
+    return DEFAULT_SETTINGS.uiScale
+  }
+}
+
+function applyUiScale(scale: number) {
+  const factor = clampScale(scale)
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed()) win.webContents.setZoomFactor(factor)
+  }
 }
 
 export function registerSettingsHandlers() {
-  ipcMain.handle('settings:get', async () => {
+  ipcMain.handle(IPC.settings.get, async () => {
     try {
       if (!fs.existsSync(settingsPath)) {
         fs.writeFileSync(settingsPath, JSON.stringify(DEFAULT_SETTINGS, null, 2))
@@ -62,9 +91,11 @@ export function registerSettingsHandlers() {
     }
   })
 
-  ipcMain.handle('settings:set', async (_event, newSettings: IGameSettings) => {
+  ipcMain.handle(IPC.settings.set, async (_event, newSettings: IGameSettings) => {
     try {
-      fs.writeFileSync(settingsPath, JSON.stringify(newSettings, null, 2))
+      const toWrite: IGameSettings = { ...newSettings, uiScale: clampScale(Number(newSettings.uiScale) || DEFAULT_SETTINGS.uiScale) }
+      fs.writeFileSync(settingsPath, JSON.stringify(toWrite, null, 2))
+      applyUiScale(toWrite.uiScale)
       return true
     } catch (err) {
       logger.error('Error writing settings:', err)
@@ -72,7 +103,7 @@ export function registerSettingsHandlers() {
     }
   })
 
-  ipcMain.handle('system:info', async () => {
+  ipcMain.handle(IPC.system.info, async () => {
     const totalMemBytes = os.totalmem()
     const totalMemGB = Math.round(totalMemBytes / 1024 / 1024 / 1024)
 
@@ -85,32 +116,4 @@ export function registerSettingsHandlers() {
       version: app.getVersion()
     }
   })
-
-  ipcMain.handle('settings:pick_java', async () => {
-    const result = await dialog.showOpenDialog({
-      properties: ['openFile'],
-      filters: [{ name: 'Java Executable', extensions: ['exe', 'bin', ''] }]
-    })
-    return result.filePaths[0] ?? null
-  })
-
-  ipcMain.handle('system:get_login_item', () => {
-    try {
-      return app.getLoginItemSettings().openAtLogin
-    } catch (err) {
-      logger.error('Error reading login item settings:', err)
-      return false
-    }
-  })
-
-  ipcMain.handle('system:set_login_item', (_event, enabled: boolean) => {
-    try {
-      app.setLoginItemSettings({ openAtLogin: !!enabled })
-      return app.getLoginItemSettings().openAtLogin
-    } catch (err) {
-      logger.error('Error writing login item settings:', err)
-      return false
-    }
-  })
 }
-

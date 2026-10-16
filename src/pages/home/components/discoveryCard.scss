@@ -1,0 +1,75 @@
+.discovery-card {
+  background: #ffffff;
+  border: 1px solid #e6eaf2;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(30, 50, 100, 0.06);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .discovery-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    strong {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #101b30;
+      line-height: 1.35;
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  .discovery-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 11px;
+    background: #eef1f6;
+    border: 1px solid #e2e9f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5b6b84;
+    font-size: 16px;
+  }
+
+  p {
+    font-size: 12.5px;
+    color: #5b6b84;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .discovery-bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .discovery-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+
+    span {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #1a73e8;
+      background: #e8f1fd;
+      padding: 3px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+  }
+
+}
+
+/* Note : .discovery-notify est défini plus bas (partagé avec la page Serveurs) */
+
