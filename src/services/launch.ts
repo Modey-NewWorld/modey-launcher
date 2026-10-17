@@ -28,9 +28,10 @@ export interface LaunchUi {
 let ui: LaunchUi | null = null
 let totalToDownload = 0
 let totalDownloadedByType: { type: string; size: number }[] = []
+let isLaunching = false
 
 export async function startLaunch() {
-  if (!ui) return
+  if (!ui || isLaunching) return
   const user = getUser()
   if (!user) return
   if (ui.isComingSoon()) {
@@ -38,8 +39,10 @@ export async function startLaunch() {
     return
   }
 
-  ui.progress.setIndeterminate(true)
+  isLaunching = true
+  ui.setPlayEnabled(false)
   ui.setPlayVisible(false)
+  ui.progress.setIndeterminate(true)
   ui.progress.show()
   ui.progress.reset()
   ui.progress.setLabel('Initialisation du lancement...')
@@ -47,18 +50,26 @@ export async function startLaunch() {
   totalToDownload = 0
   totalDownloadedByType = []
 
-  const config = await settings.get()
-  const profile = ui.getProfile()
-  const target = targetFor(profile)
+  try {
+    const config = await settings.get()
+    const profile = ui.getProfile()
+    const target = targetFor(profile)
 
-  logger.log(`Lancement pour ${user.name} vers ${target.host}:${target.port}`)
-  game.launch({
-    account: user,
-    settings: config,
-    profileSlug: profile?.slug || 'athena',
-    serverIp: target.host,
-    serverPort: target.port
-  })
+    logger.log(`Lancement pour ${user.name} vers ${target.host}:${target.port}`)
+    await game.launch({
+      account: user,
+      settings: config,
+      profileSlug: profile?.slug || 'athena',
+      serverIp: target.host,
+      serverPort: target.port
+    })
+  } catch (err) {
+    logger.error('Erreur lors du déclenchement du lancement:', err)
+    isLaunching = false
+    ui.setPlayEnabled(true)
+    ui.setPlayVisible(true)
+    ui.progress.hide()
+  }
 }
 
 /** Abonne la machine de progression du lancement (events game.*). À appeler une seule fois. */
@@ -139,6 +150,7 @@ export function bindLaunch(launchUi: LaunchUi) {
   })
 
   game.launchClose(async (code: number | null) => {
+    isLaunching = false
     progress.setIndeterminate(false)
     progress.hide()
     launchUi.setPlayVisible(true)

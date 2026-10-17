@@ -104,10 +104,17 @@ export function initHome() {
       if (playHeroBtn) playHeroBtn.style.display = visible ? 'flex' : 'none'
     },
     setPlayEnabled(enabled) {
-      const b = playBtn as HTMLButtonElement | null
-      if (!b) return
-      if (enabled) b.removeAttribute('disabled')
-      else b.setAttribute('disabled', 'true')
+      for (const btn of [playBtn, playHeroBtn]) {
+        const b = btn as HTMLButtonElement | null
+        if (!b) continue
+        if (enabled) {
+          b.removeAttribute('disabled')
+          b.classList.remove('btn-disabled')
+        } else {
+          b.setAttribute('disabled', 'true')
+          b.classList.add('btn-disabled')
+        }
+      }
     },
     getProfile: () => homeState.selectedProfile,
     isComingSoon: () => isComingSoonProfile(homeState.selectedProfile),

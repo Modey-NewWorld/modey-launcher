@@ -140,7 +140,17 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       launcher.on('launch_download', (download) => {
         logger.log(`Downloading ${download.total.amount} files (${download.total.size} B).`)
       })
-      forward('download_progress', IPC.game.downloadProgress)
+      // Throttling de download_progress pour éviter de saturer l'IPC Electron et geler le renderer
+      let lastProgressDispatch = 0
+      launcher.on('download_progress', (value: any) => {
+        const now = Date.now()
+        if (now - lastProgressDispatch >= 60) {
+          lastProgressDispatch = now
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send(IPC.game.downloadProgress, value)
+          }
+        }
+      })
       launcher.on('download_error', (error) => {
         logger.error(`Error downloading ${error.filename}: ${error.message}`)
       })
@@ -159,24 +169,14 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         logger.log('Extracting natives...')
         mainWindow.webContents.send(IPC.game.launchExtractNatives)
       })
-      forward('extract_progress', IPC.game.extractProgress)
-      forward('extract_end', IPC.game.extractEnd)
-
       launcher.on('launch_copy_assets', () => {
         logger.log('Copying assets...')
         mainWindow.webContents.send(IPC.game.launchCopyAssets)
       })
-      forward('copy_progress', IPC.game.copyProgress)
-      forward('copy_end', IPC.game.copyEnd)
-
       launcher.on('launch_patch_loader', () => {
         logger.log('Patching loader...')
         mainWindow.webContents.send(IPC.game.launchPatchLoader)
       })
-      forward('patch_progress', IPC.game.patchProgress)
-      forward('patch_error', IPC.game.patchError)
-      forward('patch_end', IPC.game.patchEnd)
-
       launcher.on('launch_check_java', () => {
         logger.log('Checking Java...')
         mainWindow.webContents.send(IPC.game.launchCheckJava)
@@ -190,8 +190,6 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         logger.log('Cleaning game directory...')
         mainWindow.webContents.send(IPC.game.launchClean)
       })
-      forward('clean_progress', IPC.game.cleanProgress)
-      forward('clean_end', IPC.game.cleanEnd)
 
       launcher.on('launch_launch', (info) => {
         logger.log(`Launching Minecraft ${info.version} (${info.type}${info.loaderVersion ? ` ${info.loaderVersion}` : ''})...`)
@@ -207,8 +205,6 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       })
 
       launcher.on('launch_data', (message: string) => {
-        logger.log(message)
-
         // Détection de déconnexion du serveur Athéna (Athéna-Guard anti-crack)
         if (disconnectWatchArmed && hasActiveMinecraft() && !isExitingByDisconnect()) {
           if (DISCONNECT_PATTERNS.some((pattern) => pattern.test(message))) {
@@ -216,8 +212,6 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
             killMinecraft()
           }
         }
-
-        mainWindow.webContents.send(IPC.game.launchData, message)
       })
 
       launcher.on('launch_close', (code: number | null) => {
@@ -236,15 +230,6 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
         mainWindow.webContents.send(IPC.game.launchClose, isExitingByDisconnect() ? 0 : code)
         setExitingByDisconnect(false)
-      })
-
-      // @internal — debug moteur, jamais consommé côté renderer
-      launcher.on('launch_debug', (message) => {
-        logger.debug(message)
-        mainWindow.webContents.send(IPC.game.launchDebug, message)
-      })
-      launcher.on('patch_debug', (message) => {
-        mainWindow.webContents.send(IPC.game.patchDebug, message)
       })
 
       try {
