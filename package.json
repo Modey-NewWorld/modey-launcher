@@ -4,17 +4,17 @@
   "author": "Flow (Florian) — FlowCreativeStudio (https://github.com/NayrolfRdgs)",
   "description": "Launcher officiel et modulaire de la plateforme de jeu Modey",
   "private": false,
-  "version": "26.1.1",
+  "version": "26.1.0",
   "license": "UNLICENSED",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "release": "npm run build && electron-builder -wml",
-    "release:all": "npm run build && electron-builder -wml",
+    "release": "npm run build && electron-builder --win --linux",
+    "release:all": "npm run build && electron-builder --win --linux",
     "release:win": "npm run build && electron-builder --win",
-    "release:mac": "npm run build && electron-builder --mac",
-    "release:lin": "npm run build && electron-builder --linux"
+    "release:lin": "npm run build && electron-builder --linux",
+    "release:mac": "npm run build && electron-builder --mac"
   },
   "build": {
     "appId": "net.modey.launcher",
