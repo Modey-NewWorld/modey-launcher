@@ -46,7 +46,7 @@ export const DEFAULT_SETTINGS: IGameSettings = {
     height: 720,
     fullscreen: false
   },
-  launcherAction: 'close',
+  launcherAction: 'keep',
   backgroundSleep: 0,
   launchAtStartup: false,
   autoUpdateCheck: true,

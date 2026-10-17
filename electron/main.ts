@@ -105,10 +105,17 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
+    mainWindow?.focus()
   })
 
   // Échelle UI du launcher (Paramètres → Taille du launcher), réappliquée à chaque (re)chargement
-  mainWindow.webContents.on('did-finish-load', () => mainWindow?.webContents.setZoomFactor(getSavedUiScale()))
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow?.webContents.setZoomFactor(getSavedUiScale())
+    if (mainWindow && !mainWindow.isVisible()) {
+      mainWindow.show()
+      mainWindow.focus()
+    }
+  })
 
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
