@@ -1,0 +1,217 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  outline: none;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-base);
+  background-position: center;
+  background-size: cover;
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- Titlebar custom (transparente, fondue avec la sidebar) --- */
+#titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: transparent;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 10000;
+  pointer-events: none;
+
+  .titlebar-drag {
+    flex: 1;
+    height: 100%;
+    -webkit-app-region: drag;
+  }
+
+  .titlebar-controls {
+    display: flex;
+    height: 100%;
+    pointer-events: all;
+    -webkit-app-region: no-drag;
+
+    .titlebar-btn {
+      width: 46px;
+      height: 100%;
+      border: none;
+      background: transparent;
+      color: #5b6b84;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s, color 0.12s;
+
+      &:hover {
+        background: rgba(30, 50, 100, 0.08);
+        color: #101b30;
+      }
+    }
+
+    .titlebar-close {
+      &:hover {
+        background: #e53935;
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+  }
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.app-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(240, 244, 248, 0.55);
+    backdrop-filter: blur(6px);
+  }
+}
+
+/* --- Views Management --- */
+.view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+
+  &.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  &.overlay {
+    background: rgba(15, 25, 50, 0.55);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+/* --- GLOBAL BUTTON SYSTEM --- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 20px;
+
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+
+  border-radius: var(--btn-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  user-select: none;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Primary Button (Bleu Modey) */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px var(--primary-glow);
+
+  &:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px var(--primary-glow);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+/* Secondary Button (Light/Glass) */
+.btn-secondary {
+  background: rgba(30, 136, 229, 0.06);
+  border: 1px solid rgba(30, 136, 229, 0.2);
+  color: var(--text-secondary);
+
+  &:hover:not(:disabled) {
+    background: rgba(30, 136, 229, 0.12);
+    border-color: rgba(30, 136, 229, 0.4);
+    color: var(--primary);
+    text-decoration: none;
+  }
+}
+
+/* Danger Button (Red) */
+.btn-danger {
+  background: rgba(211, 47, 47, 0.08);
+  border: 1px solid rgba(211, 47, 47, 0.3);
+  color: #C62828;
+
+  &:hover:not(:disabled) {
+    background: rgba(211, 47, 47, 0.15);
+    border-color: #D32F2F;
+  }
+}
+
+/* --- Veille en arrière-plan : animations figées --- */
+body.is-asleep *,
+body.is-asleep *::before,
+body.is-asleep *::after {
+  animation-play-state: paused !important;
+}

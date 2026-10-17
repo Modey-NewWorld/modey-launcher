@@ -1,0 +1,60 @@
+{
+  "id": "modey-free-build",
+  "name": "Free Build",
+  "slug": "free-build",
+  "subtitle": "Le bac à sable créatif de Modey",
+  "status": "coming-soon",
+  "statusLabel": "Serveur non actif — Arrive bientôt",
+  "minecraftVersion": "1.21.1",
+  "modLoader": {
+    "type": "neoforge",
+    "version": "21.1.169"
+  },
+  "java": {
+    "recommendedVersion": 21,
+    "minRamMb": 4096,
+    "recommendedRamMb": 8192
+  },
+  "sync": {
+    "baseUrl": "https://sync.modey.project/free-build",
+    "manifestPath": "/modpack/manifest.json",
+    "autoUpdate": true
+  },
+  "server": {
+    "autoConnect": false,
+    "host": null,
+    "port": null
+  },
+  "theme": {
+    "primaryColor": "#7B1FA2",
+    "accentColor": "#FFB300",
+    "darkBackground": true
+  },
+  "teaser": {
+    "headline": "Free Build arrive bientôt",
+    "description": "Le serveur créatif libre de Modey n'est pas encore actif. Prépare tes idées : il ouvrira à tous les joueurs, sans whitelist.",
+    "features": [
+      {
+        "icon": "fa-cubes",
+        "title": "Monde créatif libre",
+        "text": "Plots personnels + monde plat pour construire sans limites, sans farm ni survie."
+      },
+      {
+        "icon": "fa-wand-magic-sparkles",
+        "title": "Outils de build",
+        "text": "Outils de construction et partage de schématiques pour prototyper vite."
+      },
+      {
+        "icon": "fa-users",
+        "title": "Ouvert à tous",
+          "text": "Accessible à tous les joueurs Modey, idéal pour tester avant de bâtir sur Athéna."
+      },
+      {
+        "icon": "fa-trophy",
+        "title": "Concours & events",
+        "text": "Concours de build et expositions communautaires une fois le serveur ouvert."
+      }
+    ],
+    "cta": "Sélectionne Free Build pour être prêt le jour J — le bouton Jouer s'activera à l'ouverture."
+  }
+}

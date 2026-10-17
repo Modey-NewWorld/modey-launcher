@@ -1,0 +1,113 @@
+        <aside class="modey-sidebar">
+          <div class="modey-sidebar-scroll">
+          <div class="modey-brand">
+            <img src="/src/static/images/logo.png" class="modey-brand-logo" alt="Modey" />
+            <div class="modey-brand-text">
+              <strong>Modey Launcher</strong>
+              <span id="launcher-version-label">Version 26.1.1</span>
+            </div>
+          </div>
+
+          <div class="profile-selector-container" id="profile-selector">
+            <div class="selected-profile">
+              <span id="current-profile-name">Athéna</span>
+              <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="profile-dropdown" id="profile-dropdown"></div>
+          </div>
+
+          <nav class="modey-nav">
+            <button class="modey-nav-item active" id="nav-home"><i class="fa-solid fa-house fa-fw"></i><span>Accueil</span></button>
+            <button class="modey-nav-item" id="nav-servers"><i class="fa-solid fa-server fa-fw"></i><span>Serveurs</span></button>
+            <button class="modey-nav-item" id="nav-profile"><i class="fa-solid fa-user fa-fw"></i><span>Mon profil</span></button>
+          </nav>
+
+          <div class="modey-nav-sep"></div>
+          <span class="modey-nav-label">Outils Univers</span>
+          <nav class="modey-nav modey-nav-tools">
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-chart-pie fa-fw"></i><span>Vue d'ensemble</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-shirt fa-fw"></i><span>Mon personnage</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-coins fa-fw"></i><span>Mon argent</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-building-columns fa-fw"></i><span>Ma ville</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-scale-balanced fa-fw"></i><span>Vie civique</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-users fa-fw"></i><span>Communauté</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-signal fa-fw"></i><span>Serveur live</span><span class="modey-soon-badge">Bientôt</span></button>
+          </nav>
+          </div>
+
+          <div class="user-menu-wrap">
+            <button id="btn-play" class="modey-play-btn"><i class="fa-solid fa-play"></i><span>Jouer à Athéna</span></button>
+
+            <div class="progress-container hidden" id="launch-progress-container">
+              <div class="progress-info">
+                <span id="launch-progress-label">Préparation...</span>
+                <span id="launch-progress-percent">0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="launch-progress-bar"></div>
+              </div>
+            </div>
+
+            <div class="user-menu" id="user-menu">
+              <button class="user-menu-item" id="user-menu-profile"><i class="fa-solid fa-user fa-fw"></i><span>Mon profil</span></button>
+              <button class="user-menu-item" id="user-menu-settings"><i class="fa-solid fa-gear fa-fw"></i><span>Paramètres</span></button>
+              <div class="user-menu-sep"></div>
+              <button class="user-menu-item danger" id="user-menu-logout"><i class="fa-solid fa-right-from-bracket fa-fw"></i><span>Se déconnecter</span></button>
+            </div>
+            <div class="modey-user-card" id="user-card" title="Gérer mon compte">
+              <img src="" id="user-avatar" alt="Skin" />
+              <div class="modey-user-details">
+                <div class="modey-user-header-row">
+                  <span id="user-name">Undefined</span>
+                  <span class="modey-role-badge" id="user-role-badge">Citoyen</span>
+                </div>
+                <span class="modey-user-status"><span class="modey-status-dot"></span><span id="user-status-text">Prêt</span></span>
+              </div>
+              <i class="fa-solid fa-chevron-up modey-user-chevron" id="user-chevron"></i>
+            </div>
+          </div>
+        </aside>
+
+        <main class="modey-main" id="modey-main">
+          <div class="modey-scroll" id="modey-scroll">
+          <div class="modey-hero-row">
+          <section class="modey-hero" id="hero">
+            <div class="modey-hero-top">
+              <div class="modey-hero-badges">
+                <span class="hero-badge hero-badge-version" id="hero-version"><i class="fa-solid fa-cube"></i>&nbsp;Minecraft 1.21.1</span>
+                <span class="hero-badge hero-badge-status" id="hero-status">
+                  <span class="status-dot pinging" id="server-status-dot"></span>&nbsp;<span id="server-status-text">Vérification...</span>
+                </span>
+              </div>
+              <span class="hero-badge hero-badge-players" id="player-count"></span>
+            </div>
+            <div class="modey-hero-body">
+              <div class="modey-hero-info">
+                <h2><span id="hero-title">Athéna</span></h2>
+                <p id="hero-desc">Un monde vivant. Des villes à construire. Une aventure à partager.</p>
+                <div class="hero-tags" id="hero-tags"></div>
+              </div>
+              <div class="modey-hero-actions">
+                <button id="btn-play-hero" class="hero-play"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Jouer à Athéna</button>
+                <button id="btn-details" class="hero-details"><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;Détails du serveur</button>
+              </div>
+            </div>
+            <div class="modey-hero-foot">
+              <span id="hero-foot-note"><i class="fa-solid fa-circle-check"></i>&nbsp;Prêt au lancement • Dernière version installée</span>
+            </div>
+          </section>
+
+            <section class="modey-news">
+              <div class="modey-section-head">
+                <h3><i class="fa-solid fa-newspaper"></i>&nbsp;&nbsp;Les actualités de Modey</h3>
+              </div>
+              <div class="news-list" id="news-list"></div>
+
+              <section class="modey-discovery">
+                <h3><i class="fa-solid fa-compass"></i>&nbsp;&nbsp;À découvrir</h3>
+                <div class="discovery-card" id="discovery-card"></div>
+              </section>
+            </section>
+          </div>
+          </div>
+        </main>

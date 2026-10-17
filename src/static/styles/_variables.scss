@@ -1,0 +1,36 @@
+:root {
+  /* Colors — Thème clair Modey / Identité bleue Athéna */
+  --primary: #1E88E5;
+  --primary-hover: #1565C0;
+  --primary-light: rgba(30, 136, 229, 0.12);
+  --primary-glow: rgba(30, 136, 229, 0.25);
+
+  --bg-base: #F0F4F8;
+  --bg-surface: #FFFFFF;
+  --bg-surface-alt: #F5F8FC;
+  --bg-dark: #F0F4F8;
+
+  --text-main: #1A2332;
+  --text-secondary: #3D5268;
+  --text-muted: #6B82A0;
+
+  /* Glassmorphism clair */
+  --glass-bg: rgba(255, 255, 255, 0.80);
+  --glass-border: rgba(30, 136, 229, 0.15);
+  --glass-blur: 16px;
+
+  /* Sidebar */
+  --sidebar-bg: rgba(255, 255, 255, 0.92);
+  --sidebar-border: rgba(30, 136, 229, 0.12);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(30, 50, 100, 0.08);
+  --shadow-md: 0 4px 16px rgba(30, 50, 100, 0.12);
+  --shadow-lg: 0 10px 30px rgba(30, 50, 100, 0.18);
+
+  /* Layout */
+  --sidebar-width: 300px;
+
+  /* UI System */
+  --btn-radius: 8px;
+}

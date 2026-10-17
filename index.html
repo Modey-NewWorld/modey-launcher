@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modey Launcher</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      /* CSS critique anti-FOUC : appliqué avant le bundle, harmonisé avec le thème clair Modey */
+      html, body { margin: 0; height: 100%; background-color: #F0F4F8; overflow: hidden; font-family: 'Poppins', sans-serif; }
+      div.view:not(.active) { display: none; }
+      body:not(.loaded) div#app { opacity: 0 !important; visibility: hidden; }
+      div#view-loading {
+        position: fixed; top: 0; left: 0;
+        display: flex; justify-content: center; align-items: center;
+        height: 100vh; width: 100vw;
+        background-color: #F0F4F8; color: #3D5268;
+        font-family: 'Poppins', sans-serif; font-size: 13px;
+        opacity: 1; transition: opacity 0.25s ease-out;
+        z-index: 9999;
+      }
+      div#view-loading.loaded { opacity: 0; pointer-events: none !important; visibility: hidden; }
+      div#view-loading .loading-logo {
+        width: 48px; height: 48px; object-fit: contain; margin-bottom: 10px;
+      }
+      div#view-loading .spinner {
+        font-size: 1.5rem; color: #1E88E5; margin: 4px 0 8px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="titlebar">
+      <div class="titlebar-drag"></div>
+      <div class="titlebar-controls">
+        <button id="btn-win-minimize" class="titlebar-btn" title="Réduire"><i class="fa-solid fa-minus"></i></button>
+        <button id="btn-win-maximize" class="titlebar-btn" title="Agrandir / Restaurer"><i class="fa-regular fa-square" id="win-max-icon"></i></button>
+        <button id="btn-win-close" class="titlebar-btn titlebar-close" title="Fermer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+
+    <div id="view-loading" class="loading" data-view="loading">
+      <div class="loading-card">
+        <img src="/src/static/images/logo.png" class="loading-logo" alt="Modey" />
+        <p class="spinner"><i class="fa-solid fa-circle-notch fa-spin"></i></p>
+        <p class="text">Chargement...</p>
+      </div>
+    </div>
+
+    <div id="view-maintenance" class="maintenance" data-view="maintenance">
+      <div class="maintenance-card">
+        <p class="gears" id="maintenance-icon"><i class="fa-solid fa-gears"></i></p>
+        <h3 id="maintenance-title">Maintenance</h3>
+        <p class="dates" id="maintenance-dates"></p>
+        <p class="text" id="maintenance-reason"></p>
+        <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;" id="maintenance-actions">
+          <button id="btn-maint-retry" class="btn btn-primary" style="padding: 10px 22px; font-weight: 600; border-radius: 8px; background: #1E88E5; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; box-shadow: 0 4px 12px rgba(30,136,229,0.3);">
+            <i class="fa-solid fa-rotate-right"></i> Réessayer
+          </button>
+          <button id="btn-maint-logout" class="btn btn-secondary" style="padding: 10px 18px; font-weight: 600; border-radius: 8px; background: #E2E8F0; color: #475569; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-family: inherit;">
+            <i class="fa-solid fa-right-from-bracket"></i> Changer de compte
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-update" class="update" data-view="update">
+      <div class="maintenance-card">
+        <p class="up"><i class="fa-solid fa-circle-up"></i></p>
+        <h3>Une mise à jour est disponible</h3>
+        <p class="text" id="update-text">Merci de patienter pendant la mise à jour du launcher...</p>
+        <div class="progress-container" id="update-progress-container">
+          <div class="progress-info">
+            <span id="update-progress-label">Téléchargement...</span>
+            <span id="update-progress-percent">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="update-progress-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="app">
+      <div class="app-background"></div>
+      <div id="view-login" class="view" data-view="login"></div>
+      <div id="view-home" class="view" data-view="home"></div>
+    </div>
+
+    <script type="module" src="/src/app.ts"></script>
+    <img src="/src/static/images/bg.png" alt="" style="display: none" />
+  </body>
+</html>
