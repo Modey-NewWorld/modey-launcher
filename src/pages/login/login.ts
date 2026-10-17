@@ -3,12 +3,14 @@ import { auth } from '../../ipc'
 import { Dialog } from '../../components/dialog'
 import { loadSkinAssets } from '../../services/skin'
 import logger from 'electron-log/renderer'
-import loginHtml from './index.html?raw'
+import logoUrl from '../../static/images/logo.png'
+import loginHtmlRaw from './index.html?raw'
 import './login.scss'
 
 const el = (id: string) => document.getElementById(id)
 
-// Fragment HTML de la page de connexion injecté dans le shell.
+// Fragment HTML de la page de connexion injecté dans le shell avec le logo packagé par Vite.
+const loginHtml = loginHtmlRaw.replace('/src/static/images/logo.png', logoUrl)
 const mount = el('view-login')
 if (mount) mount.innerHTML = loginHtml
 

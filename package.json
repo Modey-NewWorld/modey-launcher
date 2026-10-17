@@ -10,6 +10,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "release": "npm run build && electron-builder -wml",
+    "release:all": "npm run build && electron-builder -wml",
     "release:win": "npm run build && electron-builder --win",
     "release:mac": "npm run build && electron-builder --mac",
     "release:lin": "npm run build && electron-builder --linux"
@@ -19,9 +21,16 @@
     "productName": "Modey Launcher",
     "copyright": "Copyright © 2026 FlowCreativeStudio",
     "directories": {
-      "output": "release",
+      "output": "build/release",
       "buildResources": "build"
     },
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": ["**/*"]
+      }
+    ],
     "files": [
       "dist",
       "dist-electron",

@@ -15,12 +15,16 @@ import { renderDiscovery } from './components/discoveryCard'
 import { renderDropdown, updateCurrentProfileName, bindSidebar } from './components/sidebar'
 import freeBuildConfig from '../../../config/free-build-profile.json'
 import profileConfig from '../../../config/athena-profile.json'
-import homeHtml from './index.html?raw'
+import logoUrl from '../../static/images/logo.png'
+import homeHtmlRaw from './index.html?raw'
 import './home.scss'
 import './components/newsList.scss'
 import './components/discoveryCard.scss'
 
 const el = (id: string) => document.getElementById(id)
+
+// Remplacement du chemin absolu /src/static/images/logo.png par l'URL packagée par Vite
+const homeHtml = homeHtmlRaw.replace('/src/static/images/logo.png', logoUrl)
 
 // Fragment HTML de la page Accueil (+ sidebar) injecté dans le shell.
 // afterbegin (et non innerHTML) : les sous-pages Serveurs/Profil/Réglages sont

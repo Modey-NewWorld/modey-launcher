@@ -75,16 +75,20 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         const { spawn } = await import('node:child_process')
 
         const authlibPath = getAuthlibInjectorPath()
-        const authlibArg = `-javaagent:${authlibPath}=${AUTH_SERVER_URL}`
+        if (authlibPath) {
+          const authlibArg = `-javaagent:${authlibPath}=${AUTH_SERVER_URL}`
 
-        // Les args EML sont de la forme : [jvmArgs..., '-cp', classpath, mainClass, gameArgs...]
-        const cpIndex = args.findIndex((a) => a === '-cp' || a === '-classpath' || a === '--classpath')
-        if (cpIndex > 0) {
-          args.splice(0, 0, authlibArg)
-          logger.info(`[Modey Launcher] 🔒 authlib-injector injecté dans les JVM args → ${AUTH_SERVER_URL}`)
+          // Les args EML sont de la forme : [jvmArgs..., '-cp', classpath, mainClass, gameArgs...]
+          const cpIndex = args.findIndex((a) => a === '-cp' || a === '-classpath' || a === '--classpath')
+          if (cpIndex > 0) {
+            args.splice(0, 0, authlibArg)
+            logger.info(`[Modey Launcher] 🔒 authlib-injector injecté dans les JVM args → ${AUTH_SERVER_URL}`)
+          } else {
+            args.unshift(authlibArg)
+            logger.info(`[Modey Launcher] 🔒 authlib-injector injecté (fallback) → ${AUTH_SERVER_URL}`)
+          }
         } else {
-          args.unshift(authlibArg)
-          logger.info(`[Modey Launcher] 🔒 authlib-injector injecté (fallback) → ${AUTH_SERVER_URL}`)
+          logger.warn(`[Modey Launcher] ⚠️ Lancement sans authlib-injector (fichier jar absent)`)
         }
 
         return new Promise<void>((resolve, reject) => {

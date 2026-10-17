@@ -8,7 +8,7 @@ import path from 'node:path'
  * En production (app packagée) : dans process.resourcesPath/assets/
  * En développement : dans le dossier assets/ à la racine du projet
  */
-export function getAuthlibInjectorPath(): string {
+export function getAuthlibInjectorPath(): string | null {
   const inResources = path.join(process.resourcesPath || '', 'assets', 'authlib-injector.jar')
   const inProject = path.join(app.getAppPath(), '..', 'assets', 'authlib-injector.jar')
   const devPath = path.join(app.getAppPath(), 'assets', 'authlib-injector.jar')
@@ -21,5 +21,5 @@ export function getAuthlibInjectorPath(): string {
   }
 
   logger.warn('[Modey Launcher] ⚠️  authlib-injector.jar introuvable ! La sécurité anti-crack ne sera pas active.')
-  return 'authlib-injector.jar' // fallback relatif
+  return null
 }
