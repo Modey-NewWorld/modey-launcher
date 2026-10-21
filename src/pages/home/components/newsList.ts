@@ -5,7 +5,10 @@ import { homeState } from '../state'
 export async function loadNews() {
   const newsList = document.getElementById('news-list')
   if (!newsList) return
-  newsList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Chargement des actualités...</div>'
+  newsList.innerHTML = `
+<div class="news-skeleton-item skeleton-shimmer"></div>
+<div class="news-skeleton-item skeleton-shimmer"></div>
+`
   const feed = await fetchNews()
   homeState.newsFeed = feed
 

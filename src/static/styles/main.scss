@@ -304,3 +304,18 @@ body.is-asleep *::after {
     transform: translateX(100%);
   }
 }
+
+
+/* --- Micro-interactions & États de Focus Système --- */
+button, a, input[type="range"], select {
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, filter 0.16s ease !important;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97) !important;
+}
+
+/* Amélioration de la lisibilité des textes secondaires */
+.muted, p.server-desc, .discovery-card p {
+  color: #506176 !important;
+}
