@@ -1,4 +1,4 @@
-import { showAccueil, showServers, showProfile, showSettings, setActiveNav } from '../../../router'
+﻿import { showAccueil, showServers, showProfile, showSettings, setActiveNav } from '../../../router'
 import { confirmLogout } from '../../../services/auth'
 import { launcherConfig } from '../../../services/launcherConfig'
 import { homeState } from '../state'
@@ -16,7 +16,7 @@ export function updateCurrentProfileName(profile: any) {
   const iconImg = iconUrl
     ? `<img src="${iconUrl}" style="width:16px; height:16px; object-fit:contain; border-radius:3px; margin-right:6px; vertical-align:middle;" />`
     : ''
-  currentProfileName.innerHTML = `${iconImg}${profile?.name || meta?.name || 'Ath?na'}`
+  currentProfileName.innerHTML = `${iconImg}${profile?.name || meta?.name || 'Athéna'}`
 }
 
 export function renderDropdown(onSelectProfile: (profile: any) => void) {
