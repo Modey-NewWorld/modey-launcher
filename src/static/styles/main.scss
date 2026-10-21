@@ -222,10 +222,10 @@ body.is-asleep *::after {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 
   h1 {
-    font-size: clamp(24px, 2.2vw, 32px);
+    font-size: clamp(20px, 1.8vw, 26px);
     font-weight: 800;
     color: #101b30;
     margin: 0;
