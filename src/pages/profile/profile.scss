@@ -12,7 +12,7 @@
 .profile-scroll {
   flex: 1;
   min-height: 0;
-  overflow-y: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   padding: 14px 14px 0 14px;
@@ -31,7 +31,7 @@
   display: grid;
   grid-template-columns: minmax(360px, 1.1fr) minmax(340px, 1fr);
   gap: clamp(14px, 1.5vw, 20px);
-  min-height: calc(100% - 5rem);
+  min-height: calc(100% - 4rem); align-items: start;
   align-items: stretch;
 }
 
@@ -79,7 +79,8 @@
 .profile-left-col {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  min-width: 0;
 }
 
 /* --- Casier / Locker --- */
@@ -418,7 +419,11 @@
   overflow: hidden;
   position: relative;
   background: linear-gradient(180deg, #f8fafd 0%, #edf3fc 100%);
-  min-height: 380px;
+  min-height: 540px;
+  height: calc(100vh - 130px);
+  max-height: 720px;
+  position: sticky;
+  top: 0;
 
   .studio-overlay-head {
     padding: 16px 20px;
@@ -478,12 +483,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  min-height: 280px;
+  min-height: 440px;
 
   #skin-container {
     width: 100%;
     height: 100%;
-    min-height: 280px;
+    min-height: 440px;
     display: block;
   }
 }
@@ -543,47 +548,15 @@
   }
 }
 
-/* --- Responsive Avancé & Adaptatif --- */
-@media (max-width: 1200px) {
-  .profile-layout-clean {
-    grid-template-columns: minmax(380px, 1.15fr) minmax(320px, 1fr);
-    gap: 16px;
-  }
-
-  .profile-scroll {
-    padding: 32px 18px 0 14px;
-  }
-}
-
-@media (max-width: 1080px) {
-  .profile-layout-clean {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .full-studio-card {
-    min-height: 280px;
-    order: -1; // Le studio 3D apparaît au-dessus sur petits écrans
-  }
-}
-
-@media (max-height: 750px) {
-  .profile-scroll {
-    padding-top: 28px;
-  }
-
-  .full-studio-card {
-    min-height: 440px;
-  }
-}
-
 /* --- Responsive Profile Breakpoints --- */
 @media (max-width: 1120px) {
   .profile-layout-clean {
     grid-template-columns: 1fr !important;
-    overflow-y: auto !important;
   }
-  .profile-scroll {
-    overflow-y: auto !important;
+  .full-studio-card {
+    position: static !important;
+    height: 480px !important;
+    min-height: 480px !important;
+    order: -1 !important;
   }
 }
