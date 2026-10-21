@@ -35,8 +35,8 @@ const shared = {
     const activeCape = shared.capes?.find((c) => c.state === 'active')
 
     const parent = skinCanvasSettingsEl.parentElement
-    const targetWidth = parent ? Math.max(parent.clientWidth, 400) : 560
-    const targetHeight = parent ? Math.max(parent.clientHeight, 520) : 560
+    const targetWidth = parent ? Math.max(parent.clientWidth, 260) : 480
+    const targetHeight = parent ? Math.max(parent.clientHeight, 300) : 520
 
     if (!shared.mainSkinViewer) {
       shared.mainSkinViewer = new SkinViewer({
