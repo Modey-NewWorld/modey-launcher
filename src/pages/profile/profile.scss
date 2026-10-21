@@ -12,7 +12,7 @@
 .profile-scroll {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 14px 14px 0 14px;
@@ -31,7 +31,9 @@
   display: grid;
   grid-template-columns: minmax(360px, 1.1fr) minmax(340px, 1fr);
   gap: clamp(14px, 1.5vw, 20px);
-  min-height: calc(100% - 4rem); align-items: start;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   align-items: stretch;
 }
 
@@ -81,6 +83,19 @@
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(30, 136, 229, 0.2);
+    border-radius: 3px;
+  }
 }
 
 /* --- Casier / Locker --- */
@@ -419,11 +434,8 @@
   overflow: hidden;
   position: relative;
   background: linear-gradient(180deg, #f8fafd 0%, #edf3fc 100%);
-  min-height: 540px;
-  height: calc(100vh - 130px);
-  max-height: 720px;
-  position: sticky;
-  top: 0;
+  height: 100%;
+  min-height: 0;
 
   .studio-overlay-head {
     padding: 16px 20px;
