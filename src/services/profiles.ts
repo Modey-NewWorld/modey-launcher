@@ -34,6 +34,7 @@ export async function fetchProfiles(): Promise<any[]> {
         maintenanceMessage: p.modey.maintenanceMessage,
         bannerUrl: p.modey.bannerUrl,
         iconUrl: p.modey.iconUrl,
+        launcherIcon: p.modey.launcherIcon || 'cube',
         tags: p.modey.tags,
         teaser: p.modey.teaser,
         minecraftVersion: p.modey.minecraftVersion || p.version || '1.21.1',

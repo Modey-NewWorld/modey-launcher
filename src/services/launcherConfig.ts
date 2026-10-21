@@ -12,6 +12,7 @@ export interface ServerMeta {
   maintenanceMessage?: string
   bannerUrl?: string
   iconUrl?: string
+  launcherIcon?: string
   tags?: string[]
   teaser?: {
     description?: string
@@ -47,6 +48,7 @@ class LauncherConfigService {
         maintenanceMessage: '',
         bannerUrl: '',
         iconUrl: '',
+        launcherIcon: 'shield-halved',
         tags: ['Survie RP', 'Économie', 'Villes & Métropoles', 'Create'],
         teaser: {
           description: 'Un monde persistant et vivant. Fondez vos cités et développez une véritable société.'
@@ -65,6 +67,7 @@ class LauncherConfigService {
         maintenanceMessage: freeBuildDefault.statusLabel || 'Serveur non actif — Arrive bientôt',
         bannerUrl: '',
         iconUrl: '',
+        launcherIcon: 'wand-magic-sparkles',
         tags: ['Créatif', 'Plots', 'Schématiques', 'Concours'],
         teaser: freeBuildDefault.teaser,
         minecraftVersion: freeBuildDefault.minecraftVersion || '1.21.1',
@@ -86,7 +89,7 @@ class LauncherConfigService {
         }
       }
     } catch {
-      // Ignorer les erreurs de localStorage (mode headless ou sandbox)
+      // Ignorer
     }
   }
 
@@ -118,7 +121,7 @@ class LauncherConfigService {
   }
 
   public getFreeBuild(): ServerMeta {
-    return this.cache['free-build'] || this.cache['modey-free-build'] as ServerMeta
+    return this.cache['free-build'] || (this.cache['modey-free-build'] as ServerMeta)
   }
 }
 

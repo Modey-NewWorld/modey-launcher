@@ -1,4 +1,4 @@
-﻿import { showAccueil, showServers, showProfile, showSettings, setActiveNav } from '../../../router'
+import { showAccueil, showServers, showProfile, showSettings, setActiveNav } from '../../../router'
 import { confirmLogout } from '../../../services/auth'
 import { launcherConfig } from '../../../services/launcherConfig'
 import { homeState } from '../state'
@@ -7,16 +7,26 @@ import './userCard.scss'
 
 const el = (id: string) => document.getElementById(id)
 
+function getProfileIconHtml(profile: any, size: number = 18): string {
+  const slug = profile?.slug || 'athena'
+  const meta = launcherConfig.getServer(slug)
+  const iconUrl = profile?.modey?.iconUrl || meta?.iconUrl
+
+  if (iconUrl) {
+    return `<img src="${iconUrl}" style="width:${size}px; height:${size}px; object-fit:contain; border-radius:4px; margin-right:8px; vertical-align:middle;" />`
+  }
+
+  const iconName = profile?.modey?.launcherIcon || meta?.launcherIcon || (slug === 'athena' ? 'shield-halved' : (slug === 'free-build' ? 'wand-magic-sparkles' : 'cube'))
+  return `<i class="fa-solid fa-${iconName}" style="width:${size}px; text-align:center; margin-right:8px; font-size:${size - 3}px; opacity:0.85; color:var(--primary);"></i>`
+}
+
 export function updateCurrentProfileName(profile: any) {
   const currentProfileName = el('current-profile-name')
   if (!currentProfileName) return
   const slug = profile?.slug || 'athena'
   const meta = launcherConfig.getServer(slug)
-  const iconUrl = profile?.modey?.iconUrl || meta?.iconUrl
-  const iconImg = iconUrl
-    ? `<img src="${iconUrl}" style="width:16px; height:16px; object-fit:contain; border-radius:3px; margin-right:6px; vertical-align:middle;" />`
-    : ''
-  currentProfileName.innerHTML = `${iconImg}${profile?.name || meta?.name || 'Athéna'}`
+  const iconHtml = getProfileIconHtml(profile, 16)
+  currentProfileName.innerHTML = `${iconHtml}${profile?.name || meta?.name || 'Athéna'}`
 }
 
 export function renderDropdown(onSelectProfile: (profile: any) => void) {
@@ -26,13 +36,10 @@ export function renderDropdown(onSelectProfile: (profile: any) => void) {
     .map((p) => {
       const slug = p.slug || 'athena'
       const meta = launcherConfig.getServer(slug)
-      const iconUrl = p.modey?.iconUrl || meta?.iconUrl
-      const iconImg = iconUrl
-        ? `<img src="${iconUrl}" style="width:18px; height:18px; object-fit:contain; border-radius:4px; margin-right:8px; vertical-align:middle;" />`
-        : `<i class="fa-solid fa-cube" style="margin-right:8px; opacity:0.7;"></i>`
+      const iconHtml = getProfileIconHtml(p, 18)
       return `
         <div class="profile-option ${homeState.selectedProfile?.id === p.id ? 'active' : ''}" data-id="${p.id}" style="display:flex; align-items:center;">
-          ${iconImg} <span>${p.name || meta?.name}</span>
+          ${iconHtml} <span>${p.name || meta?.name}</span>
         </div>
       `
     })
@@ -53,7 +60,6 @@ function closeUserMenu() {
   el('user-card')?.classList.remove('open')
 }
 
-/** Nav principale, sélecteur de profil, menu utilisateur + fermeture extérieure. */
 export function bindSidebar() {
   el('nav-home')?.addEventListener('click', () => {
     showAccueil()

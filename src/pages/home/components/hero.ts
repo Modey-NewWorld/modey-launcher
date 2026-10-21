@@ -2,6 +2,7 @@ import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile, isAthenaP
 import { pingServer, targetFor } from '../../../services/serverStatus'
 import { getUser } from '../../../state'
 import { launcherConfig } from '../../../services/launcherConfig'
+import { bannerCache } from '../../../services/bannerCache'
 
 const ATHENA_TAGS = ['Survie RP', 'Économie', 'Villes & Métropoles', 'Quêtes scénarisées']
 const STAFF_ROLES = ['founder', 'admin', 'moderator', 'developer', 'dev']
@@ -40,12 +41,9 @@ export function renderHero(profile: any) {
 
   const heroEl = el('hero')
   if (heroEl) {
-    const customBanner = profile?.modey?.bannerUrl || serverMeta?.bannerUrl
-    if (customBanner) {
-      heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.15) 0%, rgba(10, 20, 40, 0.82) 78%), url('${customBanner}') center / cover no-repeat, #24365c`
-    } else {
-      heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.05) 0%, rgba(10, 20, 40, 0.55) 78%), url('/src/static/images/bg.png') center / cover no-repeat, #24365c`
-    }
+    const remoteBanner = profile?.modey?.bannerUrl || serverMeta?.bannerUrl
+    const effectiveBanner = bannerCache.getBanner(serverSlug, remoteBanner)
+    heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.15) 0%, rgba(10, 20, 40, 0.82) 78%), url('${effectiveBanner}') center / cover no-repeat, #24365c`
   }
 
   const heroTitle = el('hero-title')
