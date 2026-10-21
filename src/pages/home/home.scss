@@ -56,7 +56,9 @@
   border: 1px solid rgba(16, 27, 48, 0.25);
   box-shadow: var(--shadow-md);
   padding: 20px 24px 16px 24px;
-  min-height: clamp(260px, 38vh, 480px);
+  height: 280px;
+  min-height: 280px;
+  max-height: 280px;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -512,8 +514,26 @@
   .news-list {
     grid-template-columns: 1fr !important;
   }
+  .modey-hero-body {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding-top: 16px !important;
+  }
+  .modey-hero-actions {
+    flex-direction: column-reverse !important; /* Jouer au-dessus de Détails */
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .modey-hero-actions .hero-play,
+  .modey-hero-actions .hero-details {
+    width: 100% !important;
+    justify-content: center !important;
+  }
   .modey-hero {
-    min-height: 220px !important;
+    height: auto !important;
+    min-height: 310px !important;
+    max-height: none !important;
   }
 }
 
