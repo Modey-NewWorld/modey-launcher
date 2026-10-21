@@ -4,10 +4,12 @@
 }
 
 .login-card {
-  width: clamp(300px, 92vw, 420px);
-  background: var(--bg-surface);
-  border: 1px solid var(--glass-border);
+  width: clamp(340px, 90vw, 440px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(230, 235, 245, 0.8);
   border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(16, 27, 48, 0.14), 0 2px 8px rgba(16, 27, 48, 0.06);
   padding: clamp(24px, 4vw, 36px) clamp(20px, 4vw, 40px);
   text-align: center;
   box-shadow: var(--shadow-lg);

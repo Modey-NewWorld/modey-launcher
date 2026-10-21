@@ -31,7 +31,11 @@
 
 .servers-grid {
   display: grid;
-  grid-template-columns: 1.65fr 1fr;
+  grid-template-columns: minmax(460px, 1.45fr) minmax(320px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
   gap: clamp(12px, 1.2vw, 16px);
   align-items: stretch;
 }
@@ -40,6 +44,12 @@
   background: #ffffff;
   border: 1px solid #e6eaf2;
   border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(16, 27, 48, 0.05);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(30, 80, 180, 0.12);
+  }
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(30, 50, 100, 0.06);
   min-width: 0;
