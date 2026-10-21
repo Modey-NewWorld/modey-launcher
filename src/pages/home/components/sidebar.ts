@@ -1,5 +1,6 @@
 import { showAccueil, showServers, showProfile, showSettings, setActiveNav } from '../../../router'
 import { confirmLogout } from '../../../services/auth'
+import { launcherConfig } from '../../../services/launcherConfig'
 import { homeState } from '../state'
 import '../sidebar.scss'
 import './userCard.scss'
@@ -9,11 +10,13 @@ const el = (id: string) => document.getElementById(id)
 export function updateCurrentProfileName(profile: any) {
   const currentProfileName = el('current-profile-name')
   if (!currentProfileName) return
-  const iconUrl = profile?.modey?.iconUrl
+  const slug = profile?.slug || 'athena'
+  const meta = launcherConfig.getServer(slug)
+  const iconUrl = profile?.modey?.iconUrl || meta?.iconUrl
   const iconImg = iconUrl
     ? `<img src="${iconUrl}" style="width:16px; height:16px; object-fit:contain; border-radius:3px; margin-right:6px; vertical-align:middle;" />`
     : ''
-  currentProfileName.innerHTML = `${iconImg}${profile.name}`
+  currentProfileName.innerHTML = `${iconImg}${profile?.name || meta?.name || 'Ath?na'}`
 }
 
 export function renderDropdown(onSelectProfile: (profile: any) => void) {
@@ -21,13 +24,15 @@ export function renderDropdown(onSelectProfile: (profile: any) => void) {
   if (!profileDropdown) return
   profileDropdown.innerHTML = homeState.allProfiles
     .map((p) => {
-      const iconUrl = p.modey?.iconUrl
+      const slug = p.slug || 'athena'
+      const meta = launcherConfig.getServer(slug)
+      const iconUrl = p.modey?.iconUrl || meta?.iconUrl
       const iconImg = iconUrl
         ? `<img src="${iconUrl}" style="width:18px; height:18px; object-fit:contain; border-radius:4px; margin-right:8px; vertical-align:middle;" />`
         : `<i class="fa-solid fa-cube" style="margin-right:8px; opacity:0.7;"></i>`
       return `
         <div class="profile-option ${homeState.selectedProfile?.id === p.id ? 'active' : ''}" data-id="${p.id}" style="display:flex; align-items:center;">
-          ${iconImg} <span>${p.name}</span>
+          ${iconImg} <span>${p.name || meta?.name}</span>
         </div>
       `
     })
