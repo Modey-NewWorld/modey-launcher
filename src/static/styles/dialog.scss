@@ -31,7 +31,7 @@
 
     h3 {
       margin: 0;
-      font-size: 15px;
+      font-size: clamp(12.3px, 1.17vw, 15.0px);
       font-weight: 700;
       color: #101b30;
       padding-bottom: 12px;
@@ -42,7 +42,7 @@
       margin: 0;
       color: #3d5268;
       line-height: 1.6;
-      font-size: 12.5px;
+      font-size: clamp(10.2px, 0.98vw, 12.5px);
       white-space: pre-line;
     }
 

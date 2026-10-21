@@ -33,7 +33,7 @@ div.loading-card {
   }
 
   .text {
-    font-size: 13.5px;
+    font-size: clamp(11.1px, 1.05vw, 13.5px);
     font-weight: 500;
     color: #3D5268;
     letter-spacing: 0.3px;
