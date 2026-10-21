@@ -13,8 +13,7 @@ import { renderHero, updateServerStatus } from './components/hero'
 import { loadNews } from './components/newsList'
 import { renderDiscovery } from './components/discoveryCard'
 import { renderDropdown, updateCurrentProfileName, bindSidebar } from './components/sidebar'
-import freeBuildConfig from '../../../config/free-build-profile.json'
-import profileConfig from '../../../config/athena-profile.json'
+import { launcherConfig } from '../../services/launcherConfig'
 import logoUrl from '../../static/images/logo.png'
 import homeHtmlRaw from './index.html?raw'
 import './home.scss'
@@ -27,8 +26,6 @@ const el = (id: string) => document.getElementById(id)
 const homeHtml = homeHtmlRaw.replace('/src/static/images/logo.png', logoUrl)
 
 // Fragment HTML de la page Accueil (+ sidebar) injecté dans le shell.
-// afterbegin (et non innerHTML) : les sous-pages Serveurs/Profil/Réglages sont
-// déjà montées par leurs modules (les imports évaluent avant le corps du module).
 const mount = el('view-home')
 if (mount && !mount.querySelector('.modey-sidebar')) mount.insertAdjacentHTML('afterbegin', homeHtml)
 
@@ -65,15 +62,23 @@ async function loadHeader() {
 
 export async function showServerDetails() {
   const profile = homeState.selectedProfile
+  const serverSlug = profile?.slug || 'athena'
+  const meta = launcherConfig.getServer(serverSlug) || (isComingSoonProfile(profile) ? launcherConfig.getFreeBuild() : launcherConfig.getAthena())
+
   if (isComingSoonProfile(profile)) {
+    const features = meta?.teaser?.features || [
+      { title: 'Monde créatif libre', text: 'Plots personnels + monde plat pour construire sans limites.' },
+      { title: 'Outils de build', text: 'Outils de construction et partage de schématiques.' },
+      { title: 'Ouvert à tous', text: 'Accessible à tous les joueurs Modey.' }
+    ]
     await Dialog.show(
-      `Free Build — ${freeBuildConfig.statusLabel}.\n\n${freeBuildConfig.teaser.description}\n\nCe qu'il proposera :\n${(freeBuildConfig.teaser.features as { title: string; text: string }[]).map((f) => `• ${f.title} : ${f.text}`).join('\n')}\n\nMinecraft ${freeBuildConfig.minecraftVersion} • NeoForge ${freeBuildConfig.modLoader.version}`,
+      `${meta?.name || 'Free Build'} — ${meta?.maintenanceMessage || 'Serveur non actif — Arrive bientôt'}.\n\n${meta?.teaser?.description || ''}\n\nCe qu'il proposera :\n${features.map((f: { title: string; text?: string }) => `• ${f.title}${f.text ? ` : ${f.text}` : ''}`).join('\n')}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} • NeoForge ${meta?.loaderVersion || '21.1.169'}`,
       [{ text: 'Compris', type: 'ok' }]
     )
     return
   }
   await Dialog.show(
-    `${profile?.name ?? 'Athéna'} — Serveur officiel.\n\nUn monde vivant. Des villes à construire. Une aventure à partager.\n\nMinecraft ${profileConfig.minecraftVersion} • NeoForge ${profileConfig.modLoader.version}\nConnexion : ${targetFor(profile).host}:${targetFor(profile).port}`,
+    `${profile?.name ?? meta?.name ?? 'Athéna'} — Serveur officiel.\n\n${meta?.teaser?.description || 'Un monde vivant. Des villes à construire. Une aventure à partager.'}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} • NeoForge ${meta?.loaderVersion || '21.1.169'}\nConnexion : ${targetFor(profile).host}:${targetFor(profile).port}`,
     [{ text: 'Compris', type: 'ok' }]
   )
 }

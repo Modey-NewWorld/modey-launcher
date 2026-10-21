@@ -54,7 +54,7 @@ declare global {
         error: (callback: (value: BootstrapsEvents['bootstraps_error'][0]) => void) => void
       }
       game: {
-        launch: (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number }) => Promise<void>
+        launch: (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number; minecraftVersion?: string; loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'; loaderVersion?: string }) => Promise<void>
 
         launchComputeDownload: (callback: () => void) => void
 
@@ -149,7 +149,7 @@ export const bootstraps = {
 }
 
 export const game = {
-  launch: async (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number }) =>
+  launch: async (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number; minecraftVersion?: string; loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'; loaderVersion?: string }) =>
     await window.api.game.launch(payload),
   launchComputeDownload: (callback: () => void) => window.api.game.launchComputeDownload(callback),
   launchDownload: (callback: (value: LauncherEvents['launch_download'][0]) => void) => window.api.game.launchDownload(callback),

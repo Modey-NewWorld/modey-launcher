@@ -3,7 +3,6 @@ import { Launcher } from 'eml-lib'
 import type { Account } from 'eml-lib'
 import type { IGameSettings } from '../settings'
 import logger from 'electron-log/main'
-import profileConfig from '../../../config/athena-profile.json'
 import { ADMINTOOL_URL, AUTH_SERVER_URL, SYSTEM_JAVA_21_PATH } from '../../const'
 import fs from 'node:fs'
 import { IPC } from '../../ipc-channels'
@@ -21,8 +20,17 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.handle(
     IPC.game.launch,
-    (_event, payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number }) => {
-      const { account, settings, profileSlug, serverIp, serverPort } = payload
+    (_event, payload: {
+      account: Account
+      settings: IGameSettings
+      profileSlug: string
+      serverIp?: string
+      serverPort?: number
+      minecraftVersion?: string
+      loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
+      loaderVersion?: string
+    }) => {
+      const { account, settings, profileSlug, serverIp, serverPort, minecraftVersion, loaderType, loaderVersion } = payload
 
       let java: { install: 'auto' } | { install: 'manual'; absolutePath: string } = { install: 'auto' }
       if (settings.java === 'system') {
@@ -37,17 +45,21 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       let disconnectWatchArmed = false
       setExitingByDisconnect(false)
 
-      logger.log(`Launching Minecraft for profile ${profileSlug} with server target ${host}:${port}`)
+      const targetMcVersion = minecraftVersion || '1.21.1'
+      const targetLoaderType = loaderType || 'neoforge'
+      const targetLoaderVersion = loaderVersion || '21.1.169'
+
+      logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port}`)
 
       const launcher = new Launcher({
         root: 'modey-athena',
         profile: {
           slug: profileSlug,
           minecraft: {
-            version: profileConfig.minecraftVersion,
+            version: targetMcVersion,
             loader: {
-              loader: profileConfig.modLoader.type as 'neoforge',
-              version: profileConfig.modLoader.version
+              loader: targetLoaderType as any,
+              version: targetLoaderVersion
             },
             modpackUrl: `${ADMINTOOL_URL}/api/files-updater/${profileSlug}`,
             args: gameArgs
@@ -57,59 +69,52 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         cleaning: {
           enabled: false
         },
-        java: java,
-        memory: {
-          min: +settings.memory.min * 1024,
-          max: +settings.memory.max * 1024
-        },
-        window: {
-          width: settings.resolution.width,
-          height: settings.resolution.height,
-          fullscreen: settings.resolution.fullscreen
-        }
+        java: java
       })
 
-      // Interception du spawn du processus Minecraft : capture du PID,
-      // injection d'authlib-injector (anti-crack) et cycle de vie.
-      ;(launcher as any).run = async function (javaPath: string, args: string[]) {
-        const { spawn } = await import('node:child_process')
-
-        const authlibPath = getAuthlibInjectorPath()
-        if (authlibPath) {
-          const authlibArg = `-javaagent:${authlibPath}=${AUTH_SERVER_URL}`
-
-          // Les args EML sont de la forme : [jvmArgs..., '-cp', classpath, mainClass, gameArgs...]
-          const cpIndex = args.findIndex((a) => a === '-cp' || a === '-classpath' || a === '--classpath')
-          if (cpIndex > 0) {
-            args.splice(0, 0, authlibArg)
-            logger.info(`[Modey Launcher] 🔒 authlib-injector injecté dans les JVM args → ${AUTH_SERVER_URL}`)
-          } else {
-            args.unshift(authlibArg)
-            logger.info(`[Modey Launcher] 🔒 authlib-injector injecté (fallback) → ${AUTH_SERVER_URL}`)
-          }
-        } else {
-          logger.warn(`[Modey Launcher] ⚠️ Lancement sans authlib-injector (fichier jar absent)`)
-        }
-
+      // Interception du spawn pour sécurité anti-crack Athéna (authlib-injector)
+      const originalLaunchGame = (launcher as any).launchGame.bind(launcher)
+      ;(launcher as any).launchGame = function (options: any) {
         return new Promise<void>((resolve, reject) => {
           try {
-            const minecraft = spawn(javaPath, args, { cwd: this.config.root, detached: true })
-            trackMinecraftPid(minecraft.pid ?? null)
+            const authlibPath = getAuthlibInjectorPath()
+            if (authlibPath) {
+              const jvmArg = `-javaagent:${authlibPath}=${AUTH_SERVER_URL}`
+              if (!options.jvmArgs) options.jvmArgs = []
+              if (!options.jvmArgs.some((arg: string) => arg.includes('authlib-injector'))) {
+                options.jvmArgs.push(jvmArg)
+                logger.info(`[Modey Launcher] 🔒 authlib-injector injecté dans les JVM args → ${AUTH_SERVER_URL}`)
+              }
+            } else if (fs.existsSync('assets/authlib-injector.jar')) {
+              const fallbackArg = `-javaagent:assets/authlib-injector.jar=${AUTH_SERVER_URL}`
+              if (!options.jvmArgs) options.jvmArgs = []
+              options.jvmArgs.push(fallbackArg)
+              logger.info(`[Modey Launcher] 🔒 authlib-injector injecté (fallback) → ${AUTH_SERVER_URL}`)
+            } else {
+              logger.warn(`[Modey Launcher] ⚠️ Lancement sans authlib-injector (fichier jar absent)`)
+            }
 
-            minecraft.unref()
+            // Exécution du lancement normal
+            const procPromise = originalLaunchGame(options)
+            const minecraft = (launcher as any).minecraft
 
-            minecraft.stdout?.on('data', (data: Buffer) => {
-              this.emit('launch_data', data.toString('utf8').replace(/\n$/, ''))
-            })
+            if (minecraft && minecraft.pid) {
+              trackMinecraftPid(minecraft.pid)
+            } else if (procPromise && procPromise.pid) {
+              trackMinecraftPid(procPromise.pid)
+            }
 
-            minecraft.stderr?.on('data', (data: Buffer) => {
-              this.emit('launch_data', data.toString('utf8').replace(/\n$/, ''))
-            })
+            if (!minecraft) {
+              if (procPromise && typeof procPromise.then === 'function') {
+                procPromise.then(resolve).catch(reject)
+                return
+              }
+              resolve()
+              return
+            }
 
             minecraft.on('error', (err: Error) => {
               logger.error('[Modey Launcher] Erreur processus Minecraft :', err)
-              trackMinecraftPid(null)
-              reject(err)
             })
 
             minecraft.on('close', (code: number | null) => {
@@ -235,11 +240,9 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       try {
         void launcher.launch().catch((err) => {
           logger.error('Launcher error:', err)
-          mainWindow.webContents.send(IPC.game.launchClose, 1)
         })
       } catch (err) {
         logger.error('Launcher error:', err)
-        mainWindow.webContents.send(IPC.game.launchClose, 1)
       }
     }
   )
