@@ -251,14 +251,5 @@ body.is-asleep *::after {
   margin: 0 auto;
 }
 
-@media (max-width: 1100px) {
-  :root {
-    --sidebar-width: 220px;
-  }
-}
 
-@media (min-width: 1920px) {
-  :root {
-    --sidebar-width: 280px;
-  }
-}
+

@@ -514,27 +514,30 @@
 
 
 /* --- Responsive Home Breakpoints --- */
-@media (max-width: 1180px) {
-  .modey-hero-row {
-    flex-direction: column !important;
-  }
-  .modey-hero-row .modey-hero {
-    min-height: 320px !important;
-    max-height: none !important;
+/* Phase 1 : quand la fenêtre commence à rétrécir (1240px - 1080px),
+   la zone serveur conserve sa taille, c'est la colonne actualités qui s'adapte d'abord */
+@media (max-width: 1240px) {
+  .modey-hero {
     flex: none !important;
+    width: 580px !important;
   }
-  .modey-hero-row .modey-news {
-    max-width: 100% !important;
-    width: 100% !important;
-    flex: none !important;
-  }
-  .news-list {
-    grid-template-columns: 1fr !important;
+  .modey-news {
+    flex: 1 !important;
+    min-width: 220px !important;
   }
 }
 
-@media (min-width: 1700px) {
-  .modey-hero-row .modey-hero {
-    flex: 1.8;
+/* Phase 2 : sous 1080px, la colonne actualités disparaît (masquée),
+   et la zone image serveur prend alors toute la place disponible */
+@media (max-width: 1080px) {
+  .modey-news {
+    display: none !important;
+  }
+  .modey-hero {
+    width: 100% !important;
+    flex: 1 !important;
+    min-height: 420px !important;
+    height: 100% !important;
+    max-height: none !important;
   }
 }
