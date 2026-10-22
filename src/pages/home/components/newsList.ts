@@ -35,7 +35,7 @@ export async function loadNews() {
             <span class="open-ext" data-index="${index}">↗</span>
           </div>
 
-          <h3>${item.title}</h3>
+          <h3 title="${item.title.replace(/"/g, '&quot;')}">${item.title}</h3>
 
           <div class="article-content">
             <p>${excerpt}</p>
