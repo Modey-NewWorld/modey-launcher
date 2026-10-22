@@ -12,10 +12,10 @@
 .profile-scroll {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 40px 28px 0 14px;
+  padding: 14px 14px 0 14px;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -29,9 +29,11 @@
 
 .profile-layout-clean {
   display: grid;
-  grid-template-columns: minmax(420px, 1.25fr) minmax(360px, 1fr);
-  gap: 20px;
-  min-height: 100%;
+  grid-template-columns: minmax(360px, 1.1fr) minmax(340px, 1fr);
+  gap: clamp(14px, 1.5vw, 20px);
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   align-items: stretch;
 }
 
@@ -53,7 +55,7 @@
     gap: 10px;
 
     h3 {
-      font-size: 15px;
+      font-size: clamp(12.3px, 1.17vw, 15.0px);
       font-weight: 700;
       color: #101b30;
       margin: 0;
@@ -62,13 +64,13 @@
 
       i {
         color: #1a73e8;
-        font-size: 14px;
+        font-size: clamp(11.5px, 1.09vw, 14.0px);
       }
     }
   }
 
   .muted {
-    font-size: 12px;
+    font-size: clamp(9.8px, 0.94vw, 12.0px);
     color: #8a97ad;
     line-height: 1.5;
     margin: 0;
@@ -79,13 +81,27 @@
 .profile-left-col {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(30, 136, 229, 0.2);
+    border-radius: 3px;
+  }
 }
 
 /* --- Casier / Locker --- */
 .locker-card {
   .locker-tag {
-    font-size: 11px;
+    font-size: clamp(9.0px, 0.86vw, 11.0px);
     font-weight: 600;
     color: #1a73e8;
     background: #eef4fd;
@@ -112,14 +128,14 @@
       gap: 10px;
 
       strong {
-        font-size: 13px;
+        font-size: clamp(10.7px, 1.02vw, 13.0px);
         color: #101b30;
         display: flex;
         align-items: center;
 
         i {
           color: #8a97ad;
-          font-size: 12px;
+          font-size: clamp(9.8px, 0.94vw, 12.0px);
         }
       }
     }
@@ -134,7 +150,7 @@
 }
 
 .studio-skin-pill {
-  font-size: 11px;
+  font-size: clamp(9.0px, 0.86vw, 11.0px);
   font-weight: 600;
   color: #1a73e8;
   background: #e8f1fd;
@@ -158,7 +174,7 @@
   gap: 8px;
 
   .studio-gallery-title {
-    font-size: 11.5px;
+    font-size: clamp(9.4px, 0.9vw, 11.5px);
     font-weight: 600;
     color: #68798f;
     text-transform: uppercase;
@@ -211,7 +227,7 @@
 
     span {
       display: block;
-      font-size: 11.5px;
+      font-size: clamp(9.4px, 0.9vw, 11.5px);
       color: #3d5268;
       font-weight: 600;
       text-align: center;
@@ -236,7 +252,7 @@
       height: 26px;
       padding: 0;
       border-radius: 50%;
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -270,7 +286,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: clamp(10.2px, 0.98vw, 12.5px);
   color: #3d5268;
   cursor: pointer;
 
@@ -304,13 +320,13 @@
     min-width: 0;
 
     strong {
-      font-size: 14.5px;
+      font-size: clamp(11.9px, 1.13vw, 14.5px);
       color: #101b30;
       font-weight: 700;
     }
 
     span {
-      font-size: 11.5px;
+      font-size: clamp(9.4px, 0.9vw, 11.5px);
       color: #8a97ad;
     }
   }
@@ -327,7 +343,7 @@
     gap: 10px;
     padding: 8px 0;
     border-bottom: 1px solid #f0f3f8;
-    font-size: 12px;
+    font-size: clamp(9.8px, 0.94vw, 12.0px);
 
     &:last-child {
       border-bottom: none;
@@ -339,7 +355,7 @@
 
     code {
       font-family: monospace;
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
       color: #3d5268;
       background: #f2f6fc;
       padding: 3px 8px;
@@ -363,7 +379,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
 
       &:hover:not(:disabled) {
         color: #1a73e8;
@@ -372,7 +388,7 @@
     }
 
     .tag {
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
       font-weight: 600;
       color: #5b6b84;
       background: #eef1f6;
@@ -395,7 +411,7 @@
   border-radius: 10px;
   padding: 10px;
   font-family: 'Poppins', sans-serif;
-  font-size: 12.5px;
+  font-size: clamp(10.2px, 0.98vw, 12.5px);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -418,7 +434,8 @@
   overflow: hidden;
   position: relative;
   background: linear-gradient(180deg, #f8fafd 0%, #edf3fc 100%);
-  min-height: 580px;
+  height: 100%;
+  min-height: 0;
 
   .studio-overlay-head {
     padding: 16px 20px;
@@ -435,7 +452,7 @@
   }
 
   .studio-badge {
-    font-size: 11px;
+    font-size: clamp(9.0px, 0.86vw, 11.0px);
     font-weight: 600;
     color: #43a047;
     background: #e8f5e9;
@@ -459,7 +476,7 @@
     border: none;
     background: transparent;
     padding: 5px 14px;
-    font-size: 11.5px;
+    font-size: clamp(9.4px, 0.9vw, 11.5px);
     font-weight: 600;
     color: #68798f;
     cursor: pointer;
@@ -478,12 +495,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  min-height: 480px;
+  min-height: 440px;
 
   #skin-container {
     width: 100%;
     height: 100%;
-    min-height: 480px;
+    min-height: 440px;
     display: block;
   }
 }
@@ -515,7 +532,7 @@
     background: #fff;
     color: #3d5268;
     font-family: 'Poppins', sans-serif;
-    font-size: 12px;
+    font-size: clamp(9.8px, 0.94vw, 12.0px);
     font-weight: 600;
     padding: 6px 14px;
     border-radius: 999px;
@@ -527,7 +544,7 @@
 
     &.zoom-btn {
       padding: 6px 10px;
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
     }
 
     &:hover {
@@ -543,36 +560,15 @@
   }
 }
 
-/* --- Responsive Avancé & Adaptatif --- */
-@media (max-width: 1200px) {
+/* --- Responsive Profile Breakpoints --- */
+@media (max-width: 1120px) {
   .profile-layout-clean {
-    grid-template-columns: minmax(380px, 1.15fr) minmax(320px, 1fr);
-    gap: 16px;
+    grid-template-columns: 1fr !important;
   }
-
-  .profile-scroll {
-    padding: 32px 18px 0 14px;
-  }
-}
-
-@media (max-width: 1080px) {
-  .profile-layout-clean {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
   .full-studio-card {
-    min-height: 480px;
-    order: -1; // Le studio 3D apparaît au-dessus sur petits écrans
-  }
-}
-
-@media (max-height: 750px) {
-  .profile-scroll {
-    padding-top: 28px;
-  }
-
-  .full-studio-card {
-    min-height: 440px;
+    position: static !important;
+    height: 480px !important;
+    min-height: 480px !important;
+    order: -1 !important;
   }
 }

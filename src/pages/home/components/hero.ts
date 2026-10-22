@@ -1,8 +1,8 @@
 import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile, isAthenaProfile } from '../../../services/profiles'
 import { pingServer, targetFor } from '../../../services/serverStatus'
 import { getUser } from '../../../state'
-import profileConfig from '../../../../config/athena-profile.json'
-import freeBuildConfig from '../../../../config/free-build-profile.json'
+import { launcherConfig } from '../../../services/launcherConfig'
+import { bannerCache } from '../../../services/bannerCache'
 
 const ATHENA_TAGS = ['Survie RP', 'Économie', 'Villes & Métropoles', 'Quêtes scénarisées']
 const STAFF_ROLES = ['founder', 'admin', 'moderator', 'developer', 'dev']
@@ -24,6 +24,9 @@ export function renderHero(profile: any) {
   const isDisabled = isDisabledProfile(profile)
   const isAdmin = checkIsAdmin()
 
+  const serverSlug = profile?.slug || 'athena'
+  const serverMeta = launcherConfig.getServer(serverSlug) || (isSoon ? launcherConfig.getFreeBuild() : launcherConfig.getAthena())
+
   // Vérifier si le serveur est réputé hors-ligne via le cache de ping
   const profileKey = profile?.id ?? 'default'
   const cachedStatus = serverStatusCache[profileKey]
@@ -31,49 +34,46 @@ export function renderHero(profile: any) {
 
   const heroVersion = el('hero-version')
   if (heroVersion) {
-    const mc = isSoon ? freeBuildConfig.minecraftVersion : profileConfig.minecraftVersion
-    const loader = isSoon ? freeBuildConfig.modLoader.version : profileConfig.modLoader.version
+    const mc = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
+    const loader = profile?.modey?.loaderVersion || serverMeta?.loaderVersion || '21.1.169'
     heroVersion.innerHTML = `<i class="fa-solid fa-cube"></i>&nbsp;Minecraft ${mc} • NeoForge ${loader}`
   }
 
   const heroEl = el('hero')
   if (heroEl) {
-    const customBanner = profile?.modey?.bannerUrl
-    if (customBanner) {
-      heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.15) 0%, rgba(10, 20, 40, 0.82) 78%), url('${customBanner}') center / cover no-repeat, #24365c`
-    } else {
-      heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.05) 0%, rgba(10, 20, 40, 0.55) 78%), url('/src/static/images/bg.png') center / cover no-repeat, #24365c`
-    }
+    const remoteBanner = profile?.modey?.bannerUrl || serverMeta?.bannerUrl
+    const effectiveBanner = bannerCache.getBanner(serverSlug, remoteBanner)
+    heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.15) 0%, rgba(10, 20, 40, 0.82) 78%), url('${effectiveBanner}') center / cover no-repeat, #24365c`
   }
 
   const heroTitle = el('hero-title')
   if (heroTitle) {
-    const iconUrl = profile?.modey?.iconUrl
+    const iconUrl = profile?.modey?.iconUrl || serverMeta?.iconUrl
     const iconImg = iconUrl
       ? `<img src="${iconUrl}" style="width:26px; height:26px; object-fit:contain; border-radius:5px; vertical-align:middle; margin-right:8px; box-shadow:0 2px 6px rgba(0,0,0,0.4);" />`
       : ''
-    heroTitle.innerHTML = `${iconImg}${profile?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
+    heroTitle.innerHTML = `${iconImg}${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
   }
 
-  const customDesc = profile?.modey?.teaser?.description
+  const customDesc = profile?.modey?.teaser?.description || serverMeta?.teaser?.description
   const heroDesc = el('hero-desc')
   if (heroDesc) {
     if (customDesc) heroDesc.innerText = customDesc
-    else if (isSoon) heroDesc.innerText = freeBuildConfig.teaser.description
+    else if (isSoon) heroDesc.innerText = 'Le serveur créatif libre de Modey n\'est pas encore actif. Prépare tes idées : il ouvrira à tous les joueurs, sans whitelist.'
     else heroDesc.innerText = 'Un monde vivant. Des villes à construire. Une aventure à partager.'
   }
 
   const heroTags = el('hero-tags')
   if (heroTags) {
-    const modeyTags = profile?.modey?.tags
-    const tags = modeyTags && modeyTags.length > 0 ? modeyTags : isSoon ? (freeBuildConfig.teaser.features as { title: string }[]).map((f) => f.title) : ATHENA_TAGS
+    const modeyTags = profile?.modey?.tags || serverMeta?.tags
+    const tags = modeyTags && modeyTags.length > 0 ? modeyTags : isSoon ? ['Créatif', 'Plots', 'Schématiques', 'Concours'] : ATHENA_TAGS
     heroTags.innerHTML = tags.map((t: string) => `<span class="hero-tag">${t}</span>`).join('')
   }
 
   const heroFoot = el('hero-foot-note')
   if (heroFoot) {
     if (isMaint) heroFoot.innerHTML = `<i class="fa-solid fa-wrench" style="color:#f59e0b"></i>&nbsp;${profile?.modey?.maintenanceMessage || 'Maintenance technique en cours'}${isAdmin ? ' • Accès Admin accordé' : ''}`
-    else if (isSoon) heroFoot.innerHTML = `<i class="fa-solid fa-hourglass-half"></i>&nbsp;${freeBuildConfig.statusLabel} • Minecraft ${freeBuildConfig.minecraftVersion}`
+    else if (isSoon) heroFoot.innerHTML = `<i class="fa-solid fa-hourglass-half"></i>&nbsp;${serverMeta?.maintenanceMessage || 'Serveur non actif — Arrive bientôt'} • Minecraft ${serverMeta?.minecraftVersion || '1.21.1'}`
     else if (isDisabled) heroFoot.innerHTML = `<i class="fa-solid fa-ban" style="color:#ef4444"></i>&nbsp;Lancement désactivé par l'administration${isAdmin ? ' • Accès Admin accordé' : ''}`
     else if (isOffline) heroFoot.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ea580c"></i>&nbsp;Serveur hors ligne ou injoignable${isAdmin ? ' • Accès Admin accordé' : ''}`
     else heroFoot.innerHTML = `<i class="fa-solid fa-circle-check"></i>&nbsp;Prêt au lancement • Dernière version installée`
@@ -161,13 +161,16 @@ export async function updateServerStatus(profile: any) {
   const heroStatus = el('hero-status')
   const profileKey = profile?.id ?? 'default'
 
+  const serverSlug = profile?.slug || 'athena'
+  const serverMeta = launcherConfig.getServer(serverSlug) || (isComingSoonProfile(profile) ? launcherConfig.getFreeBuild() : launcherConfig.getAthena())
+
   if (isComingSoonProfile(profile)) {
     if (statusDot) {
       statusDot.classList.remove('pinging', 'online')
       statusDot.classList.add('offline')
     }
     if (statusText) statusText.innerHTML = 'Bientôt disponible'
-    if (heroStatus) heroStatus.title = freeBuildConfig.statusLabel
+    if (heroStatus) heroStatus.title = serverMeta?.maintenanceMessage || 'Serveur non actif — Arrive bientôt'
     if (playerCount) playerCount.innerHTML = ''
     serverStatusCache[profileKey] = { online: false, timestamp: Date.now() }
     renderHero(profile)
@@ -191,7 +194,8 @@ export async function updateServerStatus(profile: any) {
       statusDot.classList.remove('pinging', 'offline')
       statusDot.classList.add('online')
     }
-    if (statusText) statusText.innerHTML = `Disponible • v${profileConfig.minecraftVersion}`
+    const mcVer = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
+    if (statusText) statusText.innerHTML = `Disponible • v${mcVer}`
     if (playerCount) {
       const occupantLabel = isAthenaProfile(profile) ? 'citoyens connectés' : 'joueurs connectés'
       playerCount.innerHTML = `${probe.status.players.online.toLocaleString()} / ${probe.status.players.max.toLocaleString()} ${occupantLabel}`

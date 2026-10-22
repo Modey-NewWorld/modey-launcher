@@ -10,7 +10,7 @@ div.maintenance-card {
   margin: 0 auto;
 
   h3 {
-    font-size: 22px;
+    font-size: clamp(18.0px, 1.72vw, 22.0px);
     font-weight: 600;
     color: #1A2332;
   }
@@ -27,12 +27,12 @@ div.maintenance-card {
     font-weight: 500;
     margin-bottom: 0.8rem;
     margin-top: 0.4rem;
-    font-size: 13.5px;
+    font-size: clamp(11.1px, 1.05vw, 13.5px);
   }
 
   .text {
     color: #3D5268;
-    font-size: 14px;
+    font-size: clamp(11.5px, 1.09vw, 14.0px);
     line-height: 1.5;
   }
 }

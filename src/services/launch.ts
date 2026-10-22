@@ -56,12 +56,19 @@ export async function startLaunch() {
     const target = targetFor(profile)
 
     logger.log(`Lancement pour ${user.name} vers ${target.host}:${target.port}`)
+    const mcVersion = profile?.modey?.minecraftVersion || profile?.version || '1.21.1'
+    const ldrType = (profile?.modey?.loader || profile?.loaderVersion?.type || 'neoforge') as any
+    const ldrVersion = profile?.modey?.loaderVersion || profile?.loaderVersion?.version || '21.1.169'
+
     await game.launch({
       account: user,
       settings: config,
       profileSlug: profile?.slug || 'athena',
       serverIp: target.host,
-      serverPort: target.port
+      serverPort: target.port,
+      minecraftVersion: mcVersion,
+      loaderType: ldrType,
+      loaderVersion: ldrVersion
     })
   } catch (err) {
     logger.error('Erreur lors du déclenchement du lancement:', err)

@@ -16,8 +16,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  gap: 18px;
-  padding: 40px 28px 0 14px;
+  gap: clamp(12px, 1.2vw, 18px);
+  padding: 14px 14px 0 14px;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -33,7 +33,13 @@
   background: #ffffff;
   border: 1px solid #e6eaf2;
   border-radius: 14px;
-  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(30, 50, 100, 0.04);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba(30, 80, 180, 0.08);
+  }
+  padding: clamp(14px, 1.5vw, 20px) clamp(16px, 1.8vw, 22px);
   box-shadow: 0 2px 8px rgba(30, 50, 100, 0.06);
   min-width: 0;
   display: flex;
@@ -50,7 +56,7 @@
     gap: 10px;
 
     h3 {
-      font-size: 17px;
+      font-size: clamp(13.9px, 1.33vw, 17.0px);
       font-weight: 700;
       color: #101b30;
       margin: 0;
@@ -60,7 +66,7 @@
 
       i {
         color: #1a73e8;
-        font-size: 15px;
+        font-size: clamp(12.3px, 1.17vw, 15.0px);
       }
     }
   }
@@ -130,7 +136,7 @@
 .ram-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 13.5px;
+  font-size: clamp(11.1px, 1.05vw, 13.5px);
   font-weight: 600;
   color: #5b6b84;
   margin-top: 4px;
@@ -150,7 +156,7 @@
     border: 1px solid #e2e9f4;
     background: #fff;
     color: #1a73e8;
-    font-size: 14px;
+    font-size: clamp(11.5px, 1.09vw, 14.0px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -235,7 +241,7 @@
     flex: none;
     min-width: 58px;
     text-align: center;
-    font-size: 15px;
+    font-size: clamp(12.3px, 1.17vw, 15.0px);
     font-weight: 700;
     color: #101b30;
     font-variant-numeric: tabular-nums;
@@ -259,7 +265,7 @@
   background: #fff;
   color: #17233a;
   font-family: 'Poppins', sans-serif;
-  font-size: 13.5px;
+  font-size: clamp(11.1px, 1.05vw, 13.5px);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -300,13 +306,13 @@
 
   &--small {
     padding: 7px 11px;
-    font-size: 12.5px;
+    font-size: clamp(10.2px, 0.98vw, 12.5px);
   }
 }
 
 .path-box {
   font-family: Consolas, 'Courier New', monospace;
-  font-size: 13px;
+  font-size: clamp(10.7px, 1.02vw, 13.0px);
   background: #f7f9fc;
   border: 1px solid #e6eaf2;
   border-radius: 9px;
@@ -329,12 +335,12 @@
   gap: 8px;
 
   .update-line-label {
-    font-size: 13px;
+    font-size: clamp(10.7px, 1.02vw, 13.0px);
     color: #8a97ad;
   }
 
   strong {
-    font-size: 15px;
+    font-size: clamp(12.3px, 1.17vw, 15.0px);
     color: #101b30;
   }
 }
@@ -369,7 +375,7 @@
   .settings-progress-meta {
     display: flex;
     justify-content: space-between;
-    font-size: 12.5px;
+    font-size: clamp(10.2px, 0.98vw, 12.5px);
     font-weight: 600;
     margin-top: 7px;
     color: #3d5268;
@@ -400,12 +406,12 @@
     min-width: 0;
 
     strong {
-      font-size: 15px;
+      font-size: clamp(12.3px, 1.17vw, 15.0px);
       color: #101b30;
     }
 
     span {
-      font-size: 12.5px;
+      font-size: clamp(10.2px, 0.98vw, 12.5px);
       color: #8a97ad;
       word-break: break-all;
     }
@@ -439,7 +445,7 @@
     border: 1px solid #e2e9f4;
     border-radius: 9px;
     font-family: 'Poppins', sans-serif;
-    font-size: 14.5px;
+    font-size: clamp(11.9px, 1.13vw, 14.5px);
     color: #17233a;
     background: #fff;
     cursor: pointer;
@@ -465,7 +471,7 @@
 }
 
 .muted {
-  font-size: 13px;
+  font-size: clamp(10.7px, 1.02vw, 13.0px);
   color: #8a97ad;
   line-height: 1.55;
   margin: 0;
@@ -482,12 +488,12 @@
     gap: 2px;
 
     span {
-      font-size: 13px;
+      font-size: clamp(10.7px, 1.02vw, 13.0px);
       color: #8a97ad;
     }
 
     strong {
-      font-size: 15px;
+      font-size: clamp(12.3px, 1.17vw, 15.0px);
       color: #101b30;
     }
   }
@@ -499,14 +505,14 @@
   border-top: 1px solid #f0f3f8;
 
   h4 {
-    font-size: 16px;
+    font-size: clamp(13.1px, 1.25vw, 16.0px);
     font-weight: 700;
     color: #101b30;
     margin: 0 0 8px 0;
   }
 
   p {
-    font-size: 14px;
+    font-size: clamp(11.5px, 1.09vw, 14.0px);
     color: #5b6b84;
     line-height: 1.65;
     margin: 0 0 8px 0;
@@ -536,7 +542,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13.5px;
+    font-size: clamp(11.1px, 1.05vw, 13.5px);
     color: #1a73e8;
     text-decoration: none;
     font-weight: 500;
@@ -557,7 +563,7 @@
 
 .about-legal {
   p {
-    font-size: 13px;
+    font-size: clamp(10.7px, 1.02vw, 13.0px);
     color: #68798f;
     line-height: 1.65;
     margin: 0 0 8px 0;
@@ -583,7 +589,7 @@
   border-top: 1px solid #f0f3f8;
 
   h4 {
-    font-size: 16px;
+    font-size: clamp(13.1px, 1.25vw, 16.0px);
     font-weight: 700;
     color: #101b30;
     margin: 0 0 10px 0;
@@ -592,7 +598,7 @@
   ul {
     margin: 0;
     padding-left: 22px;
-    font-size: 13px;
+    font-size: clamp(10.7px, 1.02vw, 13.0px);
     color: #5b6b84;
     line-height: 1.85;
 
@@ -613,7 +619,7 @@
   border-top: 1px solid #f0f3f8;
 
   .muted {
-    font-size: 13px;
+    font-size: clamp(10.7px, 1.02vw, 13.0px);
     color: #8a97ad;
     display: flex;
     align-items: center;
@@ -632,8 +638,21 @@
   }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 900px) {
   .settings-scroll {
     padding: 40px 14px 0 14px;
+  }
+}
+
+/* --- Responsive Settings Breakpoints --- */
+@media (max-width: 1100px) {
+  .settings-scroll {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 1750px) {
+  .settings-scroll {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }

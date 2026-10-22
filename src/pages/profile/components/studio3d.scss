@@ -1,6 +1,6 @@
 /* --- Studio 3D --- */
 .studio-skin-pill {
-  font-size: 10.5px;
+  font-size: clamp(8.6px, 0.82vw, 10.5px);
   font-weight: 700;
   color: #1a73e8;
   background: #e8f1fd;
@@ -21,7 +21,7 @@
     border: none;
     background: transparent;
     font-family: 'Poppins', sans-serif;
-    font-size: 11.5px;
+    font-size: clamp(9.4px, 0.9vw, 11.5px);
     font-weight: 600;
     color: #8a97ad;
     padding: 5px 14px;
@@ -41,7 +41,7 @@
   flex-wrap: wrap;
 
   .studio-badge {
-    font-size: 11px;
+    font-size: clamp(9.0px, 0.86vw, 11.0px);
     font-weight: 500;
     color: #5b6b84;
     background: #f2f6fc;
@@ -71,7 +71,7 @@
   background: #fff;
   color: #3d5268;
   font-family: 'Poppins', sans-serif;
-  font-size: 12px;
+  font-size: clamp(9.8px, 0.94vw, 12.0px);
   font-weight: 600;
   padding: 8px 18px;
   border-radius: 999px;
@@ -112,12 +112,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: clamp(9.8px, 0.94vw, 12.0px);
     color: #101b30;
 
     i {
       color: #8a97ad;
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
     }
   }
 
@@ -131,7 +131,7 @@
       background: #fff;
       color: #5b6b84;
       font-family: 'Poppins', sans-serif;
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
       font-weight: 600;
       padding: 7px 6px;
       border-radius: 8px;
@@ -149,7 +149,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: clamp(9.8px, 0.94vw, 12.0px);
     color: #3d5268;
     cursor: pointer;
 
@@ -176,7 +176,7 @@
   gap: 8px;
 
   > strong {
-    font-size: 12.5px;
+    font-size: clamp(10.2px, 0.98vw, 12.5px);
     color: #101b30;
   }
 }
@@ -215,7 +215,7 @@
 
     span {
       display: block;
-      font-size: 10px;
+      font-size: clamp(8.2px, 0.78vw, 10.0px);
       color: #8a97ad;
       font-weight: 500;
       text-align: center;
@@ -234,7 +234,7 @@
       padding: 0;
       border-radius: 50%;
       display: none;
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
     }
 
     &:hover .btn-delete-skin {
@@ -258,7 +258,7 @@
   padding-top: 12px;
 
   .studio-saved {
-    font-size: 11px;
+    font-size: clamp(9.0px, 0.86vw, 11.0px);
     color: #43a047;
     display: flex;
     align-items: center;
@@ -271,7 +271,7 @@
   }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 900px) {
   .studio-row {
     grid-template-columns: 1fr;
   }

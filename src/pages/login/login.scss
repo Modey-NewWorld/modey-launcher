@@ -4,11 +4,13 @@
 }
 
 .login-card {
-  width: 420px;
-  background: var(--bg-surface);
-  border: 1px solid var(--glass-border);
+  width: clamp(340px, 90vw, 440px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(230, 235, 245, 0.8);
   border-radius: 20px;
-  padding: 36px 40px;
+  box-shadow: 0 16px 40px rgba(16, 27, 48, 0.14), 0 2px 8px rgba(16, 27, 48, 0.06);
+  padding: clamp(24px, 4vw, 36px) clamp(20px, 4vw, 40px);
   text-align: center;
   box-shadow: var(--shadow-lg);
 
@@ -19,14 +21,14 @@
   }
 
   h1 {
-    font-size: 22px;
+    font-size: clamp(18.0px, 1.72vw, 22.0px);
     margin-bottom: 4px;
     font-weight: 600;
   }
 
   .subtitle {
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: clamp(10.7px, 1.02vw, 13.0px);
     margin-bottom: 20px;
   }
 
@@ -59,7 +61,7 @@
       gap: 6px;
 
       label {
-        font-size: 12px;
+        font-size: clamp(9.8px, 0.94vw, 12.0px);
         font-weight: 500;
         color: var(--text-main);
         display: flex;
@@ -78,7 +80,7 @@
         background: var(--bg-surface-alt);
         border: 1px solid rgba(30, 136, 229, 0.2);
         color: var(--text-main);
-        font-size: 13px;
+        font-size: clamp(10.7px, 1.02vw, 13.0px);
         outline: none;
         transition: border-color 0.2s, box-shadow 0.2s;
         box-sizing: border-box;
@@ -102,7 +104,7 @@
       }
 
       .input-hint {
-        font-size: 10.5px;
+        font-size: clamp(8.6px, 0.82vw, 10.5px);
         color: var(--text-muted);
       }
     }
@@ -115,7 +117,7 @@
       justify-content: center;
       align-items: center;
       gap: 8px;
-      font-size: 13.5px;
+      font-size: clamp(11.1px, 1.05vw, 13.5px);
       font-weight: 600;
       border-radius: var(--btn-radius);
       cursor: pointer;
@@ -136,7 +138,7 @@
 
   .login-footer {
     margin-top: 18px;
-    font-size: 11px;
+    font-size: clamp(9.0px, 0.86vw, 11.0px);
     color: var(--text-muted);
 
     strong {

@@ -34,7 +34,7 @@ export async function initSettings() {
   currentSettings = await settings.get()
 
   initUIListeners()
-  initDualSlider()
+  initDualSlider(sysInfo)
   initUiScale()
   initFormValues(sysInfo.resolution)
   populateAbout(sysInfo)
@@ -111,7 +111,7 @@ async function saveSettings() {
   }
 }
 
-function initDualSlider() {
+function initDualSlider(sysInfo: any) {
   const minInput = el('ram-min') as HTMLInputElement
   const maxInput = el('ram-max') as HTMLInputElement
   const fill = el('ram-track-fill')
@@ -119,8 +119,13 @@ function initDualSlider() {
   const maxLabel = el('ram-max-label')
   if (!minInput || !maxInput || !fill) return
 
-  minInput.max = '16'
-  maxInput.max = '16'
+  const totalGB = Math.max(8, Number(sysInfo?.totalMem) || 16)
+  minInput.max = String(totalGB)
+  maxInput.max = String(totalGB)
+
+  const minBound = parseFloat(minInput.min) || 0.5
+  const maxBound = totalGB
+  const range = maxBound - minBound
 
   const gap = 0.5
   const updateSlider = () => {
@@ -137,15 +142,25 @@ function initDualSlider() {
       }
     }
 
-    if (minLabel) minLabel.innerText = `${minVal} Go`
-    if (maxLabel) maxLabel.innerText = `${maxVal} Go`
+    if (minLabel) minLabel.innerText = `Min : ${minVal} Go`
+    if (maxLabel) maxLabel.innerText = `Max : ${maxVal} Go (sur ${sysInfo?.totalMem || 16} Go)`
 
-    const range = 16 - 0.5
-    const minPercent = ((minVal - 0.5) / range) * 100
-    const maxPercent = ((maxVal - 0.5) / range) * 100
+    const minPercent = Math.max(0, Math.min(100, ((minVal - minBound) / range) * 100))
+    const maxPercent = Math.max(0, Math.min(100, ((maxVal - minBound) / range) * 100))
 
     fill.style.left = `${minPercent}%`
     fill.style.width = `${maxPercent - minPercent}%`
+
+    // Feedback couleur dynamique selon la RAM allouée (vert / orange / rouge)
+    const totalGB = sysInfo?.totalMem || 16
+    const ratio = maxVal / totalGB
+    if (ratio > 0.75) {
+      fill.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)'
+    } else if (ratio > 0.5) {
+      fill.style.background = 'linear-gradient(90deg, #10b981, #f59e0b)'
+    } else {
+      fill.style.background = 'linear-gradient(90deg, #10b981, #3b82f6)'
+    }
   }
 
   minInput.addEventListener('input', updateSlider)

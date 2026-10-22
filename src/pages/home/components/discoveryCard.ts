@@ -1,21 +1,30 @@
 import { Dialog } from '../../../components/dialog'
 import { isComingSoonProfile } from '../../../services/profiles'
-import freeBuildConfig from '../../../../config/free-build-profile.json'
+import { launcherConfig } from '../../../services/launcherConfig'
 import { homeState } from '../state'
 
-/** Carte "À découvrir" : teaser Free Build tant qu'il n'est pas actif. */
+/** Carte "À découvrir" : teaser Free Build ou autre serveur tant qu'il n'est pas actif. */
 export function renderDiscovery(onSelectProfile: (profile: any) => void) {
   const discoveryCard = document.getElementById('discovery-card')
   if (!discoveryCard) return
-  const freeBuild = homeState.allProfiles.find((p) => p.slug === freeBuildConfig.slug)
+
+  const fbMeta = launcherConfig.getFreeBuild()
+  const freeBuild = homeState.allProfiles.find((p) => p.slug === 'free-build' || p.slug === fbMeta?.name)
   const freeBuildActive = freeBuild && !isComingSoonProfile(freeBuild)
-  const features = (freeBuildConfig.teaser.features as { title: string }[]).map((f) => `<span>${f.title}</span>`).join('')
+
+  const featuresList = fbMeta?.teaser?.features || [
+    { title: 'Monde créatif libre' },
+    { title: 'Outils de build' },
+    { title: 'Ouvert à tous' },
+    { title: 'Concours & events' }
+  ]
+  const features = featuresList.map((f: { title: string }) => `<span>${f.title}</span>`).join('')
 
   if (freeBuildActive) {
     discoveryCard.innerHTML = `
       <div class="discovery-top">
         <div class="discovery-icon"><i class="fa-solid fa-cubes"></i></div>
-        <strong>Free Build est ouvert !</strong>
+        <strong>${fbMeta?.name || 'Free Build'} est ouvert !</strong>
       </div>
       <p>Le bac à sable créatif de Modey est en ligne. Sélectionne-le dans Serveurs et lance-toi.</p>
       <div class="discovery-bottom">
@@ -48,10 +57,4 @@ export async function markNotified() {
   if (homeState.notified) return
   homeState.notified = true
   await Dialog.show('Tu seras notifié de l’ouverture de Free Build dans le fil d’actualités. À très vite !', [{ text: 'Super !', type: 'ok' }])
-  renderDiscovery(() => {})
-  const srvNotify = document.getElementById('btn-notify-servers')
-  if (srvNotify) {
-    srvNotify.classList.add('notified')
-    srvNotify.innerHTML = '<i class="fa-solid fa-bell"></i>&nbsp;Notifié ✓'
-  }
 }

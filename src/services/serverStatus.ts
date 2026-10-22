@@ -1,6 +1,6 @@
 import { server } from '../ipc'
 import type { IServerStatus } from 'eml-lib'
-import profileConfig from '../../config/athena-profile.json'
+import { launcherConfig } from './launcherConfig'
 
 export interface ServerProbe {
   status: IServerStatus | null
@@ -23,12 +23,19 @@ export async function pingServer(host: string, port?: number): Promise<ServerPro
   }
 }
 
-export const targetFor = (profile: any) => ({
-  host: profile?.ip || profileConfig.server.host,
-  port: profile?.port || profileConfig.server.port
-})
+export const targetFor = (profile: any) => {
+  const athena = launcherConfig.getAthena()
+  return {
+    host: profile?.ip || athena?.ip || '127.0.0.1',
+    port: profile?.port || athena?.port || 25565
+  }
+}
 
 export const athenaTarget = (profiles: any[]) => {
   const athena = profiles.find((p) => p.slug === 'athena')
-  return { host: athena?.ip || profileConfig.server.host, port: athena?.port || profileConfig.server.port }
+  const athenaMeta = launcherConfig.getAthena()
+  return {
+    host: athena?.ip || athenaMeta?.ip || '127.0.0.1',
+    port: athena?.port || athenaMeta?.port || 25565
+  }
 }

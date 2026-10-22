@@ -1,7 +1,7 @@
 /* --- Sidebar gauche (flottante) --- */
 .modey-sidebar {
-  width: 300px;
-  min-width: 300px;
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
   height: 100%;
   background: #ffffff;
   border-radius: 22px;
@@ -9,7 +9,7 @@
   border: 1px solid rgba(230, 234, 242, 0.7);
   display: flex;
   flex-direction: column;
-  padding: 14px 18px 18px 18px;
+  padding: 14px 16px 14px 16px;
   z-index: 20;
   overflow: hidden;
   flex-shrink: 0;
@@ -22,7 +22,7 @@
   overflow-x: visible;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   padding-right: 4px;
   margin-right: -4px;
 
@@ -53,7 +53,7 @@
     min-width: 0;
 
     strong {
-      font-size: 14px;
+      font-size: clamp(11.5px, 1.09vw, 14.0px);
       font-weight: 700;
       color: #17233a;
       white-space: nowrap;
@@ -62,7 +62,7 @@
     }
 
     span {
-      font-size: 11.5px;
+      font-size: clamp(9.4px, 0.9vw, 11.5px);
       color: #8a97ad;
     }
   }
@@ -83,7 +83,7 @@
   background: transparent;
   border-radius: 12px;
   font-family: 'Poppins', sans-serif;
-  font-size: 13.5px;
+  font-size: clamp(11.1px, 1.05vw, 13.5px);
   font-weight: 500;
   color: #5b6b84;
   cursor: pointer;
@@ -92,7 +92,7 @@
   position: relative;
 
   i {
-    font-size: 17px;
+    font-size: clamp(13.9px, 1.33vw, 17.0px);
     width: 24px;
     text-align: center;
   }
@@ -138,7 +138,7 @@
 }
 
 .modey-nav-label {
-  font-size: 10.5px;
+  font-size: clamp(8.6px, 0.82vw, 10.5px);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -149,7 +149,7 @@
 
 .modey-soon-badge {
   margin-left: auto;
-  font-size: 9.5px;
+  font-size: clamp(7.8px, 0.74vw, 9.5px);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -175,7 +175,7 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    font-size: 13.5px;
+    font-size: clamp(11.1px, 1.05vw, 13.5px);
     font-weight: 600;
     color: #3d5268;
     transition: background 0.2s;
@@ -194,7 +194,7 @@
     }
 
     i {
-      font-size: 13px;
+      font-size: clamp(10.7px, 1.02vw, 13.0px);
       color: var(--primary);
     }
   }
@@ -221,7 +221,7 @@
     .profile-option {
       padding: 9px 12px;
       cursor: pointer;
-      font-size: 12.5px;
+      font-size: clamp(10.2px, 0.98vw, 12.5px);
       color: #3d5268;
       transition: background 0.2s;
 
@@ -262,7 +262,7 @@
     border: none;
     color: white;
     font-family: 'Poppins', sans-serif;
-    font-size: 14px;
+    font-size: clamp(11.5px, 1.09vw, 14.0px);
     font-weight: 600;
     cursor: pointer;
     border-radius: 12px;
@@ -302,7 +302,7 @@
     }
 
     i {
-      font-size: 13px;
+      font-size: clamp(10.7px, 1.02vw, 13.0px);
     }
   }
 
@@ -321,7 +321,7 @@
       justify-content: space-between;
       align-items: baseline;
       gap: 8px;
-      font-size: 10.5px;
+      font-size: clamp(8.6px, 0.82vw, 10.5px);
       margin-bottom: 5px;
       color: var(--text-muted);
       min-width: 0;
@@ -349,7 +349,7 @@
   border: none;
   color: white;
   font-family: 'Poppins', sans-serif;
-  font-size: 14px;
+  font-size: clamp(11.5px, 1.09vw, 14.0px);
   font-weight: 600;
   cursor: pointer;
   border-radius: 11px;
@@ -366,7 +366,7 @@
   }
 
   i {
-    font-size: 13px;
+    font-size: clamp(10.7px, 1.02vw, 13.0px);
   }
 
   &.btn-disabled,
@@ -393,7 +393,7 @@
     justify-content: space-between;
     align-items: baseline;
     gap: 8px;
-    font-size: 10.5px;
+    font-size: clamp(8.6px, 0.82vw, 10.5px);
     margin-bottom: 5px;
     color: var(--text-muted);
     min-width: 0;

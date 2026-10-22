@@ -28,7 +28,7 @@ contextBridge.exposeInMainWorld('api', {
     get: (): Promise<any[]> => ipcRenderer.invoke(IPC.profiles.get)
   },
   game: {
-    launch: (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number }) => {
+    launch: (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number; minecraftVersion?: string; loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'; loaderVersion?: string }) => {
       ipcRenderer.invoke(IPC.game.launch, payload)
     },
 

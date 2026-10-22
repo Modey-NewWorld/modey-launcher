@@ -14,7 +14,7 @@
 .modey-main {
   flex: 1;
   /* gauche = distance sidebar ↔ bord écran (view-home padding) pour un espacement uniforme */
-  padding: 40px 28px 0 14px;
+  padding: 14px 14px 0 14px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -56,12 +56,14 @@
   border: 1px solid rgba(16, 27, 48, 0.25);
   box-shadow: var(--shadow-md);
   padding: 20px 24px 16px 24px;
-  min-height: clamp(260px, 38vh, 480px);
+  min-height: 380px;
+  height: 100%;
+  max-height: 520px;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 14px;
+  gap: clamp(10px, 1vw, 14px);
   color: #fff;
 
   .modey-hero-top {
@@ -81,7 +83,7 @@
   .hero-badge {
     display: inline-flex;
     align-items: center;
-    font-size: 11px;
+    font-size: clamp(9.0px, 0.86vw, 11.0px);
     font-weight: 600;
     padding: 5px 11px;
     border-radius: 999px;
@@ -130,13 +132,13 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    gap: 16px;
+    gap: clamp(10px, 1.2vw, 16px);
     margin-top: auto;
     padding-top: 60px;
 
     .modey-hero-info {
       h2 {
-        font-size: 32px;
+        font-size: clamp(26.2px, 2.5vw, 32.0px);
         font-weight: 800;
         letter-spacing: -0.5px;
         display: flex;
@@ -145,7 +147,7 @@
       }
 
       p {
-        font-size: 12.5px;
+        font-size: clamp(10.2px, 0.98vw, 12.5px);
         color: rgba(255, 255, 255, 0.88);
         margin-top: 4px;
       }
@@ -157,7 +159,7 @@
         flex-wrap: wrap;
 
         .hero-tag {
-          font-size: 10.5px;
+          font-size: clamp(8.6px, 0.82vw, 10.5px);
           font-weight: 500;
           color: rgba(255, 255, 255, 0.85);
           background: rgba(255, 255, 255, 0.16);
@@ -170,17 +172,21 @@
 
     .modey-hero-actions {
       display: flex;
+      flex-direction: column;
       gap: 10px;
       flex-shrink: 0;
+      min-width: 200px;
 
       .hero-play {
         background: linear-gradient(135deg, #2f7cf6 0%, #1a5fe0 100%);
         border: none;
         color: #fff;
         font-family: 'Poppins', sans-serif;
-        font-size: 13px;
+        font-size: clamp(11px, 1.05vw, 13px);
         font-weight: 600;
-        padding: 11px 20px;
+        padding: 12px 20px;
+        justify-content: center;
+        width: 100%;
         border-radius: 10px;
         cursor: pointer;
         box-shadow: 0 6px 18px rgba(26, 95, 224, 0.5);
@@ -217,13 +223,15 @@
       }
 
       .hero-details {
-        background: rgba(255, 255, 255, 0.94);
+        background: rgba(255, 255, 255, 0.95);
         border: none;
         color: #24365c;
         font-family: 'Poppins', sans-serif;
-        font-size: 13px;
+        font-size: clamp(11px, 1.05vw, 13px);
         font-weight: 600;
-        padding: 11px 20px;
+        padding: 12px 20px;
+        justify-content: center;
+        width: 100%;
         border-radius: 10px;
         cursor: pointer;
         transition: background 0.15s;
@@ -238,7 +246,7 @@
   }
 
   .modey-hero-foot {
-    font-size: 11px;
+    font-size: clamp(9.0px, 0.86vw, 11.0px);
     color: rgba(255, 255, 255, 0.75);
     display: flex;
     justify-content: flex-end;
@@ -261,23 +269,24 @@
 /* --- Rangée hero + actualités côte à côte --- */
 .modey-hero-row {
   display: flex;
-  gap: 16px;
+  gap: 18px;
   align-items: stretch;
   flex: 1;
   min-height: 0;
 
   .modey-hero {
-    flex: 1;
+    flex: 1.6;
     min-width: 0;
   }
 
   .modey-news {
-    width: 360px;
-    min-width: 300px;
+    flex: 1;
+    min-width: 290px;
+    max-width: 420px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: clamp(10px, 1vw, 14px);
     min-height: 0;
 
     .news-list {
@@ -286,7 +295,7 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: clamp(10px, 1vw, 14px);
       padding-right: 6px;
 
       &::-webkit-scrollbar {
@@ -325,7 +334,7 @@
 .modey-news,
 .modey-discovery {
   h3 {
-    font-size: 15px;
+    font-size: clamp(12.3px, 1.17vw, 15.0px);
     font-weight: 700;
     color: #101b30;
     margin-bottom: 10px;
@@ -334,7 +343,7 @@
 
     i {
       color: #1a73e8;
-      font-size: 13px;
+      font-size: clamp(10.7px, 1.02vw, 13.0px);
     }
   }
 }
@@ -354,7 +363,7 @@
     border: none;
     color: #1a73e8;
     font-family: 'Poppins', sans-serif;
-    font-size: 12px;
+    font-size: clamp(9.8px, 0.94vw, 12.0px);
     font-weight: 600;
     cursor: pointer;
 
@@ -389,7 +398,7 @@
   }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 900px) {
   .modey-main {
     padding: 40px 14px 0 14px;
   }
@@ -438,7 +447,7 @@
 .hero-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 11px;
+  font-size: clamp(9.0px, 0.86vw, 11.0px);
   font-weight: 600;
   padding: 5px 11px;
   border-radius: 999px;
@@ -476,7 +485,7 @@
   border: 1px solid #c9d5e8;
   color: #3d5268;
   font-family: 'Poppins', sans-serif;
-  font-size: 12px;
+  font-size: clamp(9.8px, 0.94vw, 12.0px);
   font-weight: 600;
   padding: 8px 14px;
   border-radius: 9px;
@@ -503,3 +512,32 @@
   }
 }
 
+
+/* --- Responsive Home Breakpoints --- */
+/* Phase 1 : quand la fenêtre commence à rétrécir (1240px - 1080px),
+   la zone serveur conserve sa taille, c'est la colonne actualités qui s'adapte d'abord */
+@media (max-width: 1240px) {
+  .modey-hero {
+    flex: none !important;
+    width: 580px !important;
+  }
+  .modey-news {
+    flex: 1 !important;
+    min-width: 220px !important;
+  }
+}
+
+/* Phase 2 : sous 1080px, la colonne actualités disparaît (masquée),
+   et la zone image serveur prend alors toute la place disponible */
+@media (max-width: 1080px) {
+  .modey-news {
+    display: none !important;
+  }
+  .modey-hero {
+    width: 100% !important;
+    flex: 1 !important;
+    min-height: 420px !important;
+    height: 100% !important;
+    max-height: none !important;
+  }
+}

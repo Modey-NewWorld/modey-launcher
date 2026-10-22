@@ -16,8 +16,8 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 40px 28px 0 14px;
+  gap: clamp(12px, 1.2vw, 16px);
+  padding: 14px 14px 0 14px;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -31,8 +31,12 @@
 
 .servers-grid {
   display: grid;
-  grid-template-columns: 1.65fr 1fr;
-  gap: 16px;
+  grid-template-columns: minmax(460px, 1.45fr) minmax(320px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  gap: clamp(12px, 1.2vw, 16px);
   align-items: stretch;
 }
 
@@ -40,6 +44,12 @@
   background: #ffffff;
   border: 1px solid #e6eaf2;
   border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(16, 27, 48, 0.05);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(30, 80, 180, 0.12);
+  }
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(30, 50, 100, 0.06);
   min-width: 0;
@@ -48,7 +58,7 @@
 
   .server-banner {
     position: relative;
-    min-height: 190px;
+    min-height: clamp(150px, 20vh, 190px);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -83,7 +93,7 @@
       padding-top: 70px;
 
       .server-kicker {
-        font-size: 10px;
+        font-size: clamp(8.2px, 0.78vw, 10.0px);
         font-weight: 600;
         letter-spacing: 1.2px;
         text-transform: uppercase;
@@ -91,7 +101,7 @@
       }
 
       h2 {
-        font-size: 26px;
+        font-size: clamp(21.3px, 2.03vw, 26.0px);
         font-weight: 800;
         color: #fff;
         letter-spacing: -0.5px;
@@ -104,7 +114,7 @@
         flex-shrink: 0;
 
         span {
-          font-size: 11px;
+          font-size: clamp(9.0px, 0.86vw, 11.0px);
           font-weight: 600;
           color: #fff;
           background: rgba(16, 27, 48, 0.6);
@@ -118,14 +128,14 @@
   }
 
   .server-body {
-    padding: 13px 15px;
+    padding: clamp(10px, 1.2vw, 14px) clamp(12px, 1.4vw, 16px);
     display: flex;
     flex-direction: column;
     gap: 10px;
     flex: 1;
 
     .server-desc {
-      font-size: 12.5px;
+      font-size: clamp(10.2px, 0.98vw, 12.5px);
       color: #3d5268;
       line-height: 1.55;
       margin: 0;
@@ -137,7 +147,7 @@
       gap: 6px;
 
       span {
-        font-size: 11px;
+        font-size: clamp(9.0px, 0.86vw, 11.0px);
         font-weight: 500;
         color: #5b6b84;
         background: #f2f6fc;
@@ -158,7 +168,7 @@
       margin-top: auto;
 
       .server-opt {
-        font-size: 11px;
+        font-size: clamp(9.0px, 0.86vw, 11.0px);
         color: #5b6b84;
         display: flex;
         align-items: center;
@@ -196,7 +206,7 @@
     min-width: 0;
 
     span {
-      font-size: 10px;
+      font-size: clamp(8.2px, 0.78vw, 10.0px);
       font-weight: 600;
       letter-spacing: 0.6px;
       text-transform: uppercase;
@@ -204,7 +214,7 @@
     }
 
     strong {
-      font-size: 11.5px;
+      font-size: clamp(9.4px, 0.9vw, 11.5px);
       font-weight: 600;
       color: #17233a;
       white-space: nowrap;
@@ -221,7 +231,7 @@
 /* Vrais boutons serveurs (globaux : carte Athéna + carte Free Build) */
 .srv-btn {
   font-family: 'Poppins', sans-serif;
-  font-size: 12px;
+  font-size: clamp(9.8px, 0.94vw, 12.0px);
   font-weight: 600;
   padding: 9px 16px;
   border-radius: 9px;
@@ -273,7 +283,7 @@
     align-items: center;
 
     .soon-pill {
-      font-size: 10.5px;
+      font-size: clamp(8.6px, 0.82vw, 10.5px);
       font-weight: 700;
       color: #5b6b84;
       background: #eef1f6;
@@ -283,7 +293,7 @@
 
     .soon-rocket {
       color: #8a97ad;
-      font-size: 14px;
+      font-size: clamp(11.5px, 1.09vw, 14.0px);
     }
   }
 
@@ -308,23 +318,23 @@
       align-items: center;
       justify-content: center;
       color: #1a73e8;
-      font-size: 14px;
+      font-size: clamp(11.5px, 1.09vw, 14.0px);
       margin-bottom: 3px;
     }
 
     strong {
-      font-size: 12.5px;
+      font-size: clamp(10.2px, 0.98vw, 12.5px);
       color: #17233a;
     }
 
     .soon-visual-sub {
-      font-size: 11px;
+      font-size: clamp(9.0px, 0.86vw, 11.0px);
       color: #8a97ad;
     }
   }
 
   p {
-    font-size: 12px;
+    font-size: clamp(9.8px, 0.94vw, 12.0px);
     color: #5b6b84;
     line-height: 1.55;
     margin: 0;
@@ -339,14 +349,14 @@
     gap: 6px;
 
     li {
-      font-size: 11.5px;
+      font-size: clamp(9.4px, 0.9vw, 11.5px);
       color: #3d5268;
       display: flex;
       align-items: center;
 
       i {
         color: #1a73e8;
-        font-size: 11px;
+        font-size: clamp(9.0px, 0.86vw, 11.0px);
       }
     }
   }
@@ -361,7 +371,7 @@
     width: 100%;
     justify-content: center;
     font-family: 'Poppins', sans-serif;
-    font-size: 12px;
+    font-size: clamp(9.8px, 0.94vw, 12.0px);
     font-weight: 600;
     padding: 9px 16px;
     border-radius: 9px;
@@ -382,7 +392,7 @@
     background: #ffffff;
     border: 1px solid #e6eaf2;
     border-radius: 12px;
-    padding: 13px 15px;
+    padding: clamp(10px, 1.2vw, 14px) clamp(12px, 1.4vw, 16px);
     display: flex;
     gap: 11px;
     align-items: center;
@@ -399,7 +409,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: clamp(11.5px, 1.09vw, 14.0px);
     }
 
     div {
@@ -408,12 +418,12 @@
       min-width: 0;
 
       strong {
-        font-size: 12px;
+        font-size: clamp(9.8px, 0.94vw, 12.0px);
         color: #101b30;
       }
 
       span {
-        font-size: 11px;
+        font-size: clamp(9.0px, 0.86vw, 11.0px);
         color: #8a97ad;
         white-space: nowrap;
         overflow: hidden;
@@ -440,7 +450,7 @@
   }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 900px) {
   .servers-scroll {
     padding: 40px 14px 0 14px;
   }
@@ -473,3 +483,16 @@
   }
 }
 
+
+/* --- Responsive Servers Breakpoints --- */
+@media (max-width: 1150px) {
+  .servers-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 1700px) {
+  .servers-grid {
+    grid-template-columns: 1.4fr 1fr !important;
+  }
+}
