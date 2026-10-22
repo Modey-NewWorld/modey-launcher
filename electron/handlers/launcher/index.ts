@@ -64,7 +64,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         },
         account: account,
         cleaning: {
-          enabled: false
+          enabled: !(account as any)?.hasNoCleaning
         },
         java: java
       })

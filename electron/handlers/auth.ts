@@ -93,6 +93,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         ;(account as any).roleGradient = data.user?.roleGradient
         ;(account as any).roleShadow = data.user?.roleShadow
         ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
+        ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
 
         fs.writeFileSync(sessionPath, JSON.stringify(account))
         saveAccount(account.name, account.uuid, data.user?.email)
@@ -144,6 +145,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
       ;(account as any).roleGradient = data.user?.roleGradient
       ;(account as any).roleShadow = data.user?.roleShadow
       ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
+        ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
 
       fs.writeFileSync(sessionPath, JSON.stringify(account))
       saveAccount(account.name, account.uuid, data.user.email)
