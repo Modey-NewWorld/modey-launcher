@@ -17,6 +17,26 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
     return { success: true }
   })
 
+  ipcMain.handle(IPC.game.checkExtraMods, async (_event, profileSlug: string) => {
+    try {
+      const appData = process.env.APPDATA || (process.platform === 'darwin' ? `${process.env.HOME}/Library/Application Support` : `${process.env.HOME}`)
+      const pathModule = require('node:path')
+      const modsDir = pathModule.join(appData, '.modey_athena', profileSlug || 'athena', 'mods')
+      if (!fs.existsSync(modsDir)) return { hasExtra: false, extraMods: [] }
+
+      const localFiles = fs.readdirSync(modsDir).filter((f) => f.endsWith('.jar'))
+      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${profileSlug || 'athena'}`)
+      if (!resp.ok) return { hasExtra: false, extraMods: [] }
+      const data = await resp.json()
+      const officialFiles = (data.files || []).map((f: any) => f.name)
+      const extraMods = localFiles.filter((f) => !officialFiles.includes(f))
+      return { hasExtra: extraMods.length > 0, extraMods }
+    } catch (err) {
+      logger.warn('Failed to check extra mods:', err)
+      return { hasExtra: false, extraMods: [] }
+    }
+  })
+
   ipcMain.handle(
     IPC.game.launch,
     (_event, payload: {
@@ -28,8 +48,9 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       minecraftVersion?: string
       loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
       loaderVersion?: string
+      forceClean?: boolean
     }) => {
-      const { account, settings, profileSlug, serverIp, serverPort, minecraftVersion, loaderType, loaderVersion } = payload
+      const { account, settings, profileSlug, serverIp, serverPort, minecraftVersion, loaderType, loaderVersion, forceClean } = payload
 
       let java: { install: 'auto' } | { install: 'manual'; absolutePath: string } = { install: 'auto' }
       if (settings.java === 'system') {
@@ -64,7 +85,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         },
         account: account,
         cleaning: {
-          enabled: !(account as any)?.hasNoCleaning
+          enabled: forceClean ? true : !(account as any)?.hasNoCleaning
         },
         java: java
       })

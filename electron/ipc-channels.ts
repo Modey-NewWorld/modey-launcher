@@ -80,6 +80,7 @@ export const IPC = {
   },
   game: {
     launch: 'game:launch',
+    checkExtraMods: 'game:check_extra_mods',
     kill: 'game:kill',
     launchComputeDownload: 'game:launch_compute_download',
     launchDownload: 'game:launch_download',

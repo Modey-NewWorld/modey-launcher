@@ -28,7 +28,19 @@ contextBridge.exposeInMainWorld('api', {
     get: (): Promise<any[]> => ipcRenderer.invoke(IPC.profiles.get)
   },
   game: {
-    launch: (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number; minecraftVersion?: string; loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'; loaderVersion?: string }) => {
+    checkExtraMods: (profileSlug: string): Promise<{ hasExtra: boolean; extraMods: string[] }> =>
+      ipcRenderer.invoke(IPC.game.checkExtraMods, profileSlug),
+    launch: (payload: {
+      account: Account
+      settings: IGameSettings
+      profileSlug: string
+      serverIp?: string
+      serverPort?: number
+      minecraftVersion?: string
+      loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
+      loaderVersion?: string
+      forceClean?: boolean
+    }) => {
       ipcRenderer.invoke(IPC.game.launch, payload)
     },
 

@@ -55,7 +55,18 @@ declare global {
         error: (callback: (value: BootstrapsEvents['bootstraps_error'][0]) => void) => void
       }
       game: {
-        launch: (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number; minecraftVersion?: string; loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'; loaderVersion?: string }) => Promise<void>
+        checkExtraMods: (profileSlug: string) => Promise<{ hasExtra: boolean; extraMods: string[] }>
+        launch: (payload: {
+          account: Account
+          settings: IGameSettings
+          profileSlug: string
+          serverIp?: string
+          serverPort?: number
+          minecraftVersion?: string
+          loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
+          loaderVersion?: string
+          forceClean?: boolean
+        }) => Promise<void>
 
         launchComputeDownload: (callback: () => void) => void
 
@@ -151,8 +162,18 @@ export const bootstraps = {
 }
 
 export const game = {
-  launch: async (payload: { account: Account; settings: IGameSettings; profileSlug: string; serverIp?: string; serverPort?: number; minecraftVersion?: string; loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'; loaderVersion?: string }) =>
-    await window.api.game.launch(payload),
+  checkExtraMods: async (profileSlug: string) => await window.api.game.checkExtraMods(profileSlug),
+  launch: async (payload: {
+    account: Account
+    settings: IGameSettings
+    profileSlug: string
+    serverIp?: string
+    serverPort?: number
+    minecraftVersion?: string
+    loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
+    loaderVersion?: string
+    forceClean?: boolean
+  }) => await window.api.game.launch(payload),
   launchComputeDownload: (callback: () => void) => window.api.game.launchComputeDownload(callback),
   launchDownload: (callback: (value: LauncherEvents['launch_download'][0]) => void) => window.api.game.launchDownload(callback),
   downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) => window.api.game.downloadProgress(callback),

@@ -39,6 +39,34 @@ export async function startLaunch() {
     return
   }
 
+  const profile = ui.getProfile()
+  const profileSlug = profile?.slug || 'athena'
+  let forceClean = false
+
+  // Si le joueur a la permission no_cleaning, vérifier s'il possède des mods supplémentaires
+  if ((user as any)?.hasNoCleaning) {
+    try {
+      const extraCheck = await game.checkExtraMods(profileSlug)
+      if (extraCheck.hasExtra && extraCheck.extraMods.length > 0) {
+        const modsListText = extraCheck.extraMods.slice(0, 5).join('\n• ') + (extraCheck.extraMods.length > 5 ? `\n• ... et ${extraCheck.extraMods.length - 5} autre(s)` : '')
+        const choice = await Dialog.show<string>(
+          `Des mods supplémentaires personnalisés ont été détectés dans votre dossier :\n• ${modsListText}\n\nSouhaitez-vous nettoyer votre dossier de jeu (Clean) avant de vous connecter au serveur ?`,
+          [
+            { text: 'Garder mes mods (No Clean)', type: 'cancel', action: () => 'keep' },
+            { text: 'Nettoyer le jeu (Clean)', type: 'danger', action: () => 'clean' }
+          ],
+          'Nettoyage du jeu (Cleaning)'
+        )
+
+        if (choice === 'clean') {
+          forceClean = true
+        }
+      }
+    } catch (checkErr) {
+      logger.warn('Vérification mods supplémentaires échouée:', checkErr)
+    }
+  }
+
   isLaunching = true
   ui.setPlayEnabled(false)
   ui.setPlayVisible(false)
@@ -52,7 +80,6 @@ export async function startLaunch() {
 
   try {
     const config = await settings.get()
-    const profile = ui.getProfile()
     const target = targetFor(profile)
 
     logger.log(`Lancement pour ${user.name} vers ${target.host}:${target.port}`)
@@ -63,12 +90,13 @@ export async function startLaunch() {
     await game.launch({
       account: user,
       settings: config,
-      profileSlug: profile?.slug || 'athena',
+      profileSlug: profileSlug,
       serverIp: target.host,
       serverPort: target.port,
       minecraftVersion: mcVersion,
       loaderType: ldrType,
-      loaderVersion: ldrVersion
+      loaderVersion: ldrVersion,
+      forceClean: forceClean
     })
   } catch (err) {
     logger.error('Erreur lors du déclenchement du lancement:', err)
