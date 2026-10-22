@@ -7,8 +7,7 @@ import { ADMINTOOL_URL, AUTH_SERVER_URL, SYSTEM_JAVA_21_PATH } from '../../const
 import fs from 'node:fs'
 import { IPC } from '../../ipc-channels'
 import { getAuthlibInjectorPath } from './authlib'
-import { DISCONNECT_PATTERNS } from './disconnects'
-import { killMinecraft, trackMinecraftPid, setExitingByDisconnect, isExitingByDisconnect, hasActiveMinecraft, schedulePostLaunchAction } from './process'
+import { killMinecraft, trackMinecraftPid, schedulePostLaunchAction } from './process'
 
 export { killMinecraft } from './process'
 
@@ -42,8 +41,6 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       const port = serverPort || 25565
       const gameArgs = ['--quickPlayMultiplayer', `${host}:${port}`, '--quickPlayPath', 'quickPlay.json']
       let actionTimer: ReturnType<typeof setTimeout> | null = null
-      let disconnectWatchArmed = false
-      setExitingByDisconnect(false)
 
       const targetMcVersion = minecraftVersion || '1.21.1'
       const targetLoaderType = loaderType || 'neoforge'
@@ -113,8 +110,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
               const exitCode = code ?? 0
               logger.info(`[Modey Launcher] Minecraft fermé avec code: ${exitCode}`)
               trackMinecraftPid(null)
-              const finalCode = isExitingByDisconnect() ? 0 : exitCode
-              ;(launcher as any).emit('launch_close', finalCode)
+              ;(launcher as any).emit('launch_close', exitCode)
               resolve()
             })
           })
@@ -193,23 +189,8 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         logger.log(`Launching Minecraft ${info.version} (${info.type}${info.loaderVersion ? ` ${info.loaderVersion}` : ''})...`)
         mainWindow.webContents.send(IPC.game.launchLaunch, info)
 
-        // Surveillance de déconnexion armée 3 s après le démarrage du moteur
-        setTimeout(() => {
-          disconnectWatchArmed = true
-        }, 3000)
-
         actionTimer = schedulePostLaunchAction(mainWindow, settings.launcherAction)
         mainWindow.webContents.send(IPC.game.launched)
-      })
-
-      launcher.on('launch_data', (message: string) => {
-        // Détection de déconnexion du serveur Athéna (Athéna-Guard anti-crack)
-        if (disconnectWatchArmed && hasActiveMinecraft() && !isExitingByDisconnect()) {
-          if (DISCONNECT_PATTERNS.some((pattern) => pattern.test(message))) {
-            logger.info(`[Athéna-Guard] Déconnexion détectée via les logs : "${message}". Fermeture automatique de Minecraft...`)
-            killMinecraft()
-          }
-        }
       })
 
       launcher.on('launch_close', (code: number | null) => {
@@ -226,8 +207,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
           mainWindow.focus()
         }
 
-        mainWindow.webContents.send(IPC.game.launchClose, isExitingByDisconnect() ? 0 : code)
-        setExitingByDisconnect(false)
+        mainWindow.webContents.send(IPC.game.launchClose, code)
       })
 
       try {
