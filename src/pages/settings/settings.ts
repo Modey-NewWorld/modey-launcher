@@ -137,8 +137,8 @@ function initDualSlider(sysInfo: any) {
       }
     }
 
-    if (minLabel) minLabel.innerText = `${minVal} Go`
-    if (maxLabel) maxLabel.innerText = `${maxVal} Go`
+    if (minLabel) minLabel.innerText = `Min : ${minVal} Go`
+    if (maxLabel) maxLabel.innerText = `Max : ${maxVal} Go (sur ${sysInfo?.totalMem || 16} Go)`
 
     const range = (sysInfo?.totalMem || 16) - 0.5
     const minPercent = ((minVal - 0.5) / range) * 100
