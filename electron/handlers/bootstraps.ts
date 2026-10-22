@@ -7,6 +7,17 @@ import { IPC } from '../ipc-channels'
 
 let bootstraps: Bootstraps | null = null
 
+function isVersionHigher(latest: string, current: string): boolean {
+  const parse = (v: string) => (v || '').replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0)
+  const [lMaj = 0, lMin = 0, lPatch = 0] = parse(latest)
+  const [cMaj = 0, cMin = 0, cPatch = 0] = parse(current)
+  if (lMaj > cMaj) return true
+  if (lMaj < cMaj) return false
+  if (lMin > cMin) return true
+  if (lMin < cMin) return false
+  return lPatch > cPatch
+}
+
 export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
   if (!bootstraps) {
     bootstraps = new Bootstraps(ADMINTOOL_URL)
@@ -24,20 +35,19 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
     })
   }
 
-  // Vérification de mise à jour intelligente via l'API Modey / GitHub
   ipcMain.handle(IPC.bootstraps.check, async () => {
     try {
       const currentVersion = app.getVersion()
       const res = await fetch(`${ADMINTOOL_URL}/api/modey/launcher-version`, {
-        headers: { 'Accept': 'application/json' }
+        headers: { Accept: 'application/json' }
       })
 
       if (res.ok) {
         const data = await res.json()
         const latestVersion = (data.latestVersion || data.currentVersion || '').replace(/^v/, '')
 
-        // Si une version plus récente est disponible
-        if (latestVersion && latestVersion !== currentVersion) {
+        // On ne déclenche la mise à jour QUE si la version distante est STRICTEMENT supérieure
+        if (latestVersion && isVersionHigher(latestVersion, currentVersion)) {
           return {
             updateAvailable: true,
             currentVersion,
@@ -59,8 +69,7 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
         }
       }
 
-      // Fallback sur le checkForUpdate standard d'eml-lib
-      return await bootstraps?.checkForUpdate()
+      return { updateAvailable: false, currentVersion: app.getVersion() }
     } catch (err) {
       logger.error('Error checking for bootstraps update', err)
       return { updateAvailable: false, currentVersion: app.getVersion() }
