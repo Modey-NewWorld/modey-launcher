@@ -40,7 +40,7 @@ export async function bootstrap() {
   const mn = await maintenance.get()
   const bgUrl = bg?.file?.url ?? DEFAULT_BACKGROUND
 
-  if (up.updateAvailable) {
+  if (up.updateAvailable && (up as any).mandatory) {
     updateProgress.setIndeterminate(false)
     updateProgress.reset()
     updateProgress.setLabel('Préparation de la mise à jour...')
