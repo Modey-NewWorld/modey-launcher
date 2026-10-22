@@ -119,8 +119,13 @@ function initDualSlider(sysInfo: any) {
   const maxLabel = el('ram-max-label')
   if (!minInput || !maxInput || !fill) return
 
-  minInput.max = '16'
-  maxInput.max = '16'
+  const totalGB = Math.max(8, Number(sysInfo?.totalMem) || 16)
+  minInput.max = String(totalGB)
+  maxInput.max = String(totalGB)
+
+  const minBound = parseFloat(minInput.min) || 0.5
+  const maxBound = totalGB
+  const range = maxBound - minBound
 
   const gap = 0.5
   const updateSlider = () => {
@@ -140,9 +145,8 @@ function initDualSlider(sysInfo: any) {
     if (minLabel) minLabel.innerText = `Min : ${minVal} Go`
     if (maxLabel) maxLabel.innerText = `Max : ${maxVal} Go (sur ${sysInfo?.totalMem || 16} Go)`
 
-    const range = (sysInfo?.totalMem || 16) - 0.5
-    const minPercent = ((minVal - 0.5) / range) * 100
-    const maxPercent = ((maxVal - 0.5) / range) * 100
+    const minPercent = Math.max(0, Math.min(100, ((minVal - minBound) / range) * 100))
+    const maxPercent = Math.max(0, Math.min(100, ((maxVal - minBound) / range) * 100))
 
     fill.style.left = `${minPercent}%`
     fill.style.width = `${maxPercent - minPercent}%`
