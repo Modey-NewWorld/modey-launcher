@@ -72,63 +72,56 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         java: java
       })
 
-      // Interception du spawn pour sécurité anti-crack Athéna (authlib-injector)
-      const originalLaunchGame = (launcher as any).launchGame.bind(launcher)
-      ;(launcher as any).launchGame = function (options: any) {
-        return new Promise<void>((resolve, reject) => {
-          try {
-            const authlibPath = getAuthlibInjectorPath()
-            if (authlibPath) {
-              const jvmArg = `-javaagent:${authlibPath}=${AUTH_SERVER_URL}`
-              if (!options.jvmArgs) options.jvmArgs = []
-              if (!options.jvmArgs.some((arg: string) => arg.includes('authlib-injector'))) {
-                options.jvmArgs.push(jvmArg)
-                logger.info(`[Modey Launcher] 🔒 authlib-injector injecté dans les JVM args → ${AUTH_SERVER_URL}`)
-              }
-            } else if (fs.existsSync('assets/authlib-injector.jar')) {
-              const fallbackArg = `-javaagent:assets/authlib-injector.jar=${AUTH_SERVER_URL}`
-              if (!options.jvmArgs) options.jvmArgs = []
-              options.jvmArgs.push(fallbackArg)
-              logger.info(`[Modey Launcher] 🔒 authlib-injector injecté (fallback) → ${AUTH_SERVER_URL}`)
-            } else {
-              logger.warn(`[Modey Launcher] ⚠️ Lancement sans authlib-injector (fichier jar absent)`)
+      // Interception de run() pour la capture de PID et l'injection authlib-injector
+      ;(launcher as any).run = async function (javaPath: string, args: string[]) {
+        try {
+          const authlibPath = getAuthlibInjectorPath()
+          const customAuthUrl = account.meta?.url || AUTH_SERVER_URL
+          if (authlibPath) {
+            const jvmArg = `-javaagent:${authlibPath}=${customAuthUrl}`
+            if (!args.some((arg) => arg.includes('authlib-injector'))) {
+              args.unshift(jvmArg)
+              logger.info(`[Modey Launcher] 🔒 authlib-injector injecté dans les JVM args → ${customAuthUrl}`)
             }
+          }
 
-            // Exécution du lancement normal
-            const procPromise = originalLaunchGame(options)
-            const minecraft = (launcher as any).minecraft
+          // Lancement du processus avec capture PID
+          return new Promise<void>((resolve, reject) => {
+            const minecraft = require('node:child_process').spawn(javaPath, args, {
+              cwd: (launcher as any).config.root,
+              detached: true
+            })
+            minecraft.unref()
 
             if (minecraft && minecraft.pid) {
+              logger.info(`[Modey Launcher] Minecraft démarré avec PID: ${minecraft.pid}`)
               trackMinecraftPid(minecraft.pid)
-            } else if (procPromise && procPromise.pid) {
-              trackMinecraftPid(procPromise.pid)
             }
 
-            if (!minecraft) {
-              if (procPromise && typeof procPromise.then === 'function') {
-                procPromise.then(resolve).catch(reject)
-                return
-              }
-              resolve()
-              return
-            }
-
+            minecraft.stdout.on('data', (data: Buffer) => {
+              ;(launcher as any).emit('launch_data', data.toString('utf8').replace(/\n$/, ''))
+            })
+            minecraft.stderr.on('data', (data: Buffer) => {
+              ;(launcher as any).emit('launch_data', data.toString('utf8').replace(/\n$/, ''))
+            })
             minecraft.on('error', (err: Error) => {
               logger.error('[Modey Launcher] Erreur processus Minecraft :', err)
+              mainWindow.webContents.send(IPC.game.launchClose, -1)
+              reject(err)
             })
-
             minecraft.on('close', (code: number | null) => {
-              logger.info(`[Modey Launcher] Processus Minecraft fermé avec code: ${code}`)
+              const exitCode = code ?? 0
+              logger.info(`[Modey Launcher] Minecraft fermé avec code: ${exitCode}`)
               trackMinecraftPid(null)
-              const finalCode = isExitingByDisconnect() ? 0 : (code ?? 0)
-              this.emit('launch_close', finalCode)
+              const finalCode = isExitingByDisconnect() ? 0 : exitCode
+              ;(launcher as any).emit('launch_close', finalCode)
               resolve()
             })
-          } catch (spawnErr) {
-            logger.error('[Modey Launcher] Échec du spawn Minecraft :', spawnErr)
-            reject(spawnErr)
-          }
-        })
+          })
+        } catch (spawnErr) {
+          logger.error('[Modey Launcher] Échec du spawn Minecraft :', spawnErr)
+          throw spawnErr
+        }
       }
 
       // Forwarders events moteur → renderer (source des canaux : ipc-channels.ts)
@@ -238,11 +231,17 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       })
 
       try {
-        void launcher.launch().catch((err) => {
+        void launcher.launch().catch((err: any) => {
           logger.error('Launcher error:', err)
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send(IPC.game.launchClose, -1)
+          }
         })
-      } catch (err) {
+      } catch (err: any) {
         logger.error('Launcher error:', err)
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send(IPC.game.launchClose, -1)
+        }
       }
     }
   )

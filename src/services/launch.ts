@@ -96,6 +96,16 @@ export function bindLaunch(launchUi: LaunchUi) {
     progress.setLabel('Téléchargement des composants...')
   })
 
+  game.downloadError(async (error: any) => {
+    logger.error('Erreur téléchargement composant:', error)
+    const fileName = error?.filename || 'inconnu'
+    const errorDetails = error?.message || 'Erreur réseau de téléchargement'
+    await Dialog.show(
+      `[ERR_DOWNLOAD_FAILED] Échec du téléchargement du composant :\n${fileName}\n\nDétail : ${errorDetails}`,
+      [{ text: 'Compris', type: 'ok' }]
+    )
+  })
+
   game.downloadProgress((value) => {
     const existing = totalDownloadedByType.find((t) => t.type === value.type)
     if (existing) existing.size = value.downloaded.size
@@ -166,11 +176,13 @@ export function bindLaunch(launchUi: LaunchUi) {
     progress.reset()
 
     if (code !== 0 && code !== null) {
-      logger.warn(`Minecraft s'est arrêté avec le code ${code}`)
-      await Dialog.show(
-        `Minecraft s'est arrêté de manière inattendue (Code de sortie : ${code}).\nConsultez les fichiers logs si le problème persiste.`,
-        [{ text: 'Compris', type: 'ok' }]
-      )
+      const errCode = code === -1 ? 'ERR_LAUNCH_PROCESS_FAIL' : `ERR_GAME_EXIT_${code}`
+      logger.warn(`Minecraft arrêt inattendu : ${errCode} (code ${code})`)
+      const msg =
+        code === -1
+          ? `[ERR_LAUNCH_FAILED] Impossible d'initialiser le moteur de jeu Minecraft.\nVeuillez vérifier la configuration Java et vos logs.`
+          : `[${errCode}] Minecraft s'est arrêté de manière inattendue (Code de sortie : ${code}).\nConsultez les fichiers logs si le problème persiste.`
+      await Dialog.show(msg, [{ text: 'Compris', type: 'ok' }])
     }
   })
 }

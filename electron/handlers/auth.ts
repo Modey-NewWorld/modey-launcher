@@ -88,6 +88,11 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         }
         ;(account as any).email = data.user?.email
         ;(account as any).role = data.user?.role || 'citizen'
+        ;(account as any).roleLabel = data.user?.roleLabel
+        ;(account as any).roleColor = data.user?.roleColor
+        ;(account as any).roleGradient = data.user?.roleGradient
+        ;(account as any).roleShadow = data.user?.roleShadow
+        ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
 
         fs.writeFileSync(sessionPath, JSON.stringify(account))
         saveAccount(account.name, account.uuid, data.user?.email)
@@ -134,6 +139,11 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
       }
       ;(account as any).email = data.user.email
       ;(account as any).role = data.user?.role || 'citizen'
+      ;(account as any).roleLabel = data.user?.roleLabel
+      ;(account as any).roleColor = data.user?.roleColor
+      ;(account as any).roleGradient = data.user?.roleGradient
+      ;(account as any).roleShadow = data.user?.roleShadow
+      ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
 
       fs.writeFileSync(sessionPath, JSON.stringify(account))
       saveAccount(account.name, account.uuid, data.user.email)
@@ -212,6 +222,11 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
               }
               if (valData.user?.role) {
                 (savedSession as any).role = valData.user.role
+                ;(savedSession as any).roleLabel = valData.user.roleLabel
+                ;(savedSession as any).roleColor = valData.user.roleColor
+                ;(savedSession as any).roleGradient = valData.user.roleGradient
+                ;(savedSession as any).roleShadow = valData.user.roleShadow
+                ;(savedSession as any).canBypassMaintenance = Boolean(valData.user.canBypassMaintenance)
               } else if (!(savedSession as any).role) {
                 (savedSession as any).role = 'citizen'
               }

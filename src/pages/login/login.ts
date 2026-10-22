@@ -1,5 +1,6 @@
 import { setUser, setView } from '../../state'
-import { auth } from '../../ipc'
+import { auth, maintenance } from '../../ipc'
+import { renderMaintenanceView } from '../../init'
 import { Dialog } from '../../components/dialog'
 import { loadSkinAssets } from '../../services/skin'
 import logger from 'electron-log/renderer'
@@ -91,6 +92,21 @@ export async function initLogin() {
         }
 
         if (session.success) {
+          const mn = await maintenance.get()
+          const account = session.account
+          const userRole = ((account as any)?.role || 'citizen').toLowerCase()
+          const canBypass = Boolean(
+            (account as any)?.canBypassMaintenance ||
+            userRole === 'founder' ||
+            userRole === 'super_admin' ||
+            userRole === 'admin'
+          )
+
+          if (mn && canBypass) {
+            renderMaintenanceView(mn, session)
+            return
+          }
+
           const { skins, capes, avatar } = await loadSkinAssets(session.account)
           setUser(session.account, { skins, capes, avatar })
           setView('home')

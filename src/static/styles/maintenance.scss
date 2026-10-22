@@ -35,4 +35,54 @@ div.maintenance-card {
     font-size: clamp(11.5px, 1.09vw, 14.0px);
     line-height: 1.5;
   }
+
+  .maint-staff-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 7px 18px !important;
+    border-radius: 9999px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    width: fit-content !important;
+    max-width: 90% !important;
+    margin: 12px auto 6px auto !important;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05) !important;
+    box-sizing: border-box !important;
+
+    i {
+      font-size: 14px !important;
+      flex-shrink: 0 !important;
+    }
+
+    .badge-text {
+      white-space: nowrap !important;
+      display: inline-block !important;
+
+      strong, b {
+        font-weight: 800 !important;
+      }
+    }
+  }
+
+  .btn-admin-bypass {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+
+    &:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(217, 119, 6, 0.6);
+    }
+
+    &:active {
+      transform: translateY(0);
+      filter: brightness(0.95);
+    }
+  }
+
 }

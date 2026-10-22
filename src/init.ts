@@ -1,4 +1,4 @@
-import { setBlockingView, setUser, setView } from './state'
+import { clearBlockingView, setBlockingView, setUser, setView } from './state'
 import { auth, background, bootstraps, maintenance } from './ipc'
 import { createProgressBar } from './components/progressBar'
 import { loadSkinAssets } from './services/skin'
@@ -20,6 +20,111 @@ function preloadImage(url: string): Promise<void> {
     img.onload = () => resolve()
     img.onerror = () => resolve()
   })
+}
+
+export function renderMaintenanceView(mn: any, session: any) {
+  const maintenanceDates = document.getElementById('maintenance-dates')!
+  const maintenanceReason = document.getElementById('maintenance-reason')!
+  const maintenanceTitle = document.getElementById('maintenance-title')
+  const maintenanceIcon = document.getElementById('maintenance-icon')
+  const staffBadgeEl = document.getElementById('maintenance-staff-badge')
+  const btnBypass = document.getElementById('btn-maint-bypass') as HTMLButtonElement | null
+  const btnRetry = document.getElementById('btn-maint-retry')
+  const btnLogout = document.getElementById('btn-maint-logout')
+
+  if (maintenanceTitle) maintenanceTitle.innerText = 'Maintenance du Launcher'
+  if (maintenanceIcon) maintenanceIcon.innerHTML = '<i class="fa-solid fa-gears"></i>'
+
+  const start = mn?.startTime ? new Date(mn.startTime as Date) : null
+  const end = mn?.endTime ? new Date(mn.endTime as Date) : null
+
+  if (start && end) {
+    if (maintenanceDates) maintenanceDates.innerText = `Du ${start.toLocaleString([], dateFormatOptions)} au ${end.toLocaleString([], dateFormatOptions)}`
+  } else if (end) {
+    if (maintenanceDates) maintenanceDates.innerText = `Fin estimée : ${end.toLocaleString([], dateFormatOptions)}`
+  } else {
+    if (maintenanceDates) maintenanceDates.innerText = 'Maintenance générale en cours'
+  }
+
+  if (maintenanceReason) {
+    maintenanceReason.innerText = mn?.message ?? 'Le launcher est actuellement en maintenance. Nous serons de retour très vite !'
+  }
+
+  if (btnRetry) {
+    btnRetry.onclick = () => window.location.reload()
+  }
+
+  const account = session && session.success ? session.account : null
+  const userRole = (account ? ((account as any).role || 'citizen') : '').toLowerCase()
+  const canBypass = Boolean(
+    (account as any)?.canBypassMaintenance ||
+    userRole === 'founder' ||
+    userRole === 'super_admin' ||
+    userRole === 'admin'
+  )
+
+  if (btnLogout) {
+    if (account) {
+      btnLogout.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Changer de compte'
+      btnLogout.onclick = async () => {
+        await auth.logout()
+        window.location.reload()
+      }
+    } else {
+      btnLogout.innerHTML = '<i class="fa-solid fa-user-shield"></i> Connexion Staff'
+      btnLogout.onclick = () => {
+        clearBlockingView('maintenance')
+        setView('login')
+      }
+    }
+  }
+
+  if (canBypass && account) {
+    const roleLabel = (account as any).roleLabel || (userRole.charAt(0).toUpperCase() + userRole.slice(1))
+    const roleColor = (account as any).roleColor || (userRole === 'founder' ? '#ea580c' : userRole === 'admin' ? '#e11d48' : '#0284c7')
+    const roleGradient = (account as any).roleGradient || `linear-gradient(135deg, ${roleColor} 0%, ${roleColor} 100%)`
+    const roleShadow = (account as any).roleShadow || `${roleColor}70`
+
+    if (staffBadgeEl) {
+      staffBadgeEl.style.display = 'inline-flex'
+      staffBadgeEl.style.background = '#fffbeb'
+      staffBadgeEl.style.color = roleColor
+      staffBadgeEl.style.border = `1.5px solid ${roleColor}`
+      staffBadgeEl.style.boxShadow = `0 2px 12px ${roleShadow}20`
+      staffBadgeEl.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${roleColor}; font-size:14px;"></i><span class="badge-text">Privilège Staff Détecté : <strong style="color:${roleColor}; font-weight:800;">${roleLabel}</strong> • Bypass Autorisé</span>`
+    }
+
+    if (btnBypass) {
+      btnBypass.style.display = 'inline-flex'
+      btnBypass.style.background = roleGradient
+      btnBypass.style.boxShadow = `0 4px 16px ${roleShadow}`
+      btnBypass.style.color = '#ffffff'
+      btnBypass.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Accéder au Launcher'
+      btnBypass.title = `Maintenance en cours : accès autorisé grâce à votre rôle ${roleLabel}`
+
+      btnBypass.onclick = async () => {
+        btnBypass.disabled = true
+        btnBypass.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Accès en cours...'
+        try {
+          if (session && session.account) {
+            const { skins, capes, avatar } = await loadSkinAssets(session.account)
+            await setUser(session.account, { skins, capes, avatar })
+          }
+        } catch (e) {
+          logger.error('Error entering launcher via bypass:', e)
+        }
+        document.body.classList.add('loaded')
+        document.querySelector('div#view-loading')?.classList.add('loaded')
+        clearBlockingView('maintenance')
+        setView('home')
+      }
+    }
+  } else {
+    if (staffBadgeEl) staffBadgeEl.style.display = 'none'
+    if (btnBypass) btnBypass.style.display = 'none'
+  }
+
+  setBlockingView('maintenance')
 }
 
 export async function bootstrap() {
@@ -70,44 +175,33 @@ export async function bootstrap() {
     return
   }
 
-  if (mn) {
-    const start = mn.startTime ? new Date(mn.startTime as Date) : null
-    const end = mn.endTime ? new Date(mn.endTime as Date) : null
-    const maintenanceTitle = document.getElementById('maintenance-title')
-    const maintenanceIcon = document.getElementById('maintenance-icon')
-    if (maintenanceTitle) maintenanceTitle.innerText = 'Maintenance du Launcher'
-    if (maintenanceIcon) maintenanceIcon.innerHTML = '<i class="fa-solid fa-gears"></i>'
-    if (start && end) {
-      maintenanceDates.innerText = `Du ${start.toLocaleString([], dateFormatOptions)} au ${end.toLocaleString([], dateFormatOptions)}`
-    } else if (end) {
-      maintenanceDates.innerText = `Fin estimée : ${end.toLocaleString([], dateFormatOptions)}`
-    } else {
-      maintenanceDates.innerText = 'Maintenance générale en cours'
-    }
-    maintenanceReason.innerText = mn.message ?? 'Le launcher est actuellement en maintenance. Nous serons de retour très vite !'
+  // Restauration de session en parallèle du chargement de l'image de fond
+  let session: any = null
+  try {
+    const [_, sess] = await Promise.all([preloadImage(bgUrl), auth.refresh()])
+    session = sess
+  } catch (err) {
+    logger.warn('Failed to refresh session at bootstrap:', err)
+  }
 
-    const btnRetry = document.getElementById('btn-maint-retry')
-    if (btnRetry) btnRetry.onclick = () => window.location.reload()
-    const btnLogout = document.getElementById('btn-maint-logout')
-    if (btnLogout) {
-      btnLogout.onclick = async () => {
-        await auth.logout()
-        window.location.reload()
-      }
-    }
-    setBlockingView('maintenance')
+  if (bgElement) bgElement.style.backgroundImage = `url('${bgUrl}')`
+
+  // Si une maintenance est active sur le Launcher :
+  // Tout le monde voit la page de maintenance au démarrage (même fondateur),
+  // mais les rôles avec bypass maintenance ont le bouton "Accéder au Launcher" de la couleur de leur grade !
+  if (mn) {
+    document.body.classList.add('loaded')
+    document.querySelector('div#view-loading')?.classList.add('loaded')
+    renderMaintenanceView(mn, session)
     return
   }
+
   try {
-    const [_, session] = await Promise.all([preloadImage(bgUrl), auth.refresh()])
-
-    if (bgElement) bgElement.style.backgroundImage = `url('${bgUrl}')`
-
-    if (session.success) {
+    if (session && session.success) {
       const { skins, capes, avatar } = await loadSkinAssets(session.account)
       setUser(session.account, { skins, capes, avatar })
       setView('home')
-    } else if ((session as any).isServiceUnavailable) {
+    } else if (session && (session as any).isServiceUnavailable) {
       // Services Modey injoignables ou hors-ligne, mais session locale préservée !
       const isOnline = navigator.onLine
       const maintenanceTitle = document.getElementById('maintenance-title')

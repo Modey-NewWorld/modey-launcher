@@ -50,6 +50,7 @@ declare global {
         download: () => Promise<string>
         install: () => Promise<void>
         downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) => void
+        downloadError: (callback: (value: DownloaderEvents['download_error'][0]) => void) => void
         downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) => void
         error: (callback: (value: BootstrapsEvents['bootstraps_error'][0]) => void) => void
       }
@@ -60,6 +61,7 @@ declare global {
 
         launchDownload: (callback: (value: LauncherEvents['launch_download'][0]) => void) => void
         downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) => void
+        downloadError: (callback: (value: DownloaderEvents['download_error'][0]) => void) => void
         downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) => void
 
         launchInstallLoader: (callback: (value: LauncherEvents['launch_install_loader'][0]) => void) => void
@@ -154,6 +156,7 @@ export const game = {
   launchComputeDownload: (callback: () => void) => window.api.game.launchComputeDownload(callback),
   launchDownload: (callback: (value: LauncherEvents['launch_download'][0]) => void) => window.api.game.launchDownload(callback),
   downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) => window.api.game.downloadProgress(callback),
+  downloadError: (callback: (value: DownloaderEvents['download_error'][0]) => void) => window.api.game.downloadError(callback),
   downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) => window.api.game.downloadEnd(callback),
   launchInstallLoader: (callback: (value: LauncherEvents['launch_install_loader'][0]) => void) => window.api.game.launchInstallLoader(callback),
   launchExtractNatives: (callback: () => void) => window.api.game.launchExtractNatives(callback),

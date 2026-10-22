@@ -69,9 +69,13 @@
       <div class="maintenance-card">
         <p class="gears" id="maintenance-icon"><i class="fa-solid fa-gears"></i></p>
         <h3 id="maintenance-title">Maintenance</h3>
+        <div id="maintenance-staff-badge" class="maint-staff-badge" style="display:none;"></div>
         <p class="dates" id="maintenance-dates"></p>
         <p class="text" id="maintenance-reason"></p>
         <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;" id="maintenance-actions">
+          <button id="btn-maint-bypass" class="btn btn-admin-bypass" style="display:none; padding: 10px 24px; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s;">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Accéder au Launcher
+          </button>
           <button id="btn-maint-retry" class="btn btn-primary" style="padding: 10px 22px; font-weight: 600; border-radius: 8px; background: #1E88E5; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; box-shadow: 0 4px 12px rgba(30,136,229,0.3);">
             <i class="fa-solid fa-rotate-right"></i> Réessayer
           </button>

@@ -38,6 +38,8 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.on(IPC.game.launchDownload, (_event, value) => callback(value)),
     downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) =>
       ipcRenderer.on(IPC.game.downloadProgress, (_event, value) => callback(value)),
+    downloadError: (callback: (value: DownloaderEvents['download_error'][0]) => void) =>
+      ipcRenderer.on(IPC.game.downloadError, (_event, value) => callback(value)),
     downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) =>
       ipcRenderer.on(IPC.game.downloadEnd, (_event, value) => callback(value)),
 

@@ -95,6 +95,9 @@ export async function updateUserInterface() {
 }
 
 export function setView(view: ViewName) {
+  document.body.classList.add('loaded')
+  document.querySelector('div#view-loading')?.classList.add('loaded')
+
   const target = document.querySelector(`.view[data-view="${view}"]`) as HTMLElement
   if (!target) return logger.error(`View ${view} not found`)
 
@@ -112,10 +115,21 @@ export function setView(view: ViewName) {
 }
 
 export function setBlockingView(view: BlockingViewName) {
+  document.body.classList.add('loaded')
   setTimeout(() => {
     document.querySelector('div#view-loading')?.classList.add('loaded')
-  }, 400)
+  }, 200)
   setTimeout(() => {
     document.querySelector(`div#view-${view}`)?.classList.add('loaded')
-  }, 200)
+  }, 100)
+}
+
+export function clearBlockingView(view?: BlockingViewName) {
+  document.body.classList.add('loaded')
+  document.querySelector('div#view-loading')?.classList.add('loaded')
+  if (view) {
+    document.querySelector(`div#view-${view}`)?.classList.remove('loaded')
+  } else {
+    document.querySelectorAll('.maintenance, .update').forEach((el) => el.classList.remove('loaded'))
+  }
 }
