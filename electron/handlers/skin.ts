@@ -13,12 +13,6 @@ const DEFAULT_SKINS: ISkin[] = [
     url: 'http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb',
     variant: 'classic',
     state: 'inactive'
-  },
-  {
-    id: 'alex',
-    url: 'http://textures.minecraft.net/texture/46acd06e8483b176e8ea39fc12fe105eb3a2a4970f5100057e9d84d4b60bdfa7',
-    variant: 'classic',
-    state: 'inactive'
   }
 ]
 
@@ -96,12 +90,11 @@ export function registerSkinHandlers() {
     }
 
     const isSteve = source === DEFAULT_SKINS[0].url || source === 'steve'
-    const isAlex = source === DEFAULT_SKINS[1].url || source === 'alex'
 
-    // Cas 1 : Sélection de Steve ou Alex (skins par défaut)
-    if (isSteve || isAlex) {
-      const activeUrl = isSteve ? DEFAULT_SKINS[0].url : DEFAULT_SKINS[1].url
-      // Mettre à jour l'auth server pour supprimer le skin custom (revient à Steve/Alex par défaut)
+    // Cas 1 : Sélection de Steve (skin par défaut)
+    if (isSteve) {
+      const activeUrl = DEFAULT_SKINS[0].url
+      // Mettre à jour l'auth server pour supprimer le skin custom (revient à Steve par défaut)
       try {
         const token = (skin as any)?.account?.accessToken
         const url = (skin as any)?.account?.meta?.url
@@ -132,7 +125,7 @@ export function registerSkinHandlers() {
 
       return await getSkins(true, [
         {
-          id: isSteve ? 'steve' : 'alex',
+          id: 'steve',
           url: activeUrl,
           state: 'active',
           variant: 'classic'
@@ -189,20 +182,22 @@ export function registerSkinHandlers() {
       // Supprimer le skin du fichier de cache
       let newSkins = data.filter((s) => s.id !== id)
 
-      // Si le skin supprimé était le skin actif, réinitialiser sur l'auth-server
-      if (isActive) {
-        try {
-          const token = (skin as any)?.account?.accessToken
-          const url = (skin as any)?.account?.meta?.url
-          if (token && url) {
-            await fetch(`${url}/minecraft/profile/skins`, {
-              method: 'DELETE',
-              headers: { Authorization: `Bearer ${token}` }
-            })
-          }
-        } catch (e) {
-          logger.warn('Failed to delete skin on server:', e)
+      // Supprimer le fichier de skin sur le serveur Auth / Yggdrasil
+      try {
+        const token = (skin as any)?.account?.accessToken
+        const url = (skin as any)?.account?.meta?.url
+        if (token && url) {
+          // On passe l'identifiant / URL du fichier pour que le serveur le supprime sur disque
+          await fetch(`${url}/minecraft/profile/skins?url=${encodeURIComponent(target?.url || '')}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+          })
         }
+      } catch (e) {
+        logger.warn('Failed to delete skin on server:', e)
+      }
+
+      if (isActive) {
         if (skin) {
           ;(skin as any).skins = []
           ;(skin as any).cached = true
@@ -318,7 +313,7 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
 
   // Injecter les skins fournis en paramètre s'ils ne sont pas déjà dans le cache
   for (const inj of inject) {
-    if (inj.id === 'steve' || inj.id === 'alex' || inj.url === DEFAULT_SKINS[0].url || inj.url === DEFAULT_SKINS[1].url) {
+    if (inj.id === 'steve' || inj.url === DEFAULT_SKINS[0].url) {
       continue
     }
     const found = localCache.find((s) => s.url === inj.url)
@@ -349,20 +344,14 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
     fs.writeFileSync(skinPath, JSON.stringify(localCache, null, 2))
   } catch (_) {}
 
-  // Déterminer l'état de Steve et Alex
-  const isAlexActive = effectiveActiveUrl === DEFAULT_SKINS[1].url
-  const isSteveActive = effectiveActiveUrl === DEFAULT_SKINS[0].url || (!isAnyCustomActive && !isAlexActive)
+  // Déterminer l'état de Steve
+  const isSteveActive = effectiveActiveUrl === DEFAULT_SKINS[0].url || !isAnyCustomActive
 
   const trailingDefaults: (ISkin & { name?: string })[] = [
     {
       ...DEFAULT_SKINS[0],
       name: 'Steve',
       state: isSteveActive ? 'active' : 'inactive'
-    },
-    {
-      ...DEFAULT_SKINS[1],
-      name: 'Alex',
-      state: isAlexActive ? 'active' : 'inactive'
     }
   ]
 

@@ -115,20 +115,18 @@ const shared = {
       shared.auxiliarySkinViewer.controls.enabled = false
     }
 
-    // Ordonner : les skins personnalisés en premier, et Steve / Alex toujours en dernier
+    // Ordonner : les skins personnalisés en premier, et Steve toujours en dernier
     const customSkins: ISkin[] = []
     const defaultSkins: ISkin[] = []
 
     for (const s of shared.skins ?? []) {
       if (s.id === 'steve' || s.id === 'alex') {
-        defaultSkins.push(s)
+        if (s.id === 'steve') defaultSkins.push(s)
       } else {
         customSkins.push(s)
       }
     }
 
-    // Steve puis Alex en fin de casier
-    defaultSkins.sort((a) => (a.id === 'steve' ? -1 : 1))
     const orderedSkins = [...customSkins, ...defaultSkins]
 
     for (const s of (orderedSkins as (ISkin & { name?: string })[])) {
@@ -140,7 +138,10 @@ const shared = {
       skinDiv.addEventListener('click', async () => {
         if (s.state === 'active') return
         try {
-          shared.skins = await skin.updateSkin(s.url, 'classic')
+          const updated = await skin.updateSkin(s.url, 'classic')
+          if (updated && Array.isArray(updated)) {
+            shared.skins = updated
+          }
           await shared.resetMainView()
           await shared.resetSkinViews()
           // Mettre à jour immédiatement la photo de profil (avatar) et les infos d'identité
@@ -156,8 +157,7 @@ const shared = {
       })
 
       const isSteve = s.id === 'steve'
-      const isAlex = s.id === 'alex'
-      const isDefault = isSteve || isAlex
+      const isDefault = isSteve
 
       // Barre d'actions au survol (Renommer + Supprimer) pour les skins personnalisés
       if (!isDefault) {
@@ -221,7 +221,7 @@ const shared = {
       const source = `${s.url}-classic`
       const skinImg = document.createElement('img') as HTMLImageElement
       const skinLabel = document.createElement('span')
-      const displayName = s.name || (isSteve ? 'Steve' : isAlex ? 'Alex' : 'Personnalisé')
+      const displayName = s.name || (isSteve ? 'Steve' : 'Personnalisé')
       skinLabel.innerText = displayName
       skinLabel.title = displayName
       skinDiv.title = `${displayName} (${s.state === 'active' ? 'Actif' : 'Cliquer pour équiper'})`

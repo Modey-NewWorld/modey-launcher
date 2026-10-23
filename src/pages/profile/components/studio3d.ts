@@ -42,7 +42,7 @@ export function refreshStudioMeta() {
   if (nameEl) {
     const isCustom = active && active.id !== 'steve' && active.id !== 'alex'
     const customName = (active as any)?.name
-    nameEl.innerText = customName || (isCustom ? 'Skin personnalisé' : (active?.id === 'alex' ? 'Alex' : 'Steve'))
+    nameEl.innerText = customName || (isCustom ? 'Skin personnalisé' : 'Steve')
   }
 
   if (formatEl && active?.url) {
@@ -120,10 +120,77 @@ export function bindStudio(hooks: { onSkinChanged: () => void }) {
     const file = fileInput.files?.[0]
     if (!file) return
     try {
-      // Modèle classique 4px par défaut pour tous les skins personnalisés
-      const result = await skin.updateSkin(await file.arrayBuffer(), 'classic')
-      if (!result) {
-        await Dialog.show('Skin invalide. Utilisez un fichier PNG 64×64.', [{ text: 'OK', type: 'ok' }])
+      // 1. Vérification des permissions du rôle
+      const user = getUser()
+      const userPermissions = (user as any)?.permissions || []
+      const isFounder = (user as any)?.role === 'founder'
+      const canCustom = isFounder || userPermissions.includes('*') || userPermissions.includes('launcher:custom_skin')
+      if (!canCustom) {
+        await Dialog.show(
+          "Votre rôle actuel ne vous autorise pas à importer de skins personnalisés sur le réseau Modey.",
+          [{ text: 'Fermer', type: 'ok' }],
+          'Importation restreinte'
+        )
+        return
+      }
+
+      // 2. Vérification du quota de skins (5 skins max par défaut)
+      const currentCustomSkins = (shared.skins || []).filter(s => s.id !== 'steve' && s.id !== 'alex')
+      if (currentCustomSkins.length >= 5) {
+        await Dialog.show(
+          "Votre casier a atteint sa capacité maximale (5 skins personnalisés max). Veuillez supprimer un ancien skin de votre casier avant d'en importer un nouveau.",
+          [{ text: 'Compris', type: 'ok' }],
+          'Casier plein'
+        )
+        return
+      }
+
+      // 3. Détection du format : Détecter si le skin est au format fin / slim (3px / Alex)
+      const buffer = await file.arrayBuffer()
+      const blob = new Blob([buffer])
+      const img = await createImageBitmap(blob)
+
+      if (img.width !== 64 || (img.height !== 64 && img.height !== 32)) {
+        await Dialog.show("Format de skin non supporté. Veuillez sélectionner une image PNG de dimension 64×64 pixels.", [{ text: 'OK', type: 'ok' }])
+        return
+      }
+
+      let isSlim = false
+      if (img.height === 64) {
+        const offCanvas = document.createElement('canvas')
+        offCanvas.width = 64
+        offCanvas.height = 64
+        const ctx = offCanvas.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(img, 0, 0)
+          // Bras droit 4px : x: 54..55, y: 20..31 (si tous ces pixels ont alpha === 0, c'est un modèle slim 3px)
+          const armData = ctx.getImageData(54, 20, 2, 12).data
+          let hasOpaqueArmPixel = false
+          for (let i = 3; i < armData.length; i += 4) {
+            if (armData[i] > 10) {
+              hasOpaqueArmPixel = true
+              break
+            }
+          }
+          if (!hasOpaqueArmPixel) {
+            isSlim = true
+          }
+        }
+      }
+
+      if (isSlim) {
+        await Dialog.show(
+          "Modèle de skin non pris en charge :\nLes skins fins (Slim 3px / Alex) ne sont pas disponibles actuellement sur Modey. Veuillez utiliser un skin au format classique (4px / Steve).",
+          [{ text: 'Compris', type: 'ok' }],
+          'Format Slim non disponible'
+        )
+        return
+      }
+
+      // Modèle classique 4px
+      const result = await skin.updateSkin(buffer, 'classic')
+      if (!result || !Array.isArray(result)) {
+        await Dialog.show("Une erreur est survenue lors de l'enregistrement de votre skin. Veuillez réessayer.", [{ text: 'OK', type: 'ok' }])
         return
       }
       shared.skins = result
