@@ -21,7 +21,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
     try {
       const appData = process.env.APPDATA || (process.platform === 'darwin' ? `${process.env.HOME}/Library/Application Support` : `${process.env.HOME}`)
       const pathModule = require('node:path')
-      const modsDir = pathModule.join(appData, '.modey_athena', profileSlug || 'athena', 'mods')
+      const modsDir = pathModule.join(appData, '.modey', profileSlug || 'athena', 'mods')
       if (!fs.existsSync(modsDir)) return { hasExtra: false, extraMods: [] }
 
       const localFiles = fs.readdirSync(modsDir).filter((f) => f.endsWith('.jar'))
@@ -70,7 +70,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port}`)
 
       const launcher = new Launcher({
-        root: 'modey-athena',
+        root: 'modey',
         profile: {
           slug: profileSlug,
           minecraft: {

@@ -21,7 +21,7 @@ export interface IInstanceInfo {
 
 type OpResult = { success: boolean; error?: string }
 
-const DEFAULT_ROOT = path.join(process.env.APPDATA ?? app.getPath('appData'), '.modey_athena')
+const DEFAULT_ROOT = path.join(process.env.APPDATA ?? app.getPath('appData'), '.modey')
 const STAGING = `${DEFAULT_ROOT}.ancien`
 
 function linkType(): 'junction' | 'dir' {
