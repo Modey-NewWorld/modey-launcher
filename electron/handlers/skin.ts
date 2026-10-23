@@ -136,7 +136,7 @@ export function registerSkinHandlers() {
     // Cas 2 : Sélection d'un skin personnalisé déjà présent dans le casier ou import
     let skinSource: string | Blob
     if (source instanceof ArrayBuffer) {
-      skinSource = new Blob([source])
+      skinSource = new Blob([source], { type: 'image/png' })
     } else if (typeof source === 'string' && source.startsWith('data:')) {
       const res = await fetch(source)
       skinSource = await res.blob()
@@ -153,12 +153,13 @@ export function registerSkinHandlers() {
 
     const fetched = ((await skin.getSkin()) as ISkin[])
     const activeFromServer = fetched.find((s) => s.state === 'active') || fetched[0]
+    const activeUrl = activeFromServer ? activeFromServer.url : (typeof source === 'string' ? source : '')
     const customSkinId = 'skin_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6)
 
     const newSkins = [
       {
         id: customSkinId,
-        url: activeFromServer ? activeFromServer.url : (typeof source === 'string' ? source : ''),
+        url: activeUrl,
         state: 'active' as const,
         variant: 'classic' as const
       }
