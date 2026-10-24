@@ -49,6 +49,50 @@
                   </div>
                 </section>
 
+                <!-- Section Synchronisation Discord -->
+                <section class="profile-card discord-sync-card">
+                  <div class="profile-card-head">
+                    <h3><i class="fa-brands fa-discord" style="color: #5865F2;"></i>&nbsp;&nbsp;Compte Discord</h3>
+                    <span class="discord-status-badge" id="discord-badge-status">Non synchronisé</span>
+                  </div>
+
+                  <div class="discord-sync-content">
+                    <!-- Vue NON LIÉ -->
+                    <div id="discord-unlinked-view">
+                      <p class="discord-desc">
+                        Liez votre profil Discord pour débloquer automatiquement vos rôles, synchroniser votre pseudo et accéder à l'ensemble des salons de notre communauté.
+                      </p>
+                      <div class="discord-actions-group">
+                        <button class="srv-btn srv-select discord-btn-link" id="btn-link-discord">
+                          <i class="fa-brands fa-discord"></i>&nbsp;&nbsp;Lier mon compte Discord
+                        </button>
+                        <a href="https://discord.gg/GPkAVTVNyk" target="_blank" class="srv-btn srv-discover discord-btn-join" id="btn-join-discord" title="Rejoindre le serveur Discord officiel de Modey">
+                          <i class="fa-solid fa-arrow-up-right-from-square"></i>&nbsp;Rejoindre le Discord
+                        </a>
+                      </div>
+                    </div>
+
+                    <!-- Vue LIÉ -->
+                    <div id="discord-linked-view" style="display:none;">
+                      <div class="discord-user-row">
+                        <img src="" id="discord-user-avatar" alt="Avatar Discord" class="discord-avatar-img">
+                        <div class="discord-user-info">
+                          <strong id="discord-user-tag">@Utilisateur</strong>
+                          <span class="discord-sync-label"><i class="fa-solid fa-circle-check"></i> Synchronisé avec Modey</span>
+                        </div>
+                      </div>
+                      <div class="discord-actions-group linked-actions">
+                        <a href="https://discord.gg/GPkAVTVNyk" target="_blank" class="srv-btn srv-discover discord-btn-join" title="Ouvrir le serveur Discord officiel de Modey">
+                          <i class="fa-brands fa-discord"></i>&nbsp;Ouvrir le Discord
+                        </a>
+                        <button class="eye-btn discord-unlink-btn" id="btn-unlink-discord" title="Dissocier ce compte Discord">
+                          <i class="fa-solid fa-link-slash"></i>&nbsp;Dissocier
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
                 <!-- Informations Joueur (sous le casier) -->
                 <section class="profile-card identity-card">
                   <div class="profile-card-head">
@@ -78,10 +122,7 @@
                         </button>
                       </span>
                     </div>
-                    <div>
-                      <span>Édition Minecraft</span>
-                      <span class="tag">Java Edition (1.21.1)</span>
-                    </div>
+                    
                   </div>
                 </section>
 
