@@ -69,6 +69,12 @@ export async function updateUserInterface() {
   if (nameEl) nameEl.innerText = shared.account.name
   if (avatarEl) avatarEl.src = shared.avatar?.url ?? 'https://minotar.net/avatar/steve/256.png'
 
+  // Si un skin actif existe, synchroniser l'avatar immédiatement depuis sa texture
+  const activeSkin = shared.skins?.find((s) => s.state === 'active')
+  if (activeSkin?.url) {
+    updateAvatarFromSkinUrl(activeSkin.url).catch(() => {})
+  }
+
   const rawRole = ((shared.account as any)?.role || 'citizen').toLowerCase()
   const roleLabels: Record<string, string> = {
     founder: 'Fondateur',

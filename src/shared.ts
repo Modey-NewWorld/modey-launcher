@@ -6,7 +6,7 @@ import logger from 'electron-log/renderer'
 
 const DEFAULT_SKIN = {
   id: 'steve',
-  url: 'http://textures.minecraft.net/texture/d5c4ee5ce20aed9e33e866c66caa37178606234b3721084bf01d13320fb2eb3f',
+  url: 'http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb',
   variant: 'classic',
   state: 'active'
 }
@@ -226,14 +226,20 @@ const shared = {
       skinLabel.title = displayName
       skinDiv.title = `${displayName} (${s.state === 'active' ? 'Actif' : 'Cliquer pour équiper'})`
 
-      if (shared.cachedSkinThumbnails.has(source)) {
-        skinImg.src = shared.cachedSkinThumbnails.get(source)!
-      } else {
-        await shared.auxiliarySkinViewer.loadSkin(s.url, { model: 'default' })
-        shared.auxiliarySkinViewer.render()
+      try {
+        if (shared.cachedSkinThumbnails.has(source)) {
+          skinImg.src = shared.cachedSkinThumbnails.get(source)!
+        } else {
+          await shared.auxiliarySkinViewer.loadSkin(s.url, { model: 'default' })
+          shared.auxiliarySkinViewer.render()
 
-        skinImg.src = shared.auxiliarySkinViewer.canvas.toDataURL()
-        shared.cachedSkinThumbnails.set(source, skinImg.src)
+          skinImg.src = shared.auxiliarySkinViewer.canvas.toDataURL()
+          shared.cachedSkinThumbnails.set(source, skinImg.src)
+        }
+      } catch (err) {
+        logger.warn('Failed to render thumbnail for skin:', s.url, err)
+        // Fallback visuel pour ne pas bloquer l'affichage des autres skins
+        skinImg.alt = displayName
       }
 
       skinDiv.appendChild(skinImg)

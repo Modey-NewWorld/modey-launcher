@@ -39,7 +39,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.handle(
     IPC.game.launch,
-    (_event, payload: {
+    async (_event, payload: {
       account: Account
       settings: IGameSettings
       profileSlug: string
@@ -69,6 +69,20 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
       logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port}`)
 
+      // Récupérer les règles d'exclusion de nettoyage décidées par le serveur
+      let serverCleaningIgnored: string[] | undefined = undefined
+      try {
+        const updaterResp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${profileSlug}`)
+        if (updaterResp.ok) {
+          const updaterManifest = await updaterResp.json()
+          if (Array.isArray(updaterManifest.cleaningIgnored)) {
+            serverCleaningIgnored = updaterManifest.cleaningIgnored
+          }
+        }
+      } catch (manifestErr) {
+        logger.warn('Failed to fetch cleaning rules from server:', manifestErr)
+      }
+
       const launcher = new Launcher({
         root: 'modey',
         profile: {
@@ -85,7 +99,8 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         },
         account: account,
         cleaning: {
-          enabled: forceClean ? true : !(account as any)?.hasNoCleaning
+          enabled: forceClean ? true : !(account as any)?.hasNoCleaning,
+          ignored: serverCleaningIgnored
         },
         java: java
       })
