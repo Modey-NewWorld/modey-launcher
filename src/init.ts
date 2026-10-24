@@ -4,7 +4,8 @@ import { createProgressBar } from './components/progressBar'
 import { loadSkinAssets } from './services/skin'
 import logger from 'electron-log/renderer'
 
-const DEFAULT_BACKGROUND = '/src/static/images/bg.png'
+import defaultBgUrl from './static/images/bg.png'
+const DEFAULT_BACKGROUND = defaultBgUrl
 const dateFormatOptions: Intl.DateTimeFormatOptions = {
   day: '2-digit',
   month: '2-digit',
