@@ -93,6 +93,7 @@ export async function updateUserInterface() {
   if (roleBadgeEl) {
     roleBadgeEl.innerText = displayRole
     roleBadgeEl.setAttribute('data-role', rawRole)
+    roleBadgeEl.className = `modey-role-badge role-${rawRole}`
   }
 
   shared.resetMainView()

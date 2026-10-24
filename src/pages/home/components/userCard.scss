@@ -161,154 +161,84 @@
     transform: rotate(180deg);
   }
 
-  /* --- Thèmes par rôle : Blanc par défaut (citoyen) --- */
-  &[data-role='citizen'],
-  &:not([data-role]) {
-    background: #ffffff;
+  /* --- Design sobre et discret unifié avec l'Admin Panel --- */
+  /* La carte utilisateur reste uniforme, discrète et élégante quel que soit le rôle */
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(16, 27, 48, 0.04);
+
+  &:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 10px rgba(16, 27, 48, 0.06);
+  }
+
+  /* --- Badges / Tags de Rôles : SEULE la pilule est colorée selon le grade --- */
+  .modey-role-badge {
+    font-size: clamp(7.8px, 0.74vw, 9.5px);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    padding: 1.5px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: #f1f5f9;
+    color: #64748b;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 6px rgba(16, 27, 48, 0.04);
+    box-shadow: none !important;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
 
-    &:hover {
-      background: #f8fafc;
-      border-color: #cbd5e1;
+    /* Fondateur : discret, ambre / or doux comme dans l'admin panel */
+    &.role-founder,
+    &[data-role='founder'] {
+      background: var(--founder-bg, #fef3c7);
+      color: var(--founder-gold, #b45309);
+      border: 1px solid var(--founder-border, #fcd34d);
     }
 
-    .modey-role-badge {
-      background: #f1f5f9;
-      color: #64748b;
-      border: 1px solid #e2e8f0;
-    }
-  }
-
-  /* --- Thème Fondateur (Or / Ambre royal) --- */
-  &[data-role='founder'] {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    border: 1px solid #f59e0b;
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
-
-    &:hover {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border-color: #d97706;
-      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.25);
+    /* Administrateur & SuperAdmin : rouge doux */
+    &.role-admin,
+    &.role-super_admin,
+    &[data-role='admin'],
+    &[data-role='super_admin'] {
+      background: var(--role-admin-bg, #fee2e2);
+      color: var(--role-admin-color, #dc2626);
+      border: 1px solid var(--role-admin-border, #fca5a5);
     }
 
-    img {
-      border: 2px solid #f59e0b;
-      box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+    /* Modérateur : violet doux */
+    &.role-moderator,
+    &[data-role='moderator'] {
+      background: var(--role-moderator-bg, #f3e8ff);
+      color: var(--role-moderator-color, #9333ea);
+      border: 1px solid var(--role-moderator-border, #d8b4fe);
     }
 
-    #user-name {
-      color: #78350f;
+    /* Développeur : vert doux */
+    &.role-developer,
+    &.role-dev,
+    &[data-role='developer'],
+    &[data-role='dev'] {
+      background: var(--role-developer-bg, #ecfdf5);
+      color: var(--role-developer-color, #059669);
+      border: 1px solid var(--role-developer-border, #6ee7b7);
     }
 
-    .modey-role-badge {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #ffffff;
-      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
-    }
-  }
-
-  /* --- Thème Administrateur (Rouge Crimson prestigieux) --- */
-  &[data-role='admin'] {
-    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-    border: 1px solid #ef4444;
-    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);
-
-    &:hover {
-      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-      border-color: #dc2626;
-      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
+    /* Builder : bleu doux */
+    &.role-builder,
+    &[data-role='builder'] {
+      background: var(--role-builder-bg, #eff6ff);
+      color: var(--role-builder-color, #2563eb);
+      border: 1px solid var(--role-builder-border, #bfdbfe);
     }
 
-    img {
-      border: 2px solid #ef4444;
-      box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
-    }
-
-    #user-name {
-      color: #991b1b;
-    }
-
-    .modey-role-badge {
-      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-      color: #ffffff;
-      box-shadow: 0 2px 6px rgba(185, 28, 28, 0.35);
-    }
-  }
-
-  /* --- Thème Modérateur (Violet impérial) --- */
-  &[data-role='moderator'] {
-    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-    border: 1px solid #a855f7;
-    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.15);
-
-    &:hover {
-      background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-      border-color: #9333ea;
-    }
-
-    img {
-      border: 2px solid #a855f7;
-    }
-
-    #user-name {
-      color: #581c87;
-    }
-
-    .modey-role-badge {
-      background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
-      color: #ffffff;
-    }
-  }
-
-  /* --- Thème Développeur (Émeraude technique) --- */
-  &[data-role='developer'],
-  &[data-role='dev'] {
-    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-    border: 1px solid #10b981;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15);
-
-    &:hover {
-      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-      border-color: #059669;
-    }
-
-    img {
-      border: 2px solid #10b981;
-    }
-
-    #user-name {
-      color: #064e3b;
-    }
-
-    .modey-role-badge {
-      background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-      color: #ffffff;
-    }
-  }
-
-  /* --- Thème Builder (Bleu saphir créatif) --- */
-  &[data-role='builder'] {
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-    border: 1px solid #3b82f6;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.15);
-
-    &:hover {
-      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-      border-color: #2563eb;
-    }
-
-    img {
-      border: 2px solid #3b82f6;
-    }
-
-    #user-name {
-      color: #1e3a8a;
-    }
-
-    .modey-role-badge {
-      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      color: #ffffff;
+    /* Citoyen (défaut) */
+    &.role-citizen,
+    &[data-role='citizen'] {
+      background: var(--role-citizen-bg, #f1f5f9);
+      color: var(--role-citizen-color, #64748b);
+      border: 1px solid var(--role-citizen-border, #e2e8f0);
     }
   }
 }
