@@ -1,3 +1,4 @@
+import defaultBannerUrl from '../static/images/bg.png'
 import logger from 'electron-log/renderer'
 
 const BANNER_URL_MAP_KEY = 'modey_banner_url_map'
@@ -15,7 +16,7 @@ class BannerCacheService {
    * Si l'URL a changé, télécharge la nouvelle image en arrière-plan et met à jour le cache.
    */
   public getBanner(slug: string, remoteUrl?: string): string {
-    const fallback = '/src/static/images/bg.png'
+    const fallback = defaultBannerUrl
     if (!remoteUrl) return fallback
 
     const cachedDataUrl = this.getCachedImage(slug)
