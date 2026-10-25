@@ -14,6 +14,7 @@ import { loadNews } from './components/newsList'
 import { renderDiscovery } from './components/discoveryCard'
 import { renderDropdown, updateCurrentProfileName, bindSidebar } from './components/sidebar'
 import { launcherConfig } from '../../services/launcherConfig'
+import { checkAndShowUpdateToast } from '../../services/updateToast'
 import logoUrl from '../../static/images/logo.png'
 import homeHtmlRaw from './index.html?raw'
 import './home.scss'
@@ -22,10 +23,10 @@ import './components/discoveryCard.scss'
 
 const el = (id: string) => document.getElementById(id)
 
-// Remplacement du chemin absolu /src/static/images/logo.png par l'URL packagée par Vite
+// Remplacement du chemin absolu /src/static/images/logo.png par l'URL packagÃ©e par Vite
 const homeHtml = homeHtmlRaw.replace('/src/static/images/logo.png', logoUrl)
 
-// Fragment HTML de la page Accueil (+ sidebar) injecté dans le shell.
+// Fragment HTML de la page Accueil (+ sidebar) injectÃ© dans le shell.
 const mount = el('view-home')
 if (mount && !mount.querySelector('.modey-sidebar')) mount.insertAdjacentHTML('afterbegin', homeHtml)
 
@@ -52,11 +53,11 @@ async function loadHeader() {
   try {
     const [config, sysInfo] = await Promise.all([settings.get(), system.getInfo()])
     const perkRam = el('perk-ram')
-    if (perkRam) perkRam.innerText = `Optimisation auto (${Math.round(+config.memory.max)} Go recommandés)`
+    if (perkRam) perkRam.innerText = `Optimisation auto (${Math.round(+config.memory.max)} Go recommandÃ©s)`
     const versionLabel = el('launcher-version-label')
     if (versionLabel && sysInfo.version) versionLabel.innerText = `Version ${sysInfo.version}`
   } catch {
-    /*perk garde sa valeur par défaut*/
+    /*perk garde sa valeur par dÃ©faut*/
   }
 }
 
@@ -67,18 +68,18 @@ export async function showServerDetails() {
 
   if (isComingSoonProfile(profile)) {
     const features = meta?.teaser?.features || [
-      { title: 'Monde créatif libre', text: 'Plots personnels + monde plat pour construire sans limites.' },
-      { title: 'Outils de build', text: 'Outils de construction et partage de schématiques.' },
-      { title: 'Ouvert à tous', text: 'Accessible à tous les joueurs Modey.' }
+      { title: 'Monde crÃ©atif libre', text: 'Plots personnels + monde plat pour construire sans limites.' },
+      { title: 'Outils de build', text: 'Outils de construction et partage de schÃ©matiques.' },
+      { title: 'Ouvert Ã  tous', text: 'Accessible Ã  tous les joueurs Modey.' }
     ]
     await Dialog.show(
-      `${meta?.name || 'Free Build'} — ${meta?.maintenanceMessage || 'Serveur non actif — Arrive bientôt'}.\n\n${meta?.teaser?.description || ''}\n\nCe qu'il proposera :\n${features.map((f: { title: string; text?: string }) => `• ${f.title}${f.text ? ` : ${f.text}` : ''}`).join('\n')}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} • NeoForge ${meta?.loaderVersion || '21.1.169'}`,
+      `${meta?.name || 'Free Build'} â€” ${meta?.maintenanceMessage || 'Serveur non actif â€” Arrive bientÃ´t'}.\n\n${meta?.teaser?.description || ''}\n\nCe qu'il proposera :\n${features.map((f: { title: string; text?: string }) => `â€¢ ${f.title}${f.text ? ` : ${f.text}` : ''}`).join('\n')}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} â€¢ NeoForge ${meta?.loaderVersion || '21.1.169'}`,
       [{ text: 'Compris', type: 'ok' }]
     )
     return
   }
   await Dialog.show(
-    `${profile?.name ?? meta?.name ?? 'Athéna'} — Serveur officiel.\n\n${meta?.teaser?.description || 'Un monde vivant. Des villes à construire. Une aventure à partager.'}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} • NeoForge ${meta?.loaderVersion || '21.1.169'}\nConnexion : ${targetFor(profile).host}:${targetFor(profile).port}`,
+    `${profile?.name ?? meta?.name ?? 'AthÃ©na'} â€” Serveur officiel.\n\n${meta?.teaser?.description || 'Un monde vivant. Des villes Ã  construire. Une aventure Ã  partager.'}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} â€¢ NeoForge ${meta?.loaderVersion || '21.1.169'}\nConnexion : ${targetFor(profile).host}:${targetFor(profile).port}`,
     [{ text: 'Compris', type: 'ok' }]
   )
 }
@@ -92,6 +93,7 @@ export function initHome() {
   renderDiscovery(selectProfile)
   refreshAthenaCard()
   bindSidebar()
+  checkAndShowUpdateToast()
 
   setRouterHooks({ onShowServers: refreshAthenaCard })
 

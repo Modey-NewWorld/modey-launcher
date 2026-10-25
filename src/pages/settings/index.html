@@ -6,7 +6,7 @@
             </section>
             <section class="settings-card">
               <div class="settings-card-head">
-                <h3><i class="fa-solid fa-memory"></i>&nbsp;&nbsp;Mémoire allouée</h3>
+                <h3><i class="fa-solid fa-memory"></i>&nbsp;&nbsp;MÃ©moire allouÃ©e</h3>
               </div>
               <div class="dual-slider-container" id="ram-slider">
                 <div class="slider-track"></div>
@@ -22,7 +22,7 @@
 
             <section class="settings-card">
               <div class="settings-card-head">
-                <h3><i class="fa-solid fa-window-maximize"></i>&nbsp;&nbsp;Taille de la fenêtre</h3>
+                <h3><i class="fa-solid fa-window-maximize"></i>&nbsp;&nbsp;Taille de la fenÃªtre</h3>
               </div>
               <div class="select-wrapper">
                 <select id="resolution-select"></select>
@@ -34,7 +34,7 @@
                 <h3><i class="fa-solid fa-expand"></i>&nbsp;&nbsp;Taille du launcher</h3>
               </div>
               <div class="ui-scale-row">
-                <button type="button" class="ui-scale-btn" id="ui-scale-minus" title="Réduire l'interface">
+                <button type="button" class="ui-scale-btn" id="ui-scale-minus" title="RÃ©duire l'interface">
                   <i class="fa-solid fa-minus"></i>
                 </button>
                 <div class="ui-scale-slider" id="ui-scale-slider">
@@ -47,12 +47,12 @@
                 </button>
                 <span class="ui-scale-value" id="ui-scale-value">100 %</span>
               </div>
-              <p class="muted">Agrandit ou réduit toute l'interface du launcher (textes, cartes, images). L'échelle est appliquée immédiatement et mémorisée.</p>
+              <p class="muted">Agrandit ou rÃ©duit toute l'interface du launcher (textes, cartes, images). L'Ã©chelle est appliquÃ©e immÃ©diatement et mÃ©morisÃ©e.</p>
             </section>
 
             <section class="settings-card">
               <div class="settings-card-head">
-                <h3><i class="fa-solid fa-power-off"></i>&nbsp;&nbsp;Action après le lancement</h3>
+                <h3><i class="fa-solid fa-power-off"></i>&nbsp;&nbsp;Action aprÃ¨s le lancement</h3>
               </div>
               <div class="select-wrapper">
                 <select id="launcher-action-select">
@@ -63,13 +63,13 @@
               </div>
               <div class="select-wrapper">
                 <select id="background-sleep-select">
-                  <option value="0">Veille en arrière-plan : désactivée</option>
-                  <option value="30">Veille après 30 secondes d'inactivité</option>
-                  <option value="60">Veille après 1 minute d'inactivité</option>
-                  <option value="300">Veille après 5 minutes d'inactivité</option>
+                  <option value="0">Veille en arriÃ¨re-plan : dÃ©sactivÃ©e</option>
+                  <option value="30">Veille aprÃ¨s 30 secondes d'inactivitÃ©</option>
+                  <option value="60">Veille aprÃ¨s 1 minute d'inactivitÃ©</option>
+                  <option value="300">Veille aprÃ¨s 5 minutes d'inactivitÃ©</option>
                 </select>
               </div>
-              <p class="muted">En veille, le launcher limite son rendu à quasi zéro quand il est minimisé ou en arrière-plan. Il se réveille dès que vous y revenez ou quand Minecraft se ferme.</p>
+              <p class="muted">En veille, le launcher limite son rendu Ã  quasi zÃ©ro quand il est minimisÃ© ou en arriÃ¨re-plan. Il se rÃ©veille dÃ¨s que vous y revenez ou quand Minecraft se ferme.</p>
             </section>
 
             <section class="settings-card">
@@ -78,26 +78,33 @@
               </div>
               <div class="java-selector">
                 <select id="java-select">
-                  <option value="bundled">Java fourni (recommandé)</option>
-                  <option value="system">Java système (PATH)</option>
+                  <option value="bundled">Java fourni (recommandÃ©)</option>
+                  <option value="system">Java systÃ¨me (PATH)</option>
                 </select>
               </div>
-              <p class="muted">Le launcher détecte automatiquement Java 21. Le mode fourni garantit la compatibilité.</p>
+              <p class="muted">Le launcher dÃ©tecte automatiquement Java 21. Le mode fourni garantit la compatibilitÃ©.</p>
             </section>
 
             <section class="settings-card">
               <div class="settings-card-head">
-                <h3><i class="fa-solid fa-rotate"></i>&nbsp;&nbsp;Mises à jour</h3>
+                <h3><i class="fa-solid fa-rotate"></i>&nbsp;&nbsp;Mises Ã  jour</h3>
               </div>
               <div class="update-line">
-                <span class="update-line-label">Version installée</span>
-                <strong id="update-current-version">—</strong>
+                <span class="update-line-label">Version installÃ©e</span>
+                <strong id="update-current-version">â€”</strong>
+              <div class="update-channel-row" style="margin: 12px 0 10px 0; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(30, 136, 229, 0.05); border: 1px solid rgba(30, 136, 229, 0.15); border-radius: 8px;">
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-weight: 600; font-size: 13px;"><i class="fa-solid fa-flask" style="color: #f59e0b;"></i>&nbsp;&nbsp;Canal Bêta / Expérimental</span>
+                  <span class="muted" style="font-size: 11.5px; margin: 0;">Recevoir les versions préliminaires avant le déploiement général.</span>
+                </div>
+                <input type="checkbox" id="settings-beta-channel" style="width: 18px; height: 18px; cursor: pointer; accent-color: #1E88E5;" />
+              </div>
               </div>
               <div class="btn-row">
-                <button type="button" class="settings-btn" id="update-check-btn"><i class="fa-solid fa-magnifying-glass"></i>&nbsp;Vérifier</button>
-                <button type="button" class="settings-btn settings-btn--primary hidden" id="update-install-btn"><i class="fa-solid fa-download"></i>&nbsp;Télécharger et installer</button>
+                <button type="button" class="settings-btn" id="update-check-btn"><i class="fa-solid fa-magnifying-glass"></i>&nbsp;VÃ©rifier</button>
+                <button type="button" class="settings-btn settings-btn--primary hidden" id="update-install-btn"><i class="fa-solid fa-download"></i>&nbsp;TÃ©lÃ©charger et installer</button>
               </div>
-              <p class="muted" id="update-status-text">Recherche automatique au démarrage du launcher.</p>
+              <p class="muted" id="update-status-text">Recherche automatique au dÃ©marrage du launcher.</p>
               <div class="settings-progress hidden" id="settings-update-progress-container">
                 <div class="settings-progress-track"><div class="settings-progress-bar" id="settings-update-progress-bar"></div></div>
                 <div class="settings-progress-meta">
@@ -111,34 +118,34 @@
               <div class="settings-card-head">
                 <h3><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Emplacement des fichiers</h3>
               </div>
-              <div class="path-box" id="files-root-path">Chargement…</div>
+              <div class="path-box" id="files-root-path">Chargementâ€¦</div>
               <p class="muted hidden" id="files-status"></p>
               <div class="btn-row">
                 <button type="button" class="settings-btn" id="files-open-root"><i class="fa-solid fa-folder-open"></i>&nbsp;Ouvrir le dossier</button>
-                <button type="button" class="settings-btn" id="files-change-root"><i class="fa-solid fa-arrows-rotate"></i>&nbsp;Changer…</button>
-                <button type="button" class="settings-btn hidden" id="files-reset-root"><i class="fa-solid fa-rotate-left"></i>&nbsp;Rétablir par défaut</button>
+                <button type="button" class="settings-btn" id="files-change-root"><i class="fa-solid fa-arrows-rotate"></i>&nbsp;Changerâ€¦</button>
+                <button type="button" class="settings-btn hidden" id="files-reset-root"><i class="fa-solid fa-rotate-left"></i>&nbsp;RÃ©tablir par dÃ©faut</button>
               </div>
-              <p class="muted">Mods, configs, sauvegardes et Java sont téléchargés ici, un dossier par serveur. Le changement peut déplacer plusieurs Gio : ne fermez pas le launcher pendant l'opération.</p>
+              <p class="muted">Mods, configs, sauvegardes et Java sont tÃ©lÃ©chargÃ©s ici, un dossier par serveur. Le changement peut dÃ©placer plusieurs Gio : ne fermez pas le launcher pendant l'opÃ©ration.</p>
             </section>
 
             <section class="settings-card">
               <div class="settings-card-head">
-                <h3><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;À propos</h3>
+                <h3><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;Ã€ propos</h3>
               </div>
               <div class="about-grid">
-                <div><span>Version launcher</span><strong id="settings-version">—</strong></div>
+                <div><span>Version launcher</span><strong id="settings-version">â€”</strong></div>
                 <div><span>EML Lib</span><strong id="settings-emllib">2.3.5</strong></div>
-                <div><span>Electron</span><strong id="settings-electron">—</strong></div>
-                <div><span>OS</span><strong id="settings-os">—</strong></div>
+                <div><span>Electron</span><strong id="settings-electron">â€”</strong></div>
+                <div><span>OS</span><strong id="settings-os">â€”</strong></div>
               </div>
               <div class="about-project">
                 <h4>Modey Launcher</h4>
-                <p>Le <strong>Modey Launcher</strong> est construit à partir du <strong>EML Template</strong>, le template officiel de l'écosystème open-source <strong>EML (Electron Minecraft Launcher)</strong>, puis entièrement adapté à la plateforme Modey : interface sur-mesure, authentification Modey, architecture multi-serveurs et fichiers isolés par serveur.</p>
-                <p>Toute la logique Minecraft — authentification, téléchargements vérifiés, lancement du jeu — est assurée par <strong>EML Lib</strong>, dans une architecture « 1 compte, 1 launcher, N serveurs ».</p>
+                <p>Le <strong>Modey Launcher</strong> est construit Ã  partir du <strong>EML Template</strong>, le template officiel de l'Ã©cosystÃ¨me open-source <strong>EML (Electron Minecraft Launcher)</strong>, puis entiÃ¨rement adaptÃ© Ã  la plateforme Modey : interface sur-mesure, authentification Modey, architecture multi-serveurs et fichiers isolÃ©s par serveur.</p>
+                <p>Toute la logique Minecraft â€” authentification, tÃ©lÃ©chargements vÃ©rifiÃ©s, lancement du jeu â€” est assurÃ©e par <strong>EML Lib</strong>, dans une architecture Â« 1 compte, 1 launcher, N serveurs Â».</p>
               </div>
               <div class="about-links">
                 <a href="https://emlproject.com/" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i>&nbsp;EML Project — https://emlproject.com/
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i>&nbsp;EML Project â€” https://emlproject.com/
                 </a>
                 <a href="https://github.com/Electron-Minecraft-Launcher/EML-Template" target="_blank" rel="noopener noreferrer" class="about-link">
                   <i class="fa-brands fa-github"></i>&nbsp;EML Template sur GitHub
@@ -154,7 +161,7 @@
                 <h3><i class="fa-solid fa-hard-drive"></i>&nbsp;&nbsp;Fichiers par serveur</h3>
               </div>
               <div class="files-list" id="files-list">
-                <p class="muted">Chargement…</p>
+                <p class="muted">Chargementâ€¦</p>
               </div>
             </section>
 
@@ -163,23 +170,23 @@
                 <h3><i class="fa-solid fa-scale-balanced"></i>&nbsp;&nbsp;Licence &amp; infrastructure</h3>
               </div>
               <div class="about-legal">
-                <p><strong>Licence :</strong> le code hérité d'EML (EML Template &amp; EML Lib) reste sous licence MIT ; le projet Modey n'a pas de licence publique (tous droits réservés).</p>
-                <p><strong>Données :</strong> Aucune donnée personnelle n'est collectée sans consentement. Les réglages sont stockés localement.</p>
-                <p><strong>Contact :</strong> <a href="mailto:contact@flowcrea.fr">contact@flowcrea.fr</a> · Discord : nayrolf_rdgs</p>
+                <p><strong>Licence :</strong> le code hÃ©ritÃ© d'EML (EML Template &amp; EML Lib) reste sous licence MIT ; le projet Modey n'a pas de licence publique (tous droits rÃ©servÃ©s).</p>
+                <p><strong>DonnÃ©es :</strong> Aucune donnÃ©e personnelle n'est collectÃ©e sans consentement. Les rÃ©glages sont stockÃ©s localement.</p>
+                <p><strong>Contact :</strong> <a href="mailto:contact@flowcrea.fr">contact@flowcrea.fr</a> Â· Discord : nayrolf_rdgs</p>
               </div>
               <div class="about-infra">
                 <h4>Infrastructure & services</h4>
                 <ul>
-                  <li><strong>Authentification :</strong> Modey Auth Server (Yggdrasil custom + authlib-injector) — gestion des comptes citoyens, sessions, skins</li>
-                  <li><strong>Distribution modpacks :</strong> EML AdminTool (Files Updater) — sync mods/configs/resourcepacks par serveur</li>
-                  <li><strong>Launcher :</strong> EML Lib 2.3.5 (Electron + eml-lib) — installation, mise à jour, lancement</li>
-                  <li><strong>Hébergement :</strong> Serveurs dédiés européens (Athéna : NeoForge 21.1.169, 1.21.1)</li>
+                  <li><strong>Authentification :</strong> Modey Auth Server (Yggdrasil custom + authlib-injector) â€” gestion des comptes citoyens, sessions, skins</li>
+                  <li><strong>Distribution modpacks :</strong> EML AdminTool (Files Updater) â€” sync mods/configs/resourcepacks par serveur</li>
+                  <li><strong>Launcher :</strong> EML Lib 2.3.5 (Electron + eml-lib) â€” installation, mise Ã  jour, lancement</li>
+                  <li><strong>HÃ©bergement :</strong> Serveurs dÃ©diÃ©s europÃ©ens (AthÃ©na : NeoForge 21.1.169, 1.21.1)</li>
                 </ul>
               </div>
             </section>
 
             <footer class="settings-footer">
-              <p class="muted"><i class="fa-solid fa-shield-halved"></i>&nbsp;Tous les réglages sont sauvegardés localement. Aucune donnée ne quitte votre machine.</p>
+              <p class="muted"><i class="fa-solid fa-shield-halved"></i>&nbsp;Tous les rÃ©glages sont sauvegardÃ©s localement. Aucune donnÃ©e ne quitte votre machine.</p>
             </footer>
 </div>
         </main>

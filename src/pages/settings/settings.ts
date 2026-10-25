@@ -10,13 +10,13 @@ import './settings.scss'
 
 const el = (id: string) => document.getElementById(id)
 
-// La page Réglages est une sous-page de #view-home (fin de conteneur).
+// La page RÃ©glages est une sous-page de #view-home (fin de conteneur).
 const mount = el('view-home')
 if (mount && !el('settings-page')) mount.insertAdjacentHTML('beforeend', settingsHtml)
 
 const resolutionList = [
-  { label: 'Auto (défaut)', value: '854x480', width: 854, height: 480 },
-  { label: 'Plein écran', value: 'fullscreen', width: 854, height: 480 },
+  { label: 'Auto (dÃ©faut)', value: '854x480', width: 854, height: 480 },
+  { label: 'Plein Ã©cran', value: 'fullscreen', width: 854, height: 480 },
   { label: '2560x1440 (1440p)', value: '2560x1440', width: 2560, height: 1440 },
   { label: '1920x1080 (1080p)', value: '1920x1080', width: 1920, height: 1080 },
   { label: '1600x900', value: '1600x900', width: 1600, height: 900 },
@@ -48,9 +48,9 @@ function populateAbout(sysInfo: any) {
   const emllibEl = el('settings-emllib')
   const electronEl = el('settings-electron')
   const osEl = el('settings-os')
-  if (versionEl) versionEl.innerText = sysInfo.version ?? '—'
+  if (versionEl) versionEl.innerText = sysInfo.version ?? 'â€”'
   if (emllibEl) emllibEl.innerText = '2.3.5'
-  if (electronEl) electronEl.innerText = process.versions.electron ?? '—'
+  if (electronEl) electronEl.innerText = process.versions.electron ?? 'â€”'
   if (osEl) osEl.innerText = `${process.platform} ${process.arch}`
 }
 
@@ -98,6 +98,7 @@ async function saveSettings() {
     java: javaSelect.value === 'bundled' ? 'bundled' : 'path',
     launcherAction: launcherActionSelect.value as 'close' | 'keep' | 'hide',
     backgroundSleep: Number(backgroundSleepSelect?.value) || 0,
+    betaChannel: (el('settings-beta-channel') as HTMLInputElement)?.checked ?? false,
     uiScale: getUiScaleValue()
   }
 
@@ -107,7 +108,7 @@ async function saveSettings() {
     logger.log('Settings saved')
   } catch (err) {
     logger.error('Failed to save settings:', err)
-    await Dialog.show('Impossible de sauvegarder les paramètres.', [{ text: 'OK', type: 'ok' }])
+    await Dialog.show('Impossible de sauvegarder les paramÃ¨tres.', [{ text: 'OK', type: 'ok' }])
   }
 }
 
@@ -151,7 +152,7 @@ function initDualSlider(sysInfo: any) {
     fill.style.left = `${minPercent}%`
     fill.style.width = `${maxPercent - minPercent}%`
 
-    // Feedback couleur dynamique selon la RAM allouée (vert / orange / rouge)
+    // Feedback couleur dynamique selon la RAM allouÃ©e (vert / orange / rouge)
     const totalGB = sysInfo?.totalMem || 16
     const ratio = maxVal / totalGB
     if (ratio > 0.75) {
@@ -246,6 +247,9 @@ function initFormValues(resolution: { width: number; height: number }) {
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
   if (backgroundSleepSelect) backgroundSleepSelect.value = String(currentSettings.backgroundSleep ?? 0)
   if (javaSelect) javaSelect.value = currentSettings.java === 'bundled' ? 'bundled' : 'custom'
+  const betaChannelCb = el('settings-beta-channel') as HTMLInputElement
+  if (betaChannelCb) betaChannelCb.checked = Boolean(currentSettings.betaChannel)
+  betaChannelCb?.addEventListener('change', saveSettingsDebounced)
 
   const uiScaleInput = el('ui-scale') as HTMLInputElement
   if (uiScaleInput) uiScaleInput.value = String(Math.round((currentSettings.uiScale ?? 1) * 100))

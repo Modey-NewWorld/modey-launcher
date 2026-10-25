@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import type Electron from 'electron'
 import { ipcMain, app } from 'electron'
 import { Bootstraps } from 'eml-lib'
@@ -38,7 +40,19 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
   ipcMain.handle(IPC.bootstraps.check, async () => {
     try {
       const currentVersion = app.getVersion()
-      const res = await fetch(`${ADMINTOOL_URL}/api/modey/launcher-version`, {
+      
+      // Récupérer le canal configuré par l'utilisateur (stable ou beta)
+      let channel = 'stable'
+      try {
+        const settingsPath = path.join(app.getPath('userData'), 'settings.json')
+        if (fs.existsSync(settingsPath)) {
+          const s = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
+          if (s.betaChannel) channel = 'beta'
+        }
+      } catch (_) {}
+
+      const url = `${ADMINTOOL_URL}/api/modey/launcher-version?channel=${encodeURIComponent(channel)}&currentVersion=${encodeURIComponent(currentVersion)}`
+      const res = await fetch(url, {
         headers: { Accept: 'application/json' }
       })
 
@@ -52,7 +66,9 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
             updateAvailable: true,
             currentVersion,
             latestVersion,
+            channel: data.channel || channel,
             mandatory: Boolean(data.mandatory),
+            minRequiredVersion: data.minRequiredVersion || '',
             downloadUrl: data.downloadUrl,
             updateInfo: {
               releaseName: `Modey Launcher v${latestVersion}`,
@@ -65,7 +81,8 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
         return {
           updateAvailable: false,
           currentVersion,
-          latestVersion: currentVersion
+          latestVersion: currentVersion,
+          channel: data.channel || channel
         }
       }
 
