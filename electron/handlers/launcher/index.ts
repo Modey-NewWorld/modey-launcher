@@ -109,7 +109,14 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       ;(launcher as any).run = async function (javaPath: string, args: string[]) {
         try {
           const authlibPath = getAuthlibInjectorPath()
-          const customAuthUrl = account.meta?.url || AUTH_SERVER_URL
+          // Toujours privilégier l'AUTH_SERVER_URL actuel (résout automatiquement les changements d'IP/Domaine)
+          let customAuthUrl = AUTH_SERVER_URL
+          if (account.meta?.type === 'yggdrasil') {
+            customAuthUrl = AUTH_SERVER_URL
+            if (account.meta) (account.meta as any).url = AUTH_SERVER_URL
+          } else if (account.meta?.url) {
+            customAuthUrl = account.meta.url
+          }
           if (authlibPath) {
             const jvmArg = `-javaagent:${authlibPath}=${customAuthUrl}`
             if (!args.some((arg) => arg.includes('authlib-injector'))) {
