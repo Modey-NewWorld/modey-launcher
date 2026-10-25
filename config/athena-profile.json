@@ -19,7 +19,7 @@
   },
   "server": {
     "autoConnect": true,
-    "host": "127.0.0.1",
+    "host": "athena.modey.flowcrea.fr",
     "port": 25565
   },
   "theme": {
