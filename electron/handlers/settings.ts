@@ -32,6 +32,7 @@ export interface IGameSettings {
   backgroundSleep: number
   launchAtStartup: boolean
   autoUpdateCheck: boolean
+  betaChannel?: boolean
   uiScale: number
 }
 
@@ -50,6 +51,7 @@ export const DEFAULT_SETTINGS: IGameSettings = {
   backgroundSleep: 0,
   launchAtStartup: false,
   autoUpdateCheck: true,
+  betaChannel: false,
   uiScale: 1
 }
 

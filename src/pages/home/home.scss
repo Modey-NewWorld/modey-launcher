@@ -13,7 +13,7 @@
 /* --- Zone principale --- */
 .modey-main {
   flex: 1;
-  /* gauche = distance sidebar ↔ bord écran (view-home padding) pour un espacement uniforme */
+  /* gauche = distance sidebar â†” bord Ã©cran (view-home padding) pour un espacement uniforme */
   padding: 14px 14px 0 14px;
   overflow: hidden;
   display: flex;
@@ -22,7 +22,7 @@
   min-height: 0;
 }
 
-/* --- Rangée basse : actualités (scroll) + découverte --- */
+/* --- RangÃ©e basse : actualitÃ©s (scroll) + dÃ©couverte --- */
 .modey-scroll {
   flex: 1;
   min-height: 0;
@@ -266,7 +266,7 @@
   }
 }
 
-/* --- Rangée hero + actualités côte à côte --- */
+/* --- RangÃ©e hero + actualitÃ©s cÃ´te Ã  cÃ´te --- */
 .modey-hero-row {
   display: flex;
   gap: 18px;
@@ -443,7 +443,7 @@
   }
 }
 
-/* Badge pill global (hero accueil + bannière carte serveurs) */
+/* Badge pill global (hero accueil + banniÃ¨re carte serveurs) */
 .hero-badge {
   display: inline-flex;
   align-items: center;
@@ -514,8 +514,8 @@
 
 
 /* --- Responsive Home Breakpoints --- */
-/* Phase 1 : quand la fenêtre commence à rétrécir (1240px - 1080px),
-   la zone serveur conserve sa taille, c'est la colonne actualités qui s'adapte d'abord */
+/* Phase 1 : quand la fenÃªtre commence Ã  rÃ©trÃ©cir (1240px - 1080px),
+   la zone serveur conserve sa taille, c'est la colonne actualitÃ©s qui s'adapte d'abord */
 @media (max-width: 1240px) {
   .modey-hero {
     flex: none !important;
@@ -527,7 +527,7 @@
   }
 }
 
-/* Phase 2 : sous 1080px, la colonne actualités disparaît (masquée),
+/* Phase 2 : sous 1080px, la colonne actualitÃ©s disparaÃ®t (masquÃ©e),
    et la zone image serveur prend alors toute la place disponible */
 @media (max-width: 1080px) {
   .modey-news {
@@ -539,5 +539,189 @@
     min-height: 420px !important;
     height: 100% !important;
     max-height: none !important;
+  }
+}
+
+/* ==========================================================================
+   MINI-POPUP TOAST MISE À JOUR (AU-DESSUS DU BOUTON JOUER)
+   ========================================================================== */
+.modey-update-toast {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1.5px solid #dbeafe;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 25px -5px rgba(30, 136, 229, 0.2), 0 8px 10px -6px rgba(30, 136, 229, 0.1);
+  z-index: 100;
+  animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 28px;
+    width: 12px;
+    height: 12px;
+    background: #ffffff;
+    border-right: 1.5px solid #dbeafe;
+    border-bottom: 1.5px solid #dbeafe;
+    transform: rotate(45deg);
+  }
+
+  .update-toast-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+
+    .update-toast-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1E88E5;
+      background: #eff6ff;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid #bfdbfe;
+    }
+
+    .update-toast-version {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .update-toast-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px;
+      line-height: 1;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+
+      &:hover {
+        color: #0f172a;
+        background: #f1f5f9;
+      }
+    }
+  }
+
+  .update-toast-body {
+    p {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 500;
+      color: #334155;
+      line-height: 1.4;
+    }
+  }
+
+  .update-toast-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+
+    .toast-btn-update {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #1E88E5;
+      color: #ffffff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(30, 136, 229, 0.35);
+      transition: background 0.15s, transform 0.1s;
+
+      &:hover {
+        background: #1976D2;
+        transform: translateY(-1px);
+      }
+    }
+
+    .toast-snooze-wrap {
+      position: relative;
+
+      .toast-btn-snooze {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s;
+
+        &:hover {
+          background: #e2e8f0;
+          color: #0f172a;
+        }
+      }
+
+      .toast-snooze-menu {
+        position: absolute;
+        bottom: calc(100% + 8px);
+        right: 0;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        min-width: 160px;
+        z-index: 110;
+
+        .snooze-item {
+          background: transparent;
+          border: none;
+          text-align: left;
+          padding: 7px 10px;
+          font-size: 11.5px;
+          font-weight: 500;
+          color: #334155;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background 0.15s;
+
+          &:hover {
+            background: #f1f5f9;
+            color: #1E88E5;
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

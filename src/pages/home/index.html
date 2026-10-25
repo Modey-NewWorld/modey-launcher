@@ -10,7 +10,7 @@
 
           <div class="profile-selector-container" id="profile-selector">
             <div class="selected-profile">
-              <span id="current-profile-name">Athéna</span>
+              <span id="current-profile-name">AthÃ©na</span>
               <i class="fa-solid fa-chevron-right"></i>
             </div>
             <div class="profile-dropdown" id="profile-dropdown"></div>
@@ -25,22 +25,45 @@
           <div class="modey-nav-sep"></div>
           <span class="modey-nav-label">Outils Univers</span>
           <nav class="modey-nav modey-nav-tools">
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-chart-pie fa-fw"></i><span>Vue d'ensemble</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-shirt fa-fw"></i><span>Mon personnage</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-coins fa-fw"></i><span>Mon argent</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-building-columns fa-fw"></i><span>Ma ville</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-scale-balanced fa-fw"></i><span>Vie civique</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-users fa-fw"></i><span>Communauté</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="fa-solid fa-signal fa-fw"></i><span>Serveur live</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="BientÃ´t disponible"><i class="fa-solid fa-chart-pie fa-fw"></i><span>Vue d'ensemble</span><span class="modey-soon-badge">BientÃ´t</span></button>
+            <button class="modey-nav-item disabled" disabled title="BientÃ´t disponible"><i class="fa-solid fa-shirt fa-fw"></i><span>Mon personnage</span><span class="modey-soon-badge">BientÃ´t</span></button>
+            <button class="modey-nav-item disabled" disabled title="BientÃ´t disponible"><i class="fa-solid fa-coins fa-fw"></i><span>Mon argent</span><span class="modey-soon-badge">BientÃ´t</span></button>
+            <button class="modey-nav-item disabled" disabled title="BientÃ´t disponible"><i class="fa-solid fa-building-columns fa-fw"></i><span>Ma ville</span><span class="modey-soon-badge">BientÃ´t</span></button>
+            <button class="modey-nav-item disabled" disabled title="BientÃ´t disponible"><i class="fa-solid fa-scale-balanced fa-fw"></i><span>Vie civique</span><span class="modey-soon-badge">BientÃ´t</span></button>
+            <button class="modey-nav-item disabled" disabled title="BientÃ´t disponible"><i class="fa-solid fa-users fa-fw"></i><span>CommunautÃ©</span><span class="modey-soon-badge">BientÃ´t</span></button>
+            <button class="modey-nav-item disabled" disabled title="BientÃ´t disponible"><i class="fa-solid fa-signal fa-fw"></i><span>Serveur live</span><span class="modey-soon-badge">BientÃ´t</span></button>
           </nav>
           </div>
 
           <div class="user-menu-wrap">
-            <button id="btn-play" class="modey-play-btn"><i class="fa-solid fa-play"></i><span>Jouer à Athéna</span></button>
+                        <!-- Mini-Popup Infobulle Mise à Jour Launcher -->
+            <div id="update-toast-popup" class="modey-update-toast" style="display:none;">
+              <div class="update-toast-head">
+                <span class="update-toast-badge"><i class="fa-solid fa-rocket"></i> Mise à jour</span>
+                <span class="update-toast-version" id="toast-update-version">v26.1.1</span>
+                <button type="button" class="update-toast-close" id="btn-toast-dismiss" title="Fermer"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <div class="update-toast-body">
+                <p id="toast-update-title">Une nouvelle version du launcher est disponible !</p>
+              </div>
+              <div class="update-toast-actions">
+                <button type="button" class="toast-btn-update" id="btn-toast-update"><i class="fa-solid fa-download"></i> Mettre à jour</button>
+                <div class="toast-snooze-wrap">
+                  <button type="button" class="toast-btn-snooze" id="btn-toast-snooze-toggle" title="Reporter"><i class="fa-regular fa-clock"></i> Plus tard <i class="fa-solid fa-chevron-up"></i></button>
+                  <div class="toast-snooze-menu" id="toast-snooze-menu" style="display:none;">
+                    <button type="button" class="snooze-item" data-days="1">Me rappeler dans 1 jour</button>
+                    <button type="button" class="snooze-item" data-days="3">Me rappeler dans 3 jours</button>
+                    <button type="button" class="snooze-item" data-days="7">Me rappeler dans 7 jours</button>
+                    <button type="button" class="snooze-item" data-days="30">Me rappeler dans 1 mois</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button id="btn-play" class="modey-play-btn"><i class="fa-solid fa-play"></i><span>Jouer Ã  AthÃ©na</span></button>
 
             <div class="progress-container hidden" id="launch-progress-container">
               <div class="progress-info">
-                <span id="launch-progress-label">Préparation...</span>
+                <span id="launch-progress-label">PrÃ©paration...</span>
                 <span id="launch-progress-percent">0%</span>
               </div>
               <div class="progress-bar-bg">
@@ -50,18 +73,18 @@
 
             <div class="user-menu" id="user-menu">
               <button class="user-menu-item" id="user-menu-profile"><i class="fa-solid fa-user fa-fw"></i><span>Mon profil</span></button>
-              <button class="user-menu-item" id="user-menu-settings"><i class="fa-solid fa-gear fa-fw"></i><span>Paramètres</span></button>
+              <button class="user-menu-item" id="user-menu-settings"><i class="fa-solid fa-gear fa-fw"></i><span>ParamÃ¨tres</span></button>
               <div class="user-menu-sep"></div>
-              <button class="user-menu-item danger" id="user-menu-logout"><i class="fa-solid fa-right-from-bracket fa-fw"></i><span>Se déconnecter</span></button>
+              <button class="user-menu-item danger" id="user-menu-logout"><i class="fa-solid fa-right-from-bracket fa-fw"></i><span>Se dÃ©connecter</span></button>
             </div>
-            <div class="modey-user-card" id="user-card" title="Gérer mon compte">
+            <div class="modey-user-card" id="user-card" title="GÃ©rer mon compte">
               <img src="" id="user-avatar" alt="Skin" />
               <div class="modey-user-details">
                 <div class="modey-user-header-row">
                   <span id="user-name">Undefined</span>
                   <span class="modey-role-badge" id="user-role-badge">Citoyen</span>
                 </div>
-                <span class="modey-user-status"><span class="modey-status-dot"></span><span id="user-status-text">Prêt</span></span>
+                <span class="modey-user-status"><span class="modey-status-dot"></span><span id="user-status-text">PrÃªt</span></span>
               </div>
               <i class="fa-solid fa-chevron-up modey-user-chevron" id="user-chevron"></i>
             </div>
@@ -80,35 +103,35 @@
               <div class="modey-hero-badges">
                 <span class="hero-badge hero-badge-version" id="hero-version"><i class="fa-solid fa-cube"></i>&nbsp;Minecraft 1.21.1</span>
                 <span class="hero-badge hero-badge-status" id="hero-status">
-                  <span class="status-dot pinging" id="server-status-dot"></span>&nbsp;<span id="server-status-text">Vérification...</span>
+                  <span class="status-dot pinging" id="server-status-dot"></span>&nbsp;<span id="server-status-text">VÃ©rification...</span>
                 </span>
               </div>
               <span class="hero-badge hero-badge-players" id="player-count"></span>
             </div>
             <div class="modey-hero-body">
               <div class="modey-hero-info">
-                <h2><span id="hero-title">Athéna</span></h2>
-                <p id="hero-desc">Un monde vivant. Des villes à construire. Une aventure à partager.</p>
+                <h2><span id="hero-title">AthÃ©na</span></h2>
+                <p id="hero-desc">Un monde vivant. Des villes Ã  construire. Une aventure Ã  partager.</p>
                 <div class="hero-tags" id="hero-tags"></div>
               </div>
               <div class="modey-hero-actions">
-                <button id="btn-play-hero" class="hero-play"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Jouer à Athéna</button>
-                <button id="btn-details" class="hero-details"><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;Détails du serveur</button>
+                <button id="btn-play-hero" class="hero-play"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Jouer Ã  AthÃ©na</button>
+                <button id="btn-details" class="hero-details"><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;DÃ©tails du serveur</button>
               </div>
             </div>
             <div class="modey-hero-foot">
-              <span id="hero-foot-note"><i class="fa-solid fa-circle-check"></i>&nbsp;Prêt au lancement • Dernière version installée</span>
+              <span id="hero-foot-note"><i class="fa-solid fa-circle-check"></i>&nbsp;PrÃªt au lancement â€¢ DerniÃ¨re version installÃ©e</span>
             </div>
           </section>
 
             <section class="modey-news">
               <div class="modey-section-head">
-                <h3><i class="fa-solid fa-newspaper"></i>&nbsp;&nbsp;Les actualités de Modey</h3>
+                <h3><i class="fa-solid fa-newspaper"></i>&nbsp;&nbsp;Les actualitÃ©s de Modey</h3>
               </div>
               <div class="news-list" id="news-list"></div>
 
               <section class="modey-discovery">
-                <h3><i class="fa-solid fa-compass"></i>&nbsp;&nbsp;À découvrir</h3>
+                <h3><i class="fa-solid fa-compass"></i>&nbsp;&nbsp;Ã€ dÃ©couvrir</h3>
                 <div class="discovery-card" id="discovery-card"></div>
               </section>
             </section>
