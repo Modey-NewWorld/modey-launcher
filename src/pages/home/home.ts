@@ -1,3 +1,4 @@
+import { checkAndShowUpdateToast } from '../../services/updateToast'
 import shared from '../../shared'
 import { settings, system } from '../../ipc'
 import { Dialog } from '../../components/dialog'
@@ -92,6 +93,7 @@ export function initHome() {
   renderDiscovery(selectProfile)
   refreshAthenaCard()
   bindSidebar()
+  checkAndShowUpdateToast()
 
   setRouterHooks({ onShowServers: refreshAthenaCard })
 
