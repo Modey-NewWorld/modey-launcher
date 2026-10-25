@@ -89,10 +89,28 @@
               <div class="settings-card-head">
                 <h3><i class="fa-solid fa-rotate"></i>&nbsp;&nbsp;Mises à jour</h3>
               </div>
-              <div class="update-line">
-                <span class="update-line-label">Version installée</span>
-                <strong id="update-current-version">—</strong>
+              
+              <div class="update-grid-info" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                <div class="update-line">
+                  <span class="update-line-label">Version installée :</span>
+                  <strong id="update-current-version">—</strong>
+                </div>
+                <div class="update-line">
+                  <span class="update-line-label">Dernière version disponible :</span>
+                  <strong id="update-latest-version" style="color:var(--accent, #3b82f6);">—</strong>
+                </div>
               </div>
+
+              <div class="channel-selector-wrap" style="margin-bottom:14px;">
+                <label for="update-channel-select" style="display:block; font-size:12px; font-weight:600; color:#4a5568; margin-bottom:6px;">
+                  <i class="fa-solid fa-code-branch"></i>&nbsp;Canal de mise à jour
+                </label>
+                <select id="update-channel-select" class="settings-select" style="width:100%; max-width:280px; padding:7px 10px; border-radius:6px; border:1px solid #d2d6dc; font-size:13px;">
+                  <option value="stable">Canal Stable (Production - Recommandé)</option>
+                  <option value="beta">Canal Bêta (Releases expérimentales)</option>
+                </select>
+              </div>
+
               <div class="btn-row">
                 <button type="button" class="settings-btn" id="update-check-btn"><i class="fa-solid fa-magnifying-glass"></i>&nbsp;Vérifier</button>
                 <button type="button" class="settings-btn settings-btn--primary hidden" id="update-install-btn"><i class="fa-solid fa-download"></i>&nbsp;Télécharger et installer</button>

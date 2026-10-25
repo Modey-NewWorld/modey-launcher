@@ -81,7 +81,7 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
         return {
           updateAvailable: false,
           currentVersion,
-          latestVersion: currentVersion,
+          latestVersion: latestVersion || currentVersion,
           channel: data.channel || channel
         }
       }
