@@ -219,7 +219,8 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
             clearTimeout(timeoutId)
             const valData = await valResp.json()
             if (valResp.ok && valData.valid) {
-              if (!(savedSession.meta as any)?.url) {
+              // Met à jour dynamiquement l'URL de l'Auth Server vers le domaine actuel
+              if ((savedSession.meta as any)) {
                 (savedSession.meta as any).url = AUTH_SERVER_URL
               }
               if (valData.user?.role) {
