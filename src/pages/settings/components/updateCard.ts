@@ -81,11 +81,23 @@ export async function initUpdateCard(version: string) {
     progress.setPercent('0%')
     if (statusEl) statusEl.innerText = 'Téléchargement en cours…'
 
-    bootstraps.downloadProgress((value) => {
+    bootstraps.downloadProgress((value: any) => {
       progress.setLabel('Téléchargement de la mise à jour…')
-      const ratio = value.downloaded.size / value.total.amount
-      progress.setWidth(ratio)
-      progress.setPercent(`${(ratio * 100).toFixed(2)}%`)
+      
+      const downloaded = value?.downloaded?.size || 0
+      const total = value?.total?.size || value?.total?.amount || 0
+      
+      let pct = 0
+      if (total > 0) {
+        pct = (downloaded / total) * 100
+      } else if (value?.percent != null) {
+        pct = Number(value.percent)
+      }
+      
+      // Sécurité : borner entre 0 et 100 et limiter à 1 chiffre après la virgule
+      const clampedPct = Math.min(100, Math.max(0, pct))
+      progress.setWidth(clampedPct / 100)
+      progress.setPercent(`${clampedPct.toFixed(1)}%`)
     })
 
     bootstraps.downloadEnd(async () => {
