@@ -8,7 +8,7 @@ import './profile.scss'
 let emailVisible = false
 let cachedEmail: string | null = null
 
-const API_BASE = 'http://192.168.1.29:3005'
+const API_BASE = 'https://api.modey.flowcrea.fr'
 
 const el = (id: string) => document.getElementById(id)
 

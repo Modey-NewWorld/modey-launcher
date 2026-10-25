@@ -4,6 +4,33 @@ import { skin } from './ipc'
 import { Dialog } from './components/dialog'
 import logger from 'electron-log/renderer'
 
+
+export function normalizeSkinUrl(url: string | null | undefined): string {
+  if (!url) return ''
+  let clean = url.trim()
+  const domain = 'https://api.modey.flowcrea.fr'
+  clean = clean.replace(/^http:\/\/192\.168\.1\.\d+(:\d+)?/, domain)
+  clean = clean.replace(/^http:\/\/localhost(:\d+)?/, domain)
+  clean = clean.replace(/^http:\/\/api\.modey\.flowcrea\.fr/, domain)
+  return clean
+}
+
+function createFallbackThumbnail(): string {
+  const canvas = document.createElement('canvas')
+  canvas.width = 120
+  canvas.height = 150
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.fillStyle = '#1e293b'
+    ctx.fillRect(0, 0, 120, 150)
+    ctx.fillStyle = '#64748b'
+    ctx.font = '14px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('Skin', 60, 80)
+  }
+  return canvas.toDataURL()
+}
+
 const DEFAULT_SKIN = {
   id: 'steve',
   url: 'http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb',
@@ -87,7 +114,7 @@ const shared = {
     }
 
     // Toujours charger le modèle standard classic 4px
-    shared.mainSkinViewer.loadSkin(activeSkin.url, { model: 'default' })
+    shared.mainSkinViewer.loadSkin(normalizeSkinUrl(activeSkin.url), { model: 'default' })
     if (activeCape) shared.mainSkinViewer.loadCape(activeCape.url)
     else shared.mainSkinViewer.resetCape()
   },
@@ -115,16 +142,35 @@ const shared = {
       shared.auxiliarySkinViewer.controls.enabled = false
     }
 
-    // Ordonner : les skins personnalisés en premier, et Steve toujours en dernier
-    const customSkins: ISkin[] = []
-    const defaultSkins: ISkin[] = []
+    // Ordonner : les skins personnalisés uniques en premier, et un seul Steve en dernier
+    const customSkins: (ISkin & { name?: string })[] = []
+    const defaultSkins: (ISkin & { name?: string })[] = []
+    const seenUrls = new Set<string>()
 
     for (const s of shared.skins ?? []) {
-      if (s.id === 'steve' || s.id === 'alex') {
-        if (s.id === 'steve') defaultSkins.push(s)
+      if (!s || !s.url) continue
+      const norm = normalizeSkinUrl(s.url)
+      const isSteve = s.id === 'steve' || s.id === 'alex' || norm === DEFAULT_SKIN.url
+      if (isSteve) {
+        if (defaultSkins.length === 0) {
+          defaultSkins.push({ ...s, url: DEFAULT_SKIN.url, id: 'steve', name: 'Steve' })
+        }
       } else {
-        customSkins.push(s)
+        if (!seenUrls.has(norm)) {
+          seenUrls.add(norm)
+          customSkins.push({ ...s, url: norm })
+        }
       }
+    }
+
+    if (defaultSkins.length === 0) {
+      defaultSkins.push({
+        id: 'steve',
+        url: DEFAULT_SKIN.url,
+        variant: 'classic',
+        state: customSkins.some(c => c.state === 'active') ? 'inactive' : 'active',
+        name: 'Steve'
+      })
     }
 
     const orderedSkins = [...customSkins, ...defaultSkins]
@@ -138,7 +184,8 @@ const shared = {
       skinDiv.addEventListener('click', async () => {
         if (s.state === 'active') return
         try {
-          const updated = await skin.updateSkin(s.url, 'classic')
+          const cleanTargetUrl = normalizeSkinUrl(s.url)
+          const updated = await skin.updateSkin(cleanTargetUrl, 'classic')
           if (updated && Array.isArray(updated)) {
             shared.skins = updated
           }
@@ -146,7 +193,7 @@ const shared = {
           await shared.resetSkinViews()
           // Mettre à jour immédiatement la photo de profil (avatar) et les infos d'identité
           const { updateAvatarFromSkinUrl } = await import('./state')
-          await updateAvatarFromSkinUrl(s.url)
+          await updateAvatarFromSkinUrl(cleanTargetUrl)
           const { refreshProfileIdentity } = await import('./pages/profile/profile')
           refreshProfileIdentity()
           document.getElementById('profile-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -226,19 +273,20 @@ const shared = {
       skinLabel.title = displayName
       skinDiv.title = `${displayName} (${s.state === 'active' ? 'Actif' : 'Cliquer pour équiper'})`
 
+      const cleanUrl = normalizeSkinUrl(s.url)
       try {
         if (shared.cachedSkinThumbnails.has(source)) {
           skinImg.src = shared.cachedSkinThumbnails.get(source)!
         } else {
-          await shared.auxiliarySkinViewer.loadSkin(s.url, { model: 'default' })
+          await shared.auxiliarySkinViewer.loadSkin(cleanUrl, { model: 'default' })
           shared.auxiliarySkinViewer.render()
 
           skinImg.src = shared.auxiliarySkinViewer.canvas.toDataURL()
           shared.cachedSkinThumbnails.set(source, skinImg.src)
         }
       } catch (err) {
-        logger.warn('Failed to render thumbnail for skin:', s.url, err)
-        // Fallback visuel pour ne pas bloquer l'affichage des autres skins
+        logger.warn('Failed to render thumbnail for skin:', cleanUrl, err)
+        skinImg.src = createFallbackThumbnail()
         skinImg.alt = displayName
       }
 

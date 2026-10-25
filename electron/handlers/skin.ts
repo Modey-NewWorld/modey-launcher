@@ -4,6 +4,16 @@ import path from 'node:path'
 import fs from 'node:fs'
 import logger from 'electron-log/main'
 import { IPC } from '../ipc-channels'
+import { AUTH_API_URL } from '../const'
+
+export function normalizeSkinUrl(url: string | null | undefined): string {
+  if (!url) return ''
+  let clean = url.trim()
+  clean = clean.replace(/^http:\/\/192\.168\.1\.\d+(:\d+)?/, AUTH_API_URL)
+  clean = clean.replace(/^http:\/\/localhost(:\d+)?/, AUTH_API_URL)
+  clean = clean.replace(/^http:\/\/api\.modey\.flowcrea\.fr/, 'https://api.modey.flowcrea.fr')
+  return clean
+}
 
 let skin: Skin | null = null
 const skinPath = path.join(app.getPath('userData'), 'skins.json')
@@ -285,28 +295,39 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
     try {
       const data = (await skin.getSkin()) as ISkin[]
       const active = data.find((s) => s.state === 'active')
-      if (active) serverActiveUrl = active.url
+      if (active) serverActiveUrl = normalizeSkinUrl(active.url)
     } catch (err) {
       logger.warn('Failed to get server skins:', err)
     }
   }
 
   const injectedActive = inject.find((s) => s.state === 'active')
-  const effectiveActiveUrl = injectedActive ? injectedActive.url : serverActiveUrl
+  const effectiveActiveUrl = normalizeSkinUrl(injectedActive ? injectedActive.url : serverActiveUrl)
 
   let localCache: (ISkin & { name?: string })[] = []
   try {
     if (fs.existsSync(skinPath)) {
-      localCache = (JSON.parse(fs.readFileSync(skinPath, 'utf-8') || '[]') as (ISkin & { name?: string })[])
-        .map((s) => ({
+      const raw = JSON.parse(fs.readFileSync(skinPath, 'utf-8') || '[]') as (ISkin & { name?: string })[]
+      const seenUrls = new Set<string>()
+
+      for (const s of raw) {
+        if (!s || !s.url) continue
+        const normUrl = normalizeSkinUrl(s.url)
+        // Ignorer Steve s'il s'était retrouvé dans skins.json
+        if (s.id === 'steve' || normUrl === DEFAULT_SKINS[0].url) continue
+        if (seenUrls.has(normUrl)) continue
+        seenUrls.add(normUrl)
+
+        localCache.push({
           id: s.id || ('skin_' + Math.random().toString(36).substring(2, 8)),
-          url: s.url,
+          url: normUrl,
           name: s.name,
           state: effectiveActiveUrl
-            ? (s.url === effectiveActiveUrl ? 'active' : 'inactive')
+            ? (normUrl === effectiveActiveUrl ? 'active' : 'inactive')
             : (s.state === 'active' ? 'active' : 'inactive'),
           variant: 'classic' as const
-        }))
+        })
+      }
     }
   } catch (err) {
     logger.warn('Failed to read skins from cache:', err)
@@ -314,17 +335,19 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
 
   // Injecter les skins fournis en paramètre s'ils ne sont pas déjà dans le cache
   for (const inj of inject) {
-    if (inj.id === 'steve' || inj.url === DEFAULT_SKINS[0].url) {
+    if (!inj || !inj.url) continue
+    const normInjUrl = normalizeSkinUrl(inj.url)
+    if (inj.id === 'steve' || normInjUrl === DEFAULT_SKINS[0].url) {
       continue
     }
-    const found = localCache.find((s) => s.url === inj.url)
+    const found = localCache.find((s) => s.url === normInjUrl)
     if (found) {
       if (inj.state === 'active') found.state = 'active'
       if (inj.name) found.name = inj.name
     } else {
       localCache.unshift({
         id: inj.id || ('skin_' + Date.now().toString(36)),
-        url: inj.url,
+        url: normInjUrl,
         name: inj.name,
         state: inj.state || 'inactive',
         variant: 'classic'
@@ -360,8 +383,15 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
 }
 
 async function appendSkin(...skins: (ISkin & { name?: string })[]) {
-  const normalizedSkins = skins.map((s) => ({ ...s, variant: 'classic' as const }))
+  const normalizedSkins = skins
+    .filter((s) => s && s.url && s.id !== 'steve' && s.url !== DEFAULT_SKINS[0].url)
+    .map((s) => ({
+      ...s,
+      url: normalizeSkinUrl(s.url),
+      variant: 'classic' as const
+    }))
   const activeSkin = normalizedSkins.find((s) => s.state === 'active')
+
   if (!fs.existsSync(skinPath)) {
     try {
       fs.writeFileSync(skinPath, JSON.stringify(normalizedSkins, null, 2))
@@ -370,11 +400,21 @@ async function appendSkin(...skins: (ISkin & { name?: string })[]) {
     }
   } else {
     try {
-      let existing = (JSON.parse(fs.readFileSync(skinPath, 'utf-8') || '[]') as (ISkin & { name?: string })[])
-        .map((s) => ({
+      const raw = JSON.parse(fs.readFileSync(skinPath, 'utf-8') || '[]') as (ISkin & { name?: string })[]
+      const seen = new Set<string>()
+      let existing: (ISkin & { name?: string })[] = []
+
+      for (const s of raw) {
+        if (!s || !s.url) continue
+        const norm = normalizeSkinUrl(s.url)
+        if (s.id === 'steve' || norm === DEFAULT_SKINS[0].url || seen.has(norm)) continue
+        seen.add(norm)
+        existing.push({
           ...s,
-          state: activeSkin ? 'inactive' as const : s.state
-        }))
+          url: norm,
+          state: activeSkin ? 'inactive' : s.state
+        })
+      }
 
       for (const item of normalizedSkins) {
         const found = existing.find((e) => e.url === item.url)
@@ -392,4 +432,3 @@ async function appendSkin(...skins: (ISkin & { name?: string })[]) {
     }
   }
 }
-
