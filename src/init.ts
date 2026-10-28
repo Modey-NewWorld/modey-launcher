@@ -146,35 +146,77 @@ export async function bootstrap() {
   const mn = await maintenance.get()
   const bgUrl = bg?.file?.url ?? DEFAULT_BACKGROUND
 
-  if (up.updateAvailable && (up as any).mandatory) {
-    updateProgress.setIndeterminate(false)
-    updateProgress.reset()
-    updateProgress.setLabel('Préparation de la mise à jour...')
-    updateProgress.setPercent('0%')
-    setBlockingView('update')
-    await new Promise((r) => setTimeout(r, 500))
-    bootstraps.downloadProgress((value) => {
-      updateProgress.setLabel('Téléchargement de la mise à jour...')
-      const ratio = value.downloaded.size / value.total.amount
-      updateProgress.setWidth(ratio)
-      updateProgress.setPercent(`${(ratio * 100).toFixed(2)}%`)
-    })
-    bootstraps.downloadEnd(async () => {
-      updateProgress.setIndeterminate(true)
-      updateProgress.setLabel('Installation...')
-      await bootstraps.install()
-    })
-    bootstraps.error((err) => {
-      logger.error('Error while downloading bootstraps:', err)
-    })
-    await bootstraps.download()
-    logger.log('Update installed, restarting launcher...')
-    setTimeout(() => {
-      window.location.reload()
-    }, 1000)
-
-    return
-  }
+  if (up.updateAvailable && (up as any).mandatory) {
+    setBlockingView('update')
+
+    const errorContainer = document.getElementById('update-error-container')
+    const errorText = document.getElementById('update-error-text')
+    const retryBtn = document.getElementById('btn-update-retry')
+    const manualBtn = document.getElementById('btn-update-manual')
+
+    const startMandatoryUpdate = async () => {
+      if (errorContainer) errorContainer.style.display = 'none'
+      updateProgress.setIndeterminate(false)
+      updateProgress.reset()
+      updateProgress.setLabel('Préparation de la mise à jour...')
+      updateProgress.setPercent('0%')
+
+      bootstraps.downloadProgress((value: any) => {
+        updateProgress.setLabel('Téléchargement de la mise à jour...')
+        const downloaded = value?.downloaded?.size || 0
+        const total = value?.total?.size || value?.total?.amount || 0
+        if (total > 0) {
+          const ratio = Math.min(downloaded / total, 1)
+          updateProgress.setWidth(ratio)
+          updateProgress.setPercent(`${(ratio * 100).toFixed(1)}%`)
+        }
+      })
+
+      bootstraps.downloadEnd(async () => {
+        updateProgress.setIndeterminate(true)
+        updateProgress.setLabel('Lancement de l\'installation...')
+        updateProgress.setPercent('100%')
+        setTimeout(async () => {
+          try {
+            await bootstraps.install()
+          } catch (err: any) {
+            logger.error('Failed to trigger update installer:', err)
+          }
+        }, 800)
+      })
+
+      bootstraps.error((err: any) => {
+        logger.error('Error while downloading bootstraps:', err)
+        updateProgress.setLabel('Échec du téléchargement')
+        if (errorContainer) {
+          errorContainer.style.display = 'flex'
+          if (errorText) errorText.innerText = err?.message || 'Erreur lors du téléchargement de la mise à jour.'
+        }
+      })
+
+      try {
+        await bootstraps.download()
+      } catch (err: any) {
+        logger.error('bootstrap.download call threw:', err)
+        updateProgress.setLabel('Échec du téléchargement')
+        if (errorContainer) {
+          errorContainer.style.display = 'flex'
+          if (errorText) errorText.innerText = err?.message || 'Impossible de télécharger la mise à jour.'
+        }
+      }
+    }
+
+    if (retryBtn) retryBtn.onclick = () => startMandatoryUpdate()
+    if (manualBtn) {
+      manualBtn.onclick = () => {
+        const url = (up as any).downloadUrl || 'https://github.com/Modey-NewWorld/modey-launcher/releases'
+        window.open(url, '_blank')
+      }
+    }
+
+    await startMandatoryUpdate()
+    return
+  }
 
   // Restauration de session en parallèle du chargement de l'image de fond
   let session: any = null

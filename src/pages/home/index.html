@@ -4,7 +4,7 @@
             <img src="/src/static/images/logo.png" class="modey-brand-logo" alt="Modey" />
             <div class="modey-brand-text">
               <strong>Modey Launcher</strong>
-              <span id="launcher-version-label">Version 26.1.2</span>
+              <span id="launcher-version-label">Version 26.1.3</span>
             </div>
           </div>
 
@@ -36,6 +36,30 @@
           </div>
 
           <div class="user-menu-wrap">
+            <!-- Mini-Popup Toast Mise à jour -->
+            <div id="update-toast-popup" class="modey-update-toast" style="display: none;">
+              <div class="update-toast-head">
+                <span class="update-toast-badge"><i class="fa-solid fa-sparkles"></i> Mise à jour</span>
+                <span class="update-toast-version" id="toast-update-version">v26.1.3</span>
+                <button type="button" class="update-toast-close" id="btn-toast-dismiss" title="Fermer"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <div class="update-toast-body">
+                <p id="toast-update-title">Une nouvelle version de Modey Launcher est disponible !</p>
+              </div>
+              <div class="update-toast-actions">
+                <button type="button" class="toast-btn-update" id="btn-toast-update"><i class="fa-solid fa-arrow-down"></i> Mettre à jour</button>
+                <div class="toast-snooze-wrap">
+                  <button type="button" class="toast-btn-snooze" id="btn-toast-snooze-toggle" title="Rappeler plus tard"><i class="fa-solid fa-clock"></i> Plus tard <i class="fa-solid fa-chevron-down" style="font-size: 9px;"></i></button>
+                  <div class="toast-snooze-menu" id="toast-snooze-menu" style="display: none;">
+                    <button type="button" class="snooze-item" data-days="1"><i class="fa-regular fa-clock"></i> Dans 1 jour</button>
+                    <button type="button" class="snooze-item" data-days="3"><i class="fa-regular fa-clock"></i> Dans 3 jours</button>
+                    <button type="button" class="snooze-item" data-days="7"><i class="fa-regular fa-clock"></i> Dans 1 semaine</button>
+                    <button type="button" class="snooze-item" data-days="30"><i class="fa-regular fa-clock"></i> Dans 1 mois</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <button id="btn-play" class="modey-play-btn"><i class="fa-solid fa-play"></i><span>Jouer à Athéna</span></button>
 
             <div class="progress-container hidden" id="launch-progress-container">
