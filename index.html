@@ -100,6 +100,17 @@
             <div class="progress-bar-fill" id="update-progress-bar"></div>
           </div>
         </div>
+        <div id="update-error-container" style="display: none; margin-top: 18px; flex-direction: column; gap: 10px; align-items: center;">
+          <p id="update-error-text" style="color: #ef4444; font-size: 13px; font-weight: 500; margin: 0; text-align: center; max-width: 320px;"></p>
+          <div style="display: flex; gap: 10px;">
+            <button id="btn-update-retry" class="btn btn-primary" style="padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;">
+              <i class="fa-solid fa-rotate-right"></i> Réessayer
+            </button>
+            <button id="btn-update-manual" class="btn btn-secondary" style="padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;">
+              <i class="fa-solid fa-download"></i> Télécharger manuellement
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
