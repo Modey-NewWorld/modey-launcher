@@ -118,10 +118,11 @@ export function initProfile() {
     setTimeout(refreshDiscordStatus, 15000)
   })
 
-  // Bouton : Dissocier le compte Discord
-  el('btn-unlink-discord')?.addEventListener('click', async () => {
+  // Bouton : Dissocier le compte Discord (avec état de chargement et retrait de rôle)
+  const unlinkBtn = el('btn-unlink-discord') as HTMLButtonElement | null
+  unlinkBtn?.addEventListener('click', async () => {
     const confirmed = await Dialog.show(
-      'Êtes-vous sûr de vouloir dissocier votre compte Discord de votre profil Modey ?\n\nVous perdrez vos accès aux salons réservés aux joueurs sur le serveur Discord.',
+      'Êtes-vous sûr de vouloir dissocier votre compte Discord de votre profil Modey ?\n\nVos rôles seront immédiatement retirés sur le serveur Discord et vous perdrez vos accès aux salons réservés aux joueurs.',
       [
         { text: 'Annuler', type: 'cancel' },
         { text: 'Dissocier', type: 'danger' }
@@ -132,14 +133,31 @@ export function initProfile() {
     const token = shared.account?.accessToken
     if (!token) return
 
+    const originalHtml = unlinkBtn.innerHTML
+    unlinkBtn.disabled = true
+    unlinkBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>&nbsp;Dissociation en cours...'
+
     try {
-      await fetch(`${API_BASE}/api/auth/discord/unlink`, {
+      const res = await fetch(`${API_BASE}/api/auth/discord/unlink`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token })
       })
+
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        throw new Error(data?.error || `Erreur serveur (${res.status})`)
+      }
+
       await refreshDiscordStatus()
-    } catch (_) {}
+    } catch (err: any) {
+      await Dialog.show(`Impossible de dissocier le compte Discord : ${err?.message || 'Erreur réseau'}`)
+    } finally {
+      if (unlinkBtn) {
+        unlinkBtn.disabled = false
+        unlinkBtn.innerHTML = originalHtml
+      }
+    }
   })
 
   refreshProfileIdentity()

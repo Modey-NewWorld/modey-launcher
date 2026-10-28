@@ -707,6 +707,12 @@
         background: #fee2e2;
         color: #dc2626;
       }
+
+      &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
     }
   }
 }

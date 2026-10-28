@@ -28,7 +28,9 @@
       {
         "from": "assets",
         "to": "assets",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "files": [
@@ -48,13 +50,14 @@
       "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
     ],
     "publish": {
-      "provider": "generic",
-      "url": "https://emlproject.pages.dev/"
+      "provider": "github",
+      "owner": "Modey-NewWorld",
+      "repo": "modey-launcher"
     },
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico",
-      "legalTrademarks": "EML Project"
+      "legalTrademarks": "FlowCreativeStudio / Modey"
     },
     "nsis": {
       "oneClick": false,
@@ -65,7 +68,19 @@
       "shortcutName": "Modey Launcher",
       "deleteAppDataOnUninstall": true,
       "artifactName": "${productName}-Setup-${version}.${ext}",
-      "uninstallDisplayName": "Modey Launcher"
+      "uninstallDisplayName": "Modey Launcher",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/uninstallerSidebar.bmp",
+      "installerHeader": "build/installerHeader.bmp",
+      "installerHeaderIcon": "build/icon.ico",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "language": "1036",
+      "installerLanguages": [
+        "fr_FR"
+      ],
+      "multiLanguageInstaller": false,
+      "include": "build/installer.nsh"
     },
     "mac": {
       "target": [
