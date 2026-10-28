@@ -4,7 +4,7 @@
   "author": "Flow (Florian) — FlowCreativeStudio (https://github.com/NayrolfRdgs)",
   "description": "Launcher officiel et modulaire de la plateforme de jeu Modey",
   "private": false,
-  "version": "26.1.1",
+  "version": "26.1.2",
   "license": "UNLICENSED",
   "main": "dist-electron/main.js",
   "scripts": {
