@@ -1,42 +1,113 @@
 :root {
-  /* Colors — Thème clair Modey / Identité bleue Athéna */
-  --primary: #1E88E5;
-  --primary-hover: #1565C0;
-  --primary-light: rgba(30, 136, 229, 0.12);
-  --primary-glow: rgba(30, 136, 229, 0.25);
-
-  --bg-base: #F0F4F8;
+  /* Surfaces */
+  --bg-base: #F3F5F9;
   --bg-surface: #FFFFFF;
-  --bg-surface-alt: #F5F8FC;
-  --bg-dark: #F0F4F8;
+  --bg-sunken: #E9EEF5;
+  --bg-hover: #F6F8FC;
+  --bg-dark: #F3F5F9;
+  --bg-surface-alt: #F6F8FC;
 
-  --text-main: #1A2332;
-  --text-secondary: #3D5268;
-  --text-muted: #6B82A0;
+  /* Encre */
+  --ink-900: #0D1726;   /* titres */
+  --ink-700: #24374F;   /* texte fort */
+  --ink-500: #55657D;   /* texte courant — 5.9:1 sur blanc */
+  --ink-400: #6F7F95;   /* display uniquement (≥ 24 px) — 4.1:1 sur blanc */
 
-  /* Glassmorphism clair */
-  --glass-bg: rgba(255, 255, 255, 0.80);
-  --glass-border: rgba(30, 136, 229, 0.15);
-  --glass-blur: 16px;
+  /* Aliases compat */
+  --text-main: var(--ink-900);
+  --text-secondary: var(--ink-700);
+  --text-muted: var(--ink-500);
+
+  /* Lignes */
+  --line: #E4E9F0;
+  --line-strong: #C9D4E2;
+
+  /* Accent unique */
+  --accent: #1B6FD6;
+  --accent-strong: #1457AD;
+  --accent-soft: #E7F0FC;
+  --accent-ink: #0B4A94;
+  --accent-ring: rgba(27, 111, 214, 0.35);
+
+  /* Aliases compat primary */
+  --primary: var(--accent);
+  --primary-hover: var(--accent-strong);
+  --primary-light: var(--accent-soft);
+  --primary-glow: var(--accent-ring);
+
+  /* Glassmorphism compat */
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-border: var(--line);
+  --glass-blur: 12px;
 
   /* Sidebar */
-  --sidebar-bg: rgba(255, 255, 255, 0.92);
-  --sidebar-border: rgba(30, 136, 229, 0.12);
+  --sidebar-bg: var(--bg-surface);
+  --sidebar-border: var(--line);
 
-  /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(30, 50, 100, 0.08);
-  --shadow-md: 0 4px 16px rgba(30, 50, 100, 0.12);
-  --shadow-lg: 0 10px 30px rgba(30, 50, 100, 0.18);
+  /* Sémantique */
+  --success: #17794A;
+  --success-soft: #E6F4EC;
+  --warning: #8A5A00;
+  --warning-soft: #FFF4DC;
+  --danger: #B42318;
+  --danger-soft: #FEECEA;
+
+  /* Radius */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
+  --btn-radius: var(--r-sm);
+
+  /* Espacement */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+
+  /* Ombres teintées */
+  --shadow-xs: 0 1px 2px rgba(13, 23, 38, 0.05);
+  --shadow-sm: 0 2px 6px -1px rgba(13, 23, 38, 0.07), 0 1px 2px rgba(13, 23, 38, 0.04);
+  --shadow-md: 0 10px 24px -8px rgba(13, 23, 38, 0.16);
+  --shadow-lg: 0 24px 60px -20px rgba(13, 23, 38, 0.28);
+
+  /* Typo */
+  --font-display: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
+  --font-ui: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'Departure Mono', ui-monospace, monospace;
+
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-22: 22px;
+  --fs-28: 28px;
+  --fs-34: 34px;
+
+  /* Mouvement */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --dur-3: 260ms;
 
   /* Layout */
-  --sidebar-width: 300px;
+  --sidebar-width: 272px;
+  --rail-width: 300px;
+  --gap: 16px;
+  --page-pad: 18px;
+  --layout-padding: 18px;
   --content-max-width: 1720px;
-  --layout-padding: clamp(10px, 1.2vw, 18px);
 
-  /* UI System */
-  --btn-radius: 8px;
-
-  /* Badges de Rôles (Design Sobre & Discret unifié avec l'Admin Panel) */
+  /* Badges de Rôles */
   --founder-gold: #b45309;
   --founder-bg: #fef3c7;
   --founder-border: #fcd34d;

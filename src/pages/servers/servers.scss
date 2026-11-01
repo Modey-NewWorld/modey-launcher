@@ -230,7 +230,7 @@
 
 /* Vrais boutons serveurs (globaux : carte Athéna + carte Free Build) */
 .srv-btn {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(9.8px, 0.94vw, 12.0px);
   font-weight: 600;
   padding: 9px 16px;
@@ -370,7 +370,7 @@
   .soon-select {
     width: 100%;
     justify-content: center;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-ui);
     font-size: clamp(9.8px, 0.94vw, 12.0px);
     font-weight: 600;
     padding: 9px 16px;

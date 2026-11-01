@@ -354,7 +354,7 @@
     }
 
     code {
-      font-family: monospace;
+      font-family: var(--font-mono);
       font-size: clamp(9.0px, 0.86vw, 11.0px);
       color: #3d5268;
       background: #f2f6fc;
@@ -410,7 +410,7 @@
   color: #c62828;
   border-radius: 10px;
   padding: 10px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(10.2px, 0.98vw, 12.5px);
   font-weight: 600;
   cursor: pointer;
@@ -531,7 +531,7 @@
     border: 1px solid #e2e9f4;
     background: #fff;
     color: #3d5268;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-ui);
     font-size: clamp(9.8px, 0.94vw, 12.0px);
     font-weight: 600;
     padding: 6px 14px;

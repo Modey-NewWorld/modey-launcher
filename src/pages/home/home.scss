@@ -158,7 +158,7 @@
         flex-wrap: wrap;
 
         .hero-tag {
-          font-size: 10.5px;
+          font-size: 11px;
           font-weight: 500;
           color: rgba(255, 255, 255, 0.9);
           background: rgba(255, 255, 255, 0.16);
@@ -226,7 +226,7 @@
       background: linear-gradient(135deg, #2f7cf6 0%, #1a5fe0 100%);
       color: #ffffff;
       border: none;
-      font-family: 'Poppins', sans-serif;
+      font-family: var(--font-ui);
       font-size: 13.5px;
       font-weight: 600;
       padding: 10px 22px;
@@ -338,7 +338,7 @@
     }
 
     .head-count-badge {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       color: #475569;
       background: #f1f5f9;
@@ -426,7 +426,7 @@
       background: linear-gradient(135deg, #2f7cf6 0%, #1a5fe0 100%);
       color: #ffffff;
       border: none;
-      font-family: 'Poppins', sans-serif;
+      font-family: var(--font-ui);
       font-size: 12.5px;
       font-weight: 600;
       padding: 9px 14px;
@@ -543,7 +543,7 @@
     .history-card-sub {
       display: flex;
       justify-content: space-between;
-      font-size: 10px;
+      font-size: 11px;
       color: #64748b;
       margin: 4px 0;
     }
@@ -552,7 +552,7 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       color: #16a34a;
     }
@@ -604,7 +604,7 @@
     position: absolute;
     top: 10px;
     right: 12px;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 999px;
@@ -768,7 +768,7 @@
       }
 
       .soon-desc {
-        font-size: 10.5px;
+        font-size: 11px;
         color: #64748b;
         margin-top: 3px;
         line-height: 1.35;
@@ -830,7 +830,7 @@
     }
 
     .discord-sub {
-      font-size: 10px;
+      font-size: 11px;
       color: rgba(255, 255, 255, 0.85);
       margin-top: 2px;
       white-space: nowrap;

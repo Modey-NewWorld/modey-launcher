@@ -30,7 +30,7 @@
     border: none;
     background: transparent;
     border-radius: 9px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-ui);
     font-size: clamp(10.7px, 1.02vw, 13.0px);
     font-weight: 500;
     color: #3d5268;

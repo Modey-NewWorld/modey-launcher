@@ -1,3 +1,4 @@
+import './static/styles/_fonts.scss'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import './static/styles/_variables.scss'
 import './static/styles/main.scss'

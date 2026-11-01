@@ -20,7 +20,7 @@
   .face-btn {
     border: none;
     background: transparent;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-ui);
     font-size: clamp(9.4px, 0.9vw, 11.5px);
     font-weight: 600;
     color: #8a97ad;
@@ -70,7 +70,7 @@
   border: 1px solid #e2e9f4;
   background: #fff;
   color: #3d5268;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(9.8px, 0.94vw, 12.0px);
   font-weight: 600;
   padding: 8px 18px;
@@ -130,7 +130,7 @@
       border: 1px solid #e2e9f4;
       background: #fff;
       color: #5b6b84;
-      font-family: 'Poppins', sans-serif;
+      font-family: var(--font-ui);
       font-size: clamp(9.0px, 0.86vw, 11.0px);
       font-weight: 600;
       padding: 7px 6px;

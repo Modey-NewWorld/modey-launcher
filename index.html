@@ -4,10 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Modey Launcher</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       /* CSS critique anti-FOUC : appliqué avant le bundle, harmonisé avec le thème clair Modey */
-      html, body { margin: 0; height: 100%; background-color: #F0F4F8; overflow: hidden; font-family: 'Poppins', sans-serif; }
+      html, body { margin: 0; height: 100%; background-color: #F3F5F9; overflow: hidden; font-family: 'Instrument Sans', system-ui, sans-serif; }
       div.view:not(.active) { display: none; }
       body:not(.loaded) div#app { opacity: 0 !important; visibility: hidden; }
       div#app { transition: opacity 0.3s ease-out; }
@@ -16,8 +15,8 @@
         display: flex; justify-content: center; align-items: center;
         height: 100vh; width: 100vw;
         padding-top: 36px; box-sizing: border-box; /* centre sous la titlebar (36px) */
-        background-color: #F0F4F8; color: #3D5268;
-        font-family: 'Poppins', sans-serif; font-size: 13px;
+        background-color: #F3F5F9; color: #24374F;
+        font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 13px;
         opacity: 1;
         transition: opacity 0.25s ease-out, visibility 0s linear 0s;
         z-index: 9999;
@@ -41,7 +40,7 @@
         display: flex; flex-direction: column; align-items: center; gap: 6px;
       }
       div#view-loading .spinner {
-        font-size: 1.5rem; color: #1E88E5; margin: 0;
+        font-size: 1.5rem; color: #1B6FD6; margin: 0;
       }
     </style>
   </head>

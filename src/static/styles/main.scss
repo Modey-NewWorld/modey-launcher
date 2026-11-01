@@ -7,13 +7,40 @@
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  line-height: 1.45;
+  text-rendering: optimizeLegibility;
   background: var(--bg-base);
-  background-position: center;
-  background-size: cover;
   color: var(--text-main);
   height: 100vh;
   overflow: hidden;
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(20px, 1.6vw, 24px);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+h3 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+}
+
+h4, label, .badge {
+  font-family: var(--font-ui);
+  font-weight: 600;
 }
 
 /* --- Titlebar custom (transparente, fondue avec la sidebar) --- */
@@ -148,7 +175,7 @@ a {
   gap: 10px;
   padding: 10px 20px;
 
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(11.5px, 1.09vw, 14.0px);
   font-weight: 500;
   text-decoration: none;
