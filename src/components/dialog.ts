@@ -76,7 +76,17 @@ class DialogSystem {
         this.buttonsEl.appendChild(btn)
       })
 
+      this.triggerEl = document.activeElement as HTMLElement | null
+      this.escHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          this.close()
+          resolve(false as any)
+        }
+      }
+      window.addEventListener('keydown', this.escHandler)
       this.overlay.classList.remove('hidden')
+      const firstBtn = this.buttonsEl.querySelector('button') as HTMLElement | null
+      if (firstBtn) setTimeout(() => firstBtn.focus(), 50)
     })
   }
 
@@ -128,8 +138,19 @@ class DialogSystem {
     })
   }
 
+  private triggerEl: HTMLElement | null = null
+  private escHandler: ((e: KeyboardEvent) => void) | null = null
+
   private close() {
     this.overlay.classList.add('hidden')
+    if (this.escHandler) {
+      window.removeEventListener('keydown', this.escHandler)
+      this.escHandler = null
+    }
+    if (this.triggerEl && typeof this.triggerEl.focus === 'function') {
+      this.triggerEl.focus()
+      this.triggerEl = null
+    }
   }
 }
 

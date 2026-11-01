@@ -62,7 +62,7 @@
 
             <button id="btn-play" class="modey-play-btn"><i class="ph-bold ph-play"></i><span>Jouer à Athéna</span></button>
 
-            <div class="progress-container hidden" id="launch-progress-container">
+            <div class="progress-container hidden" id="launch-progress-container" role="status" aria-live="polite">
               <div class="progress-info">
                 <span id="launch-progress-label">Préparation...</span>
                 <span id="launch-progress-percent">0%</span>
@@ -106,7 +106,7 @@
               <div class="modey-hero-top">
                 <div class="modey-hero-badges">
                   <span class="hero-badge hero-badge-status" id="hero-status">
-                    <span class="status-dot online" id="server-status-dot"></span>&nbsp;<span id="server-status-text">En ligne</span>
+                    <span class="status-dot online" id="server-status-dot"></span>&nbsp;<span id="server-status-text" aria-live="polite">En ligne</span>
                   </span>
                 </div>
                 <div class="modey-hero-top-right">

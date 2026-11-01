@@ -45,6 +45,12 @@
 
 .page-header {
   flex-shrink: 0;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+
+  &.hero-unavailable {
+    opacity: 0.92;
+    filter: saturate(0.85);
+  }
   h1 {
     font-size: 22px;
     font-weight: 800;

@@ -42,6 +42,11 @@ export function renderHero(profile: any) {
     const remoteBanner = profile?.modey?.bannerUrl || serverMeta?.bannerUrl
     const effectiveBanner = bannerCache.getBanner(serverSlug, remoteBanner) || bgImage
     heroEl.style.background = `linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.88) 80%), url('${effectiveBanner}') center / cover no-repeat, #1e293b`
+    if (isSoon || isMaint || isDisabled || isOffline) {
+      heroEl.classList.add('hero-unavailable')
+    } else {
+      heroEl.classList.remove('hero-unavailable')
+    }
   }
 
   const heroTitle = el('hero-title')
