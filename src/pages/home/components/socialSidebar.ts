@@ -1,5 +1,49 @@
 import { Dialog } from '../../../components/dialog'
 
+export function initRailTabs() {
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.rail-tabs-nav button[role="tab"]')
+  const panels = document.querySelectorAll<HTMLElement>('.rail-tab-content .rail-panel')
+  if (!tabs.length || !panels.length) return
+
+  const activateTab = (tabId: string) => {
+    tabs.forEach((tab) => {
+      const active = tab.id === tabId
+      tab.classList.toggle('active', active)
+      tab.setAttribute('aria-selected', active ? 'true' : 'false')
+      tab.tabIndex = active ? 0 : -1
+    })
+    panels.forEach((panel) => {
+      const targetId = document.getElementById(tabId)?.getAttribute('aria-controls')
+      const active = panel.id === targetId
+      panel.classList.toggle('active', active)
+      panel.hidden = !active
+    })
+    try {
+      localStorage.setItem('modey.home.railTab', tabId)
+    } catch (_) {}
+  }
+
+  const savedTab = localStorage.getItem('modey.home.railTab')
+  const initialTab = savedTab && document.getElementById(savedTab) ? savedTab : 'tab-btn-friends'
+  activateTab(initialTab)
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => activateTab(tab.id))
+    tab.addEventListener('keydown', (e) => {
+      let nextIndex = index
+      if (e.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length
+      else if (e.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length
+      else if (e.key === 'Home') nextIndex = 0
+      else if (e.key === 'End') nextIndex = tabs.length - 1
+      else return
+
+      e.preventDefault()
+      tabs[nextIndex].focus()
+      activateTab(tabs[nextIndex].id)
+    })
+  })
+}
+
 export function renderFriendsList() {
   const container = document.getElementById('friends-list-container')
   if (!container) return

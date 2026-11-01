@@ -14,7 +14,7 @@ import { renderHero, updateServerStatus, checkIsAdmin } from './components/hero'
 import { loadNews } from './components/newsList'
 import { renderDiscovery } from './components/discoveryCard'
 import { renderResumeAndHistory } from './components/resumeCards'
-import { renderFriendsList, renderNotificationsList } from './components/socialSidebar'
+import { renderFriendsList, renderNotificationsList, initRailTabs } from './components/socialSidebar'
 import { recordPlayedServer } from './components/serverHistory'
 import { renderDropdown, updateCurrentProfileName, bindSidebar } from './components/sidebar'
 import { launcherConfig } from '../../services/launcherConfig'
@@ -112,6 +112,7 @@ export function initHome() {
   renderResumeAndHistory(selectProfile)
   renderFriendsList()
   renderNotificationsList()
+  initRailTabs()
   refreshAthenaCard()
   bindSidebar()
   checkAndShowUpdateToast()

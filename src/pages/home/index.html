@@ -143,6 +143,7 @@
                   <button class="head-link" id="resume-view-all">Voir tout <i class="fa-solid fa-arrow-right"></i></button>
                 </div>
                 <div class="home-card-body" id="resume-container"></div>
+                <div class="home-card-footer discovery-compact-footer" id="discovery-container"></div>
               </section>
 
               <section class="home-card news-card">
@@ -153,48 +154,50 @@
                 <div class="home-card-body news-events-container" id="events-news-list"></div>
               </section>
             </div>
-
-            <!-- 3. Rangée inférieure (Historique réel + À découvrir) -->
-            <div class="home-grid-row">
-              <section class="home-card history-card-section">
-                <div class="home-card-head">
-                  <div class="head-title-badge">
-                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Historique</h3>
-                    <span class="head-count-badge" id="history-count-badge">0 serveur</span>
-                  </div>
-                </div>
-                <div class="history-cards-scroll" id="history-cards-container"></div>
-              </section>
-
-              <section class="home-card discovery-card-section">
-                <div class="home-card-head">
-                  <h3><i class="fa-regular fa-compass"></i> À découvrir</h3>
-                  <button class="head-link" id="discovery-view-all">Voir tout <i class="fa-solid fa-arrow-right"></i></button>
-                </div>
-                <div class="home-card-body discovery-items-list" id="discovery-container"></div>
-              </section>
-            </div>
           </div>
 
-          <!-- Volet Latéral Droit : Social & Notifs -->
+          <!-- Volet Latéral Droit : Rail à Onglets (Amis / Notifs / Historique) -->
           <aside class="home-social-col">
-            <!-- Activité de tes amis -->
-            <section class="social-panel friends-panel">
-              <div class="social-panel-head">
-                <h4><i class="fa-regular fa-user"></i> Activité de tes amis</h4>
-                <button class="head-link" id="friends-view-all">Bientôt <i class="fa-solid fa-arrow-right"></i></button>
-              </div>
-              <div class="social-panel-body" id="friends-list-container"></div>
-            </section>
+            <div class="rail-tabs-nav" role="tablist" aria-label="Volet social et historique">
+              <button type="button" class="rail-tab-btn active" role="tab" id="tab-btn-friends" aria-selected="true" aria-controls="panel-friends">
+                <i class="fa-regular fa-user"></i> Amis
+              </button>
+              <button type="button" class="rail-tab-btn" role="tab" id="tab-btn-notifs" aria-selected="false" aria-controls="panel-notifs">
+                <i class="fa-regular fa-bell"></i> Notifs
+              </button>
+              <button type="button" class="rail-tab-btn" role="tab" id="tab-btn-history" aria-selected="false" aria-controls="panel-history">
+                <i class="fa-solid fa-clock-rotate-left"></i> Historique
+              </button>
+            </div>
 
-            <!-- Dernières notifications -->
-            <section class="social-panel notifications-panel">
-              <div class="social-panel-head">
-                <h4><i class="fa-regular fa-bell"></i> Dernières notifications</h4>
-                <button class="head-link" id="notifs-view-all">Voir tout <i class="fa-solid fa-arrow-right"></i></button>
-              </div>
-              <div class="social-panel-body notifs-list" id="notifications-list-container"></div>
-            </section>
+            <div class="rail-tab-content">
+              <!-- Activité de tes amis -->
+              <section class="social-panel rail-panel active" id="panel-friends" role="tabpanel" aria-labelledby="tab-btn-friends">
+                <div class="social-panel-head">
+                  <h4><i class="fa-regular fa-user"></i> Activité de tes amis</h4>
+                  <span class="badge-soon">Bientôt</span>
+                </div>
+                <div class="social-panel-body" id="friends-list-container"></div>
+              </section>
+
+              <!-- Dernières notifications -->
+              <section class="social-panel rail-panel" id="panel-notifs" role="tabpanel" aria-labelledby="tab-btn-notifs" hidden>
+                <div class="social-panel-head">
+                  <h4><i class="fa-regular fa-bell"></i> Dernières notifications</h4>
+                  <button class="head-link" id="notifs-view-all">Voir tout <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="social-panel-body notifs-list" id="notifications-list-container"></div>
+              </section>
+
+              <!-- Historique des serveurs -->
+              <section class="social-panel rail-panel" id="panel-history" role="tabpanel" aria-labelledby="tab-btn-history" hidden>
+                <div class="social-panel-head">
+                  <h4><i class="fa-solid fa-clock-rotate-left"></i> Historique récent</h4>
+                  <span class="head-count-badge" id="history-count-badge">0 serveur</span>
+                </div>
+                <div class="history-cards-scroll rail-history-list" id="history-cards-container"></div>
+              </section>
+            </div>
 
             <!-- CTA Bannière Discord -->
             <div class="discord-cta-card" id="btn-discord-join">
