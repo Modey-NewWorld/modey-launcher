@@ -54,37 +54,37 @@ function renderResume(onSelectProfile: (profile: any) => void) {
   }
 
   let playLabel = 'Rejoindre'
-  let playIcon = 'fa-play'
+  let playIcon = 'ph-bold ph-play'
   let disabled = false
 
   if (isSoon) {
     if (isAdmin) {
       playLabel = 'Bientôt • Lancer (Staff)'
-      playIcon = 'fa-hourglass-start'
+      playIcon = 'ph ph-hourglass-simple'
       disabled = false
     } else {
       playLabel = 'Bientôt disponible'
-      playIcon = 'fa-hourglass-start'
+      playIcon = 'ph ph-hourglass-simple'
       disabled = true
     }
   } else if (isMaint) {
     if (isAdmin) {
       playLabel = 'Maintenance • Lancer (Staff)'
-      playIcon = 'fa-screwdriver-wrench'
+      playIcon = 'ph ph-wrench'
       disabled = false
     } else {
       playLabel = 'En maintenance'
-      playIcon = 'fa-wrench'
+      playIcon = 'ph ph-wrench'
       disabled = true
     }
   } else if (isDisabled) {
     if (isAdmin) {
       playLabel = 'Désactivé • Lancer (Staff)'
-      playIcon = 'fa-ban'
+      playIcon = 'ph ph-prohibit'
       disabled = false
     } else {
       playLabel = 'Serveur désactivé'
-      playIcon = 'fa-ban'
+      playIcon = 'ph ph-prohibit'
       disabled = true
     }
   }
@@ -104,7 +104,7 @@ function renderResume(onSelectProfile: (profile: any) => void) {
       </div>
       <div class="resume-card-actions">
         <button class="btn-resume-play ${disabled ? 'btn-disabled' : ''} ${isAdmin && (isSoon || isMaint || isDisabled) ? 'btn-admin-bypass' : ''}" id="btn-resume-play" ${disabled ? 'disabled' : ''}>
-          <i class="fa-solid ${playIcon}"></i> ${playLabel}
+          <i class="${playIcon}"></i> ${playLabel}
         </button>
         <button class="btn-resume-change" id="btn-resume-change">Changer de serveur</button>
       </div>
@@ -153,7 +153,7 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
 
   const exploreCardHtml = `
     <div class="history-card explore-card" id="history-explore-more">
-      <div class="explore-icon"><i class="fa-solid fa-circle-plus"></i></div>
+      <div class="explore-icon"><i class="ph ph-plus-circle"></i></div>
       <div class="explore-text">Explorer les serveurs</div>
     </div>
   `

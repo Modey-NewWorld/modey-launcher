@@ -10,7 +10,7 @@ export function initTitlebar() {
 
   window.api.window.onMaximized((maximized) => {
     if (maxIcon) {
-      maxIcon.className = maximized ? 'fa-solid fa-copy' : 'fa-regular fa-square'
+      maxIcon.className = maximized ? 'ph ph-copy' : 'ph ph-square'
     }
   })
 }

@@ -16,8 +16,8 @@ function getProfileIconHtml(profile: any, size: number = 18): string {
     return `<img src="${iconUrl}" style="width:${size}px; height:${size}px; object-fit:contain; border-radius:4px; margin-right:8px; vertical-align:middle;" />`
   }
 
-  const iconName = profile?.modey?.launcherIcon || meta?.launcherIcon || (slug === 'athena' ? 'shield-halved' : (slug === 'free-build' ? 'wand-magic-sparkles' : 'cube'))
-  return `<i class="fa-solid fa-${iconName}" style="width:${size}px; text-align:center; margin-right:8px; font-size:${size - 3}px; opacity:0.85; color:var(--primary);"></i>`
+  const iconName = profile?.modey?.launcherIcon || meta?.launcherIcon || (slug === 'athena' ? 'shield' : (slug === 'free-build' ? 'sparkle' : 'cube'))
+  return `<i class="ph ph-${iconName}" style="width:${size}px; text-align:center; margin-right:8px; font-size:${size - 3}px; opacity:0.85; color:var(--primary);"></i>`
 }
 
 export function updateCurrentProfileName(profile: any) {

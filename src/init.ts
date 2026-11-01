@@ -34,7 +34,7 @@ export function renderMaintenanceView(mn: any, session: any) {
   const btnLogout = document.getElementById('btn-maint-logout')
 
   if (maintenanceTitle) maintenanceTitle.innerText = 'Maintenance du Launcher'
-  if (maintenanceIcon) maintenanceIcon.innerHTML = '<i class="fa-solid fa-gears"></i>'
+  if (maintenanceIcon) maintenanceIcon.innerHTML = '<i class="ph ph-gear"></i>'
 
   const start = mn?.startTime ? new Date(mn.startTime as Date) : null
   const end = mn?.endTime ? new Date(mn.endTime as Date) : null
@@ -66,13 +66,13 @@ export function renderMaintenanceView(mn: any, session: any) {
 
   if (btnLogout) {
     if (account) {
-      btnLogout.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Changer de compte'
+      btnLogout.innerHTML = '<i class="ph ph-sign-out"></i> Changer de compte'
       btnLogout.onclick = async () => {
         await auth.logout()
         window.location.reload()
       }
     } else {
-      btnLogout.innerHTML = '<i class="fa-solid fa-user-shield"></i> Connexion Staff'
+      btnLogout.innerHTML = '<i class="ph ph-shield-check"></i> Connexion Staff'
       btnLogout.onclick = () => {
         clearBlockingView('maintenance')
         setView('login')
@@ -92,7 +92,7 @@ export function renderMaintenanceView(mn: any, session: any) {
       staffBadgeEl.style.color = roleColor
       staffBadgeEl.style.border = `1.5px solid ${roleColor}`
       staffBadgeEl.style.boxShadow = `0 2px 12px ${roleShadow}20`
-      staffBadgeEl.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${roleColor}; font-size:14px;"></i><span class="badge-text">Privilège Staff Détecté : <strong style="color:${roleColor}; font-weight:800;">${roleLabel}</strong> • Bypass Autorisé</span>`
+      staffBadgeEl.innerHTML = `<i class="ph ph-shield" style="color:${roleColor}; font-size:14px;"></i><span class="badge-text">Privilège Staff Détecté : <strong style="color:${roleColor}; font-weight:800;">${roleLabel}</strong> • Bypass Autorisé</span>`
     }
 
     if (btnBypass) {
@@ -100,12 +100,12 @@ export function renderMaintenanceView(mn: any, session: any) {
       btnBypass.style.background = roleGradient
       btnBypass.style.boxShadow = `0 4px 16px ${roleShadow}`
       btnBypass.style.color = '#ffffff'
-      btnBypass.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Accéder au Launcher'
+      btnBypass.innerHTML = '<i class="ph ph-sign-in"></i> Accéder au Launcher'
       btnBypass.title = `Maintenance en cours : accès autorisé grâce à votre rôle ${roleLabel}`
 
       btnBypass.onclick = async () => {
         btnBypass.disabled = true
-        btnBypass.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Accès en cours...'
+        btnBypass.innerHTML = '<i class="ph ph-spinner spin"></i> Accès en cours...'
         try {
           if (session && session.account) {
             const { skins, capes, avatar } = await loadSkinAssets(session.account)
@@ -253,7 +253,7 @@ export async function bootstrap() {
         maintenanceTitle.innerText = isOnline ? 'Services Modey Indisponibles' : 'Connexion Réseau Requise'
       }
       if (maintenanceIcon) {
-        maintenanceIcon.innerHTML = isOnline ? '<i class="fa-solid fa-server"></i>' : '<i class="fa-solid fa-wifi"></i>'
+        maintenanceIcon.innerHTML = isOnline ? '<i class="ph ph-hard-drives"></i>' : '<i class="ph ph-wifi-high"></i>'
       }
       if (maintenanceDates) {
         maintenanceDates.innerText = isOnline

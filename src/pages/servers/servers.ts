@@ -42,14 +42,14 @@ export async function refreshAthenaCard() {
   if (probe.online && probe.status) {
     const mcVer = athena?.modey?.minecraftVersion || athenaMeta?.minecraftVersion || '1.21.1'
     if (srvStatusBadge) srvStatusBadge.innerHTML = `<span class="status-dot online"></span>&nbsp;Disponible • ${mcVer}`
-    if (srvPing) srvPing.innerHTML = `<i class="fa-solid fa-signal"></i>&nbsp;${probe.pingMs} ms`
+    if (srvPing) srvPing.innerHTML = `<i class="ph ph-cell-signal-high"></i>&nbsp;${probe.pingMs} ms`
     const txt = `${probe.status.players.online.toLocaleString()} / ${probe.status.players.max.toLocaleString()}`
-    if (srvPlayers) srvPlayers.innerHTML = `<i class="fa-solid fa-users"></i>&nbsp;${txt}`
+    if (srvPlayers) srvPlayers.innerHTML = `<i class="ph ph-users"></i>&nbsp;${txt}`
     if (perkPlayers) perkPlayers.innerText = `${probe.status.players.online.toLocaleString()} aventuriers en ligne`
   } else {
     if (srvStatusBadge) srvStatusBadge.innerHTML = '<span class="status-dot offline"></span>&nbsp;Hors ligne'
-    if (srvPing) srvPing.innerHTML = '<i class="fa-solid fa-signal"></i>&nbsp;—'
-    if (srvPlayers) srvPlayers.innerHTML = '<i class="fa-solid fa-users"></i>&nbsp;—'
+    if (srvPing) srvPing.innerHTML = '<i class="ph ph-cell-signal-high"></i>&nbsp;—'
+    if (srvPlayers) srvPlayers.innerHTML = '<i class="ph ph-users"></i>&nbsp;—'
   }
 }
 

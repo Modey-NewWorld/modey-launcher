@@ -132,7 +132,7 @@
     }
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.3.1",
+    "@phosphor-icons/web": "^2.1.2",
     "electron-log": "^5.4.3",
     "electron-updater": "^6.8.3",
     "eml-lib": "^2.3.5",

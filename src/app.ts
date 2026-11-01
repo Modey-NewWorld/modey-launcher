@@ -1,5 +1,7 @@
 import './static/styles/_fonts.scss'
-import '@fortawesome/fontawesome-free/css/all.min.css'
+import '@phosphor-icons/web/regular/style.css'
+import '@phosphor-icons/web/bold/style.css'
+import '@phosphor-icons/web/fill/style.css'
 import './static/styles/_variables.scss'
 import './static/styles/main.scss'
 import './static/styles/screens.scss'

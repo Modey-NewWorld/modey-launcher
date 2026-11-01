@@ -40,7 +40,7 @@ function syncEmailUI() {
   const eyeIcon = el('email-eye-icon')
   if (emailEl) emailEl.innerText = !cachedEmail ? '—' : emailVisible ? cachedEmail : '••••••••'
   if (eyeBtn) eyeBtn.disabled = !cachedEmail
-  if (eyeIcon) eyeIcon.className = emailVisible ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'
+  if (eyeIcon) eyeIcon.className = emailVisible ? 'ph ph-eye-slash' : 'ph ph-eye'
 }
 
 /** Synchronisation & état Discord */
@@ -135,7 +135,7 @@ export function initProfile() {
 
     const originalHtml = unlinkBtn.innerHTML
     unlinkBtn.disabled = true
-    unlinkBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>&nbsp;Dissociation en cours...'
+    unlinkBtn.innerHTML = '<i class="ph ph-spinner spin"></i>&nbsp;Dissociation en cours...'
 
     try {
       const res = await fetch(`${API_BASE}/api/auth/discord/unlink`, {

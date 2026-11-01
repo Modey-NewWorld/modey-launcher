@@ -34,7 +34,7 @@ export function renderHero(profile: any) {
   const heroVersion = el('hero-version')
   if (heroVersion) {
     const mc = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
-    heroVersion.innerHTML = `<i class="fa-solid fa-cube"></i>&nbsp;${mc}`
+    heroVersion.innerHTML = `<i class="ph ph-cube"></i>&nbsp;${mc}`
   }
 
   const heroEl = el('hero')
@@ -46,7 +46,7 @@ export function renderHero(profile: any) {
 
   const heroTitle = el('hero-title')
   if (heroTitle) {
-    heroTitle.innerHTML = `<i class="fa-solid fa-crown" style="color: #fbbf24; margin-right: 10px;"></i>${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
+    heroTitle.innerHTML = `<i class="ph ph-crown" style="color: #fbbf24; margin-right: 10px;"></i>${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
   }
 
   const customDesc = profile?.modey?.teaser?.description || serverMeta?.teaser?.description
@@ -75,96 +75,96 @@ function applyPlayButtonState(
 
   const srvName = profile?.name ?? 'Athéna'
 
-  let heroLabel = `Jouer à ${srvName}`
-  let heroIcon = 'fa-play'
+  let heroLabel = 'Rejoindre'
+  let heroIcon = 'ph-bold ph-play'
   let heroDisabled = false
   let heroBypass = false
 
   let sidebarLabel = `Jouer à ${srvName}`
-  let sidebarIcon = 'fa-play'
+  let sidebarIcon = 'ph-bold ph-play'
   let sidebarDisabled = false
 
   if (isSoon) {
     if (isAdmin) {
       heroLabel = 'Bientôt • Lancer (Staff)'
-      heroIcon = 'fa-hourglass-start'
+      heroIcon = 'ph ph-hourglass-simple'
       heroDisabled = false
       heroBypass = true
 
       sidebarLabel = 'Bientôt • Lancer (Staff)'
-      sidebarIcon = 'fa-hourglass-start'
+      sidebarIcon = 'ph ph-hourglass-simple'
       sidebarDisabled = false
     } else {
       heroLabel = 'Bientôt disponible'
-      heroIcon = 'fa-hourglass-start'
+      heroIcon = 'ph ph-hourglass-simple'
       heroDisabled = true
 
       sidebarLabel = 'Bientôt disponible'
-      sidebarIcon = 'fa-hourglass-start'
+      sidebarIcon = 'ph ph-hourglass-simple'
       sidebarDisabled = true
     }
   } else if (isMaint) {
     if (isAdmin) {
       heroLabel = 'Maintenance (Staff)'
-      heroIcon = 'fa-wrench'
+      heroIcon = 'ph ph-wrench'
       heroDisabled = false
       heroBypass = true
 
       sidebarLabel = 'Maintenance • Lancer (Staff)'
-      sidebarIcon = 'fa-wrench'
+      sidebarIcon = 'ph ph-wrench'
       sidebarDisabled = false
     } else {
       heroLabel = 'En maintenance'
-      heroIcon = 'fa-wrench'
+      heroIcon = 'ph ph-wrench'
       heroDisabled = true
 
       sidebarLabel = 'En maintenance'
-      sidebarIcon = 'fa-wrench'
+      sidebarIcon = 'ph ph-wrench'
       sidebarDisabled = true
     }
   } else if (isDisabled) {
     if (isAdmin) {
       heroLabel = 'Désactivé (Staff)'
-      heroIcon = 'fa-ban'
+      heroIcon = 'ph ph-prohibit'
       heroDisabled = false
       heroBypass = true
 
       sidebarLabel = 'Désactivé • Lancer (Staff)'
-      sidebarIcon = 'fa-ban'
+      sidebarIcon = 'ph ph-prohibit'
       sidebarDisabled = false
     } else {
       heroLabel = 'Désactivé'
-      heroIcon = 'fa-ban'
+      heroIcon = 'ph ph-prohibit'
       heroDisabled = true
 
       sidebarLabel = 'Désactivé'
-      sidebarIcon = 'fa-ban'
+      sidebarIcon = 'ph ph-prohibit'
       sidebarDisabled = true
     }
   } else if (isOffline) {
     if (isAdmin) {
       heroLabel = 'Hors ligne (Staff)'
-      heroIcon = 'fa-triangle-exclamation'
+      heroIcon = 'ph ph-warning'
       heroDisabled = false
       heroBypass = true
 
       sidebarLabel = 'Hors ligne • Lancer (Staff)'
-      sidebarIcon = 'fa-triangle-exclamation'
+      sidebarIcon = 'ph ph-warning'
       sidebarDisabled = false
     } else {
       heroLabel = 'Serveur hors ligne'
-      heroIcon = 'fa-triangle-exclamation'
+      heroIcon = 'ph ph-warning'
       heroDisabled = true
 
       sidebarLabel = 'Serveur hors ligne'
-      sidebarIcon = 'fa-triangle-exclamation'
+      sidebarIcon = 'ph ph-warning'
       sidebarDisabled = true
     }
   }
 
   const playHeroBtn = el('btn-play-hero') as HTMLButtonElement | null
   if (playHeroBtn) {
-    playHeroBtn.innerHTML = `<i class="fa-solid ${heroIcon}"></i>&nbsp;&nbsp;${heroLabel}`
+    playHeroBtn.innerHTML = `<i class="${heroIcon}"></i>&nbsp;&nbsp;${heroLabel}`
     if (heroDisabled) {
       playHeroBtn.setAttribute('disabled', 'true')
       playHeroBtn.classList.add('btn-disabled')
@@ -179,7 +179,7 @@ function applyPlayButtonState(
 
   const sidebarBtn = el('btn-play') as HTMLButtonElement | null
   if (sidebarBtn) {
-    sidebarBtn.innerHTML = `<i class="fa-solid ${sidebarIcon}"></i><span>${sidebarLabel}</span>`
+    sidebarBtn.innerHTML = `<i class="${sidebarIcon}"></i><span>${sidebarLabel}</span>`
     if (sidebarDisabled) {
       sidebarBtn.setAttribute('disabled', 'true')
       sidebarBtn.classList.add('btn-disabled')
@@ -195,7 +195,7 @@ function applyPlayButtonState(
   const resumeBtn = el('btn-resume-play') as HTMLButtonElement | null
   if (resumeBtn) {
     const resumeText = heroLabel === `Jouer à ${srvName}` ? 'Rejoindre' : heroLabel
-    resumeBtn.innerHTML = `<i class="fa-solid ${heroIcon}"></i> ${resumeText}`
+    resumeBtn.innerHTML = `<i class="${heroIcon}"></i> ${resumeText}`
     if (heroDisabled) {
       resumeBtn.setAttribute('disabled', 'true')
       resumeBtn.classList.add('btn-disabled')
@@ -220,12 +220,12 @@ export async function updateServerStatus(profile: any) {
 
   if (serverStatusDot) serverStatusDot.className = 'status-dot pinging'
   if (serverStatusText) serverStatusText.innerText = 'Vérification...'
-  if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-users"></i>&nbsp;—'
+  if (playerCount) playerCount.innerHTML = '<i class="ph ph-users" aria-hidden="true"></i>&nbsp;—'
 
   if (isSoon) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot soon'
     if (serverStatusText) serverStatusText.innerText = 'Bientôt'
-    if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-users"></i>&nbsp;0/40'
+    if (playerCount) playerCount.innerHTML = '<i class="ph ph-users" aria-hidden="true"></i>&nbsp;0/40'
     renderHero(profile)
     return
   }
@@ -233,7 +233,7 @@ export async function updateServerStatus(profile: any) {
   if (isMaint) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot maint'
     if (serverStatusText) serverStatusText.innerText = 'Maintenance'
-    if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-wrench"></i>&nbsp;Maintenance'
+    if (playerCount) playerCount.innerHTML = '<i class="ph ph-wrench" aria-hidden="true"></i>&nbsp;Maintenance'
     renderHero(profile)
     return
   }
@@ -241,7 +241,7 @@ export async function updateServerStatus(profile: any) {
   if (isDisabled) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
     if (serverStatusText) serverStatusText.innerText = 'Désactivé'
-    if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-ban"></i>&nbsp;Désactivé'
+    if (playerCount) playerCount.innerHTML = '<i class="ph ph-prohibit" aria-hidden="true"></i>&nbsp;Désactivé'
     renderHero(profile)
     return
   }
@@ -256,12 +256,12 @@ export async function updateServerStatus(profile: any) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot online'
     if (serverStatusText) serverStatusText.innerText = 'En ligne'
     if (playerCount) {
-      playerCount.innerHTML = `<i class="fa-solid fa-users"></i>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
+      playerCount.innerHTML = `<i class="ph ph-users" aria-hidden="true"></i>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
     }
   } else {
     if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
     if (serverStatusText) serverStatusText.innerText = 'Hors ligne'
-    if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-signal"></i>&nbsp;—'
+    if (playerCount) playerCount.innerHTML = '<i class="ph ph-cell-signal-high" aria-hidden="true"></i>&nbsp;—'
   }
 
   renderHero(profile)

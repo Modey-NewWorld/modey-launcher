@@ -47,10 +47,10 @@ export function refreshStudioMeta() {
 
   if (formatEl && active?.url) {
     if (active.url.includes('localhost') || active.url.includes('/skins/')) {
-      formatEl.innerHTML = `<i class="fa-solid fa-server"></i> Modey Core`
+      formatEl.innerHTML = `<i class="ph ph-hard-drives"></i> Modey Core`
       formatEl.title = active.url
     } else {
-      formatEl.innerHTML = `<i class="fa-solid fa-cloud"></i> Minecraft`
+      formatEl.innerHTML = `<i class="ph ph-cloud"></i> Minecraft`
       formatEl.title = active.url
     }
   }

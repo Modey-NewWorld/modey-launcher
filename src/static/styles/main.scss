@@ -14,6 +14,28 @@
   border-radius: var(--r-sm);
 }
 
+.icon-fw {
+  width: 1.25em;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+@keyframes modey-spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  display: inline-block;
+  animation: modey-spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
 body {
   font-family: var(--font-ui);
   font-size: var(--fs-13);
