@@ -10,8 +10,19 @@ import './login.scss'
 
 const el = (id: string) => document.getElementById(id)
 
+const ASSET_MAP: Record<string, string> = {
+  '@STATIC_LOGO@': logoUrl
+}
+
+function hydrateAssets(html: string): string {
+  return Object.entries(ASSET_MAP).reduce(
+    (acc, [from, to]) => acc.split(from).join(to),
+    html
+  )
+}
+
 // Fragment HTML de la page de connexion injecté dans le shell avec le logo packagé par Vite.
-const loginHtml = loginHtmlRaw.replace('/src/static/images/logo.png', logoUrl)
+const loginHtml = hydrateAssets(loginHtmlRaw)
 const mount = el('view-login')
 if (mount) mount.innerHTML = loginHtml
 

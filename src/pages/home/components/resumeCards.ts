@@ -4,7 +4,7 @@ import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile } from '..
 import { homeState } from '../state'
 import { getLastPlayedServer, getServerHistory } from './serverHistory'
 import { checkIsAdmin } from './hero'
-import bgImage from '../../../static/images/bg.png'
+import bgImage from '../../../static/images/bg-thumb.webp'
 
 export function renderResumeAndHistory(onSelectProfile: (profile: any) => void) {
   renderResume(onSelectProfile)

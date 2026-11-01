@@ -2,7 +2,7 @@ import { Dialog } from '../../../components/dialog'
 import { isComingSoonProfile } from '../../../services/profiles'
 import { launcherConfig } from '../../../services/launcherConfig'
 import { homeState } from '../state'
-import bgImage from '../../../static/images/bg.png'
+import bgImage from '../../../static/images/bg-thumb.webp'
 
 export function renderDiscovery(onSelectProfile: (profile: any) => void) {
   const container = document.getElementById('discovery-container')

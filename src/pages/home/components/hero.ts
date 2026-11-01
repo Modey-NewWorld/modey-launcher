@@ -3,7 +3,7 @@ import { pingServer, targetFor } from '../../../services/serverStatus'
 import { getUser } from '../../../state'
 import { launcherConfig } from '../../../services/launcherConfig'
 import { bannerCache } from '../../../services/bannerCache'
-import bgImage from '../../../static/images/bg.png'
+import bgImage from '../../../static/images/bg.webp'
 
 const ATHENA_TAGS = ['Europe (FR)', 'Survie', 'Villes', 'Aventure', 'Communauté']
 const STAFF_ROLES = ['founder', 'admin', 'moderator', 'developer', 'dev']

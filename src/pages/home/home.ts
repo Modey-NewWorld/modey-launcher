@@ -19,6 +19,8 @@ import { recordPlayedServer } from './components/serverHistory'
 import { renderDropdown, updateCurrentProfileName, bindSidebar } from './components/sidebar'
 import { launcherConfig } from '../../services/launcherConfig'
 import logoUrl from '../../static/images/logo.png'
+import bgThumbUrl from '../../static/images/bg-thumb.webp'
+import bgUrl from '../../static/images/bg.webp'
 import homeHtmlRaw from './index.html?raw'
 import './home.scss'
 import './components/newsList.scss'
@@ -26,8 +28,20 @@ import './components/discoveryCard.scss'
 
 const el = (id: string) => document.getElementById(id)
 
-// Remplacement du chemin absolu /src/static/images/logo.png par l'URL packagée par Vite
-const homeHtml = homeHtmlRaw.replace('/src/static/images/logo.png', logoUrl)
+const ASSET_MAP: Record<string, string> = {
+  '@STATIC_LOGO@': logoUrl,
+  '@STATIC_BG_THUMB@': bgThumbUrl,
+  '@STATIC_BG@': bgUrl
+}
+
+function hydrateAssets(html: string): string {
+  return Object.entries(ASSET_MAP).reduce(
+    (acc, [from, to]) => acc.split(from).join(to),
+    html
+  )
+}
+
+const homeHtml = hydrateAssets(homeHtmlRaw)
 
 // Fragment HTML de la page Accueil (+ sidebar) injecté dans le shell.
 const mount = el('view-home')

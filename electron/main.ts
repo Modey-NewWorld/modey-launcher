@@ -29,10 +29,10 @@ function createWindow() {
   nativeTheme.themeSource = 'light'
 
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 720,
-    minWidth: 1280,
-    minHeight: 720,
+    width: 1320,
+    height: 820,
+    minWidth: 1024,
+    minHeight: 680,
     title: APP_TITLE,
     autoHideMenuBar: true,
     backgroundColor: BG_COLOR,

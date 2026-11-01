@@ -1,4 +1,4 @@
-import defaultBannerUrl from '../static/images/bg.png'
+import defaultBannerUrl from '../static/images/bg.webp'
 import logger from 'electron-log/renderer'
 
 const BANNER_URL_MAP_KEY = 'modey_banner_url_map'
