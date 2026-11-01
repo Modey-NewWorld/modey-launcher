@@ -23,6 +23,9 @@ export interface ServerMeta {
   minecraftVersion: string
   loader: string
   loaderVersion: string
+  accessMode?: string
+  maintenanceEnabled?: boolean
+  bypassRoles?: string[]
   updatedAt?: number
 }
 

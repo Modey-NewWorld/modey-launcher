@@ -5,6 +5,7 @@ import { registerAuthHandlers } from './handlers/auth'
 import { registerLauncherHandlers } from './handlers/launcher/index'
 import { registerSettingsHandlers, getSavedUiScale, getSavedBackgroundSleep } from './handlers/settings'
 import { registerFilesHandlers } from './handlers/files'
+import { registerOptionalModsHandlers } from './handlers/optionalMods'
 import { registerServerHandlers } from './handlers/server'
 import { registerNewsHandlers } from './handlers/news'
 import { registerBackgroundHandlers } from './handlers/background'
@@ -214,6 +215,7 @@ app.whenReady().then(() => {
     registerLauncherHandlers(mainWindow)
     registerSettingsHandlers()
     registerFilesHandlers()
+    registerOptionalModsHandlers()
   }
 })
 

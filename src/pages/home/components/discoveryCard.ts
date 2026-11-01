@@ -2,59 +2,66 @@ import { Dialog } from '../../../components/dialog'
 import { isComingSoonProfile } from '../../../services/profiles'
 import { launcherConfig } from '../../../services/launcherConfig'
 import { homeState } from '../state'
+import bgImage from '../../../static/images/bg.png'
 
-/** Carte "À découvrir" : teaser Free Build ou autre serveur tant qu'il n'est pas actif. */
 export function renderDiscovery(onSelectProfile: (profile: any) => void) {
-  const discoveryCard = document.getElementById('discovery-card')
-  if (!discoveryCard) return
+  const container = document.getElementById('discovery-container')
+  if (!container) return
 
   const fbMeta = launcherConfig.getFreeBuild()
-  const freeBuild = homeState.allProfiles.find((p) => p.slug === 'free-build' || p.slug === fbMeta?.name)
-  const freeBuildActive = freeBuild && !isComingSoonProfile(freeBuild)
+  const freeBuildProfile = homeState.allProfiles.find((p) => p.slug === 'free-build' || p.slug === fbMeta?.name)
 
-  const featuresList = fbMeta?.teaser?.features || [
-    { title: 'Monde créatif libre' },
-    { title: 'Outils de build' },
-    { title: 'Ouvert à tous' },
-    { title: 'Concours & events' }
+  const items = [
+    {
+      id: 'free-build',
+      name: fbMeta?.name || 'Free Build',
+      desc: 'Construction libre, parcelles créatives & outils sans limites.',
+      badge: 'Bientôt',
+      badgeClass: 'badge-soon',
+      icon: 'fa-cubes',
+      profile: freeBuildProfile
+    }
   ]
-  const features = featuresList.map((f: { title: string }) => `<span>${f.title}</span>`).join('')
 
-  if (freeBuildActive) {
-    discoveryCard.innerHTML = `
-      <div class="discovery-top">
-        <div class="discovery-icon"><i class="fa-solid fa-cubes"></i></div>
-        <strong>${fbMeta?.name || 'Free Build'} est ouvert !</strong>
+  container.innerHTML = items
+    .map(
+      (item) => `
+    <div class="discovery-card-banner" data-id="${item.id}" style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.85) 85%), url('${bgImage}') center / cover no-repeat;">
+      <div class="discovery-banner-badge ${item.badgeClass}">${item.badge}</div>
+      <div class="discovery-banner-content">
+        <div class="discovery-banner-title"><i class="fa-solid ${item.icon}"></i> ${item.name}</div>
+        <div class="discovery-banner-desc">${item.desc}</div>
       </div>
-      <p>Le bac à sable créatif de Modey est en ligne. Sélectionne-le dans Serveurs et lance-toi.</p>
-      <div class="discovery-bottom">
-        <div class="discovery-features">${features}</div>
-        <button class="discovery-notify" id="btn-discover-play"><i class="fa-solid fa-play"></i>&nbsp;Jouer</button>
-      </div>`
-    document.getElementById('btn-discover-play')?.addEventListener('click', () => {
-      if (freeBuild) onSelectProfile(freeBuild)
-      document.getElementById('modey-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
-    })
-    return
-  }
-
-  discoveryCard.innerHTML = `
-    <div class="discovery-top">
-      <div class="discovery-icon"><i class="fa-solid fa-lock"></i></div>
-      <strong>De nouveaux univers arrivent bientôt sur Modey</strong>
+      <button class="discovery-banner-btn" id="btn-discovery-notify"><i class="fa-solid fa-bell"></i> Être notifié</button>
     </div>
-    <p>D'autres serveurs communautaires rejoindront le catalogue prochainement. Restez à l'affût des prochaines intégrations officielles.</p>
-    <div class="discovery-bottom">
-      <div class="discovery-features">${features}</div>
-      <button class="discovery-notify ${homeState.notified ? 'notified' : ''}" id="btn-notify">
-        <i class="fa-solid fa-bell"></i>&nbsp;${homeState.notified ? 'Notifié ✓' : 'Être notifié'}
-      </button>
-    </div>`
-  document.getElementById('btn-notify')?.addEventListener('click', markNotified)
+  `
+    )
+    .join('')
+
+  document.getElementById('btn-discovery-notify')?.addEventListener('click', (e) => {
+    e.stopPropagation()
+    markNotified()
+  })
+
+  container.querySelectorAll('.discovery-card-banner').forEach((el) => {
+    el.addEventListener('click', async () => {
+      const id = (el as HTMLElement).dataset.id
+      const found = items.find((i) => i.id === id)
+      if (found?.profile && !isComingSoonProfile(found.profile)) {
+        onSelectProfile(found.profile)
+      } else {
+        const desc = fbMeta?.teaser?.description || 'Le serveur créatif libre de Modey n\'est pas encore actif. Il ouvrira prochainement à tous les joueurs.'
+        await Dialog.show(
+          `${found?.name || 'Free Build'} — Arrive bientôt\n\n${desc}`,
+          [{ text: 'Compris', type: 'ok' }]
+        )
+      }
+    })
+  })
 }
 
 export async function markNotified() {
   if (homeState.notified) return
   homeState.notified = true
-  await Dialog.show('Tu seras notifié de l’ouverture de Free Build dans le fil d’actualités. À très vite !', [{ text: 'Super !', type: 'ok' }])
+  await Dialog.show('Tu seras notifié de l’ouverture de Free Build dès son lancement !', [{ text: 'Super !', type: 'ok' }])
 }

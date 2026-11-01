@@ -36,11 +36,14 @@ export function registerProfilesHandlers() {
             meta.iconUrl = `${AUTH_API_URL}${meta.iconUrl}`
           }
         }
+        const isAthena = p.slug === 'athena' || p.id === 'modey-athena' || p.name === 'Athéna'
+        const hasIp = Boolean(p.ip || (p as any).server?.host || (p as any).host || isAthena)
+        const hasPort = Boolean(p.port || (p as any).server?.port || isAthena)
         return {
           ...p,
           modey: meta || {
-            status: (!p.ip || !p.port) ? 'comingSoon' : 'live',
-            enabled: Boolean(p.ip && p.port),
+            status: (!hasIp || !hasPort) ? 'comingSoon' : 'live',
+            enabled: Boolean(hasIp && hasPort),
             autoBlockIfOffline: true,
             maintenanceMessage: '',
             bannerUrl: '',

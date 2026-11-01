@@ -1,4 +1,5 @@
 import { refreshProfileIdentity, refreshProfileServer } from './pages/profile/profile'
+import { applyServerSelection } from './pages/settings/settings'
 
 interface RouterHooks {
   onShowServers?: () => void
@@ -47,11 +48,16 @@ export function showProfile() {
   el('profile-scroll')?.scrollTo({ top: 0 })
 }
 
-export function showSettings() {
+export function showSettings(serverSlug?: string) {
   if (el('modey-main')) el('modey-main')!.style.display = 'none'
   if (el('servers-page')) el('servers-page')!.style.display = 'none'
   if (el('profile-page')) el('profile-page')!.style.display = 'none'
   if (el('settings-page')) el('settings-page')!.style.display = 'flex'
   setActiveNav(null)
   hooks.onShowSettings?.()
+  applyServerSelection(serverSlug || 'global')
+}
+
+export function showServerSettings(serverSlug: string) {
+  showSettings(serverSlug)
 }

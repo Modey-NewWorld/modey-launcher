@@ -2,6 +2,7 @@ import { ipcMain, BrowserWindow } from 'electron'
 import { Launcher } from 'eml-lib'
 import type { Account } from 'eml-lib'
 import type { IGameSettings } from '../settings'
+import { readLocalServerConfig, writeLocalServerConfig } from '../settings'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL, AUTH_SERVER_URL, SYSTEM_JAVA_21_PATH } from '../../const'
 import fs from 'node:fs'
@@ -29,7 +30,9 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       if (!resp.ok) return { hasExtra: false, extraMods: [] }
       const data = await resp.json()
       const officialFiles = (data.files || []).map((f: any) => f.name)
-      const extraMods = localFiles.filter((f) => !officialFiles.includes(f))
+      const allowedOptionalFiles = (data.optionalMods || []).map((f: any) => f.name)
+      const allowedSet = new Set([...officialFiles, ...allowedOptionalFiles])
+      const extraMods = localFiles.filter((f) => !allowedSet.has(f))
       return { hasExtra: extraMods.length > 0, extraMods }
     } catch (err) {
       logger.warn('Failed to check extra mods:', err)
@@ -52,6 +55,41 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
     }) => {
       const { account, settings, profileSlug, serverIp, serverPort, minecraftVersion, loaderType, loaderVersion, forceClean } = payload
 
+      // Garde-fou strict : vérifier si le serveur cible est restreint (maintenance, comingSoon, désactivé)
+      try {
+        const metaResp = await fetch(`${AUTH_SERVER_URL}/api/modey/launcher`).catch(() => null)
+        if (metaResp && metaResp.ok) {
+          const metaData = await metaResp.json()
+          const serverInfo = metaData?.servers?.[profileSlug]
+          if (serverInfo) {
+            const isRestricted = serverInfo.status === 'comingSoon' || serverInfo.status === 'maintenance' || serverInfo.enabled === false || serverInfo.maintenanceEnabled === true
+            if (isRestricted) {
+              const userRole = String((account as any)?.role || 'citizen').toLowerCase()
+              const userPerms: string[] = Array.isArray((account as any)?.permissions) ? (account as any).permissions : []
+              const bypassRoles: string[] = Array.isArray(serverInfo.bypassRoles)
+                ? serverInfo.bypassRoles.map((r: string) => r.toLowerCase())
+                : ['founder', 'super_admin', 'admin', 'moderator', 'developer', 'dev']
+              
+              const isStaff = userRole === 'founder' || userRole === 'super_admin' ||
+                ['admin', 'moderator', 'developer', 'dev', 'super_moderator'].includes(userRole) ||
+                bypassRoles.includes(userRole) ||
+                userPerms.includes('*') ||
+                userPerms.includes('server:bypass_maintenance') ||
+                userPerms.includes('launcher:bypass_maintenance')
+
+              if (!isStaff) {
+                logger.warn(`[Modey Launcher] Accès refusé pour ${account.name} (rôle: ${userRole}) vers ${profileSlug} (statut: ${serverInfo.status})`)
+                throw new Error(`Accès refusé : le serveur '${serverInfo.name || profileSlug}' est actuellement restreint (${serverInfo.status || 'maintenance'}). Seul le personnel autorisé peut s'y connecter.`)
+              }
+            }
+          }
+        }
+      } catch (authErr: any) {
+        if (authErr?.message?.includes('Accès refusé')) throw authErr
+        logger.warn('[Modey Launcher] Impossible de vérifier les restrictions serveur en amont :', authErr)
+      }
+
+
       let java: { install: 'auto' } | { install: 'manual'; absolutePath: string } = { install: 'auto' }
       if (settings.java === 'system') {
         const javaExe = fs.existsSync(SYSTEM_JAVA_21_PATH) ? SYSTEM_JAVA_21_PATH : 'java'
@@ -67,7 +105,31 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       const targetLoaderType = loaderType || 'neoforge'
       const targetLoaderVersion = loaderVersion || '21.1.169'
 
-      logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port}`)
+      // Synchroniser avec server-settings.json s'il a été édité sur disque
+      const localDiskCfg = readLocalServerConfig(profileSlug)
+      if (localDiskCfg && localDiskCfg.memory) {
+        if (!settings.serverSettings) settings.serverSettings = {}
+        settings.serverSettings[profileSlug] = {
+          ...(settings.serverSettings[profileSlug] || {}),
+          ...localDiskCfg
+        }
+      }
+
+      // Résolution de la RAM (dédiée par serveur si définie, sinon RAM globale)
+      const serverMemory = settings.serverSettings?.[profileSlug]?.memory
+      const effectiveMemory = serverMemory && typeof serverMemory.max === 'number'
+        ? serverMemory
+        : (settings.memory || { min: 1, max: 4 })
+      const ramMinMb = Math.max(512, Math.round((effectiveMemory.min || 1) * 1024))
+      const ramMaxMb = Math.max(ramMinMb + 512, Math.round((effectiveMemory.max || 4) * 1024))
+
+      // Sauvegarder la configuration effective dans server-settings.json pour ce serveur
+      writeLocalServerConfig(profileSlug, {
+        memory: effectiveMemory,
+        optionalMods: settings.serverSettings?.[profileSlug]?.optionalMods || {}
+      })
+
+      logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M]`)
 
       // Récupérer les règles d'exclusion de nettoyage décidées par le serveur
       let serverCleaningIgnored: string[] | undefined = undefined
@@ -102,7 +164,11 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
           enabled: forceClean ? true : !(account as any)?.hasNoCleaning,
           ignored: serverCleaningIgnored
         },
-        java: java
+        java: java,
+        memory: {
+          min: ramMinMb,
+          max: ramMaxMb
+        }
       })
 
       // Interception de run() pour la capture de PID et l'injection authlib-injector

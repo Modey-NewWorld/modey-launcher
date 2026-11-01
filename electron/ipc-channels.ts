@@ -67,6 +67,12 @@ export const IPC = {
     deleteInstance: 'files:delete_instance',
     openInstance: 'files:open_instance'
   },
+  optionalMods: {
+    list: 'optional_mods:list',
+    install: 'optional_mods:install',
+    uninstall: 'optional_mods:uninstall',
+    toggle: 'optional_mods:toggle'
+  },
   skin: {
     reload: 'skin:reload',
     getSkin: 'skin:get_skin',

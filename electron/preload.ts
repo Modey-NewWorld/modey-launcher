@@ -125,5 +125,12 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke(IPC.files.deleteInstance, slug),
     openInstance: (slug: string): Promise<{ success: boolean; error?: string }> =>
       ipcRenderer.invoke(IPC.files.openInstance, slug)
+  },
+  optionalMods: {
+    list: (slug: string) => ipcRenderer.invoke(IPC.optionalMods.list, slug),
+    install: (slug: string, modId: string) => ipcRenderer.invoke(IPC.optionalMods.install, { slug, modId }),
+    uninstall: (slug: string, modId: string) => ipcRenderer.invoke(IPC.optionalMods.uninstall, { slug, modId }),
+    toggle: (slug: string, modId: string, enable: boolean) =>
+      ipcRenderer.invoke(IPC.optionalMods.toggle, { slug, modId, enable })
   }
 })

@@ -93,7 +93,11 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         ;(account as any).roleGradient = data.user?.roleGradient
         ;(account as any).roleShadow = data.user?.roleShadow
         ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
-        ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
+      ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
+      ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
+      ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
+        ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
+        ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
 
         fs.writeFileSync(sessionPath, JSON.stringify(account))
         saveAccount(account.name, account.uuid, data.user?.email)
@@ -145,7 +149,9 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
       ;(account as any).roleGradient = data.user?.roleGradient
       ;(account as any).roleShadow = data.user?.roleShadow
       ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
-        ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
+      ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
+      ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
+      ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
 
       fs.writeFileSync(sessionPath, JSON.stringify(account))
       saveAccount(account.name, account.uuid, data.user.email)
@@ -230,6 +236,10 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
                 ;(savedSession as any).roleGradient = valData.user.roleGradient
                 ;(savedSession as any).roleShadow = valData.user.roleShadow
                 ;(savedSession as any).canBypassMaintenance = Boolean(valData.user.canBypassMaintenance)
+                ;(savedSession as any).permissions = Array.isArray(valData.user.permissions) ? valData.user.permissions : []
+                if (typeof valData.user.maxSkins === 'number') {
+                  ;(savedSession as any).maxSkins = valData.user.maxSkins
+                }
               } else if (!(savedSession as any).role) {
                 (savedSession as any).role = 'citizen'
               }

@@ -106,7 +106,7 @@ function fail(error: string): OpResult {
 }
 
 /** Racine effective des fichiers du jeu (suit la junction si présente). */
-function currentRoot(): string {
+export function currentRoot(): string {
   return readJunction(DEFAULT_ROOT) ?? DEFAULT_ROOT
 }
 
@@ -249,7 +249,7 @@ async function resetRoot(): Promise<OpResult> {
 }
 
 /** Chemin d'instance pour un slug, protégé contre les traversées de chemin. */
-function instancePathFor(slug: string): string {
+export function instancePathFor(slug: string): string {
   const root = path.resolve(currentRoot())
   const clean = sanitizeSlug(slug)
   const full = path.resolve(root, clean)
@@ -322,6 +322,9 @@ export function registerFilesHandlers() {
     try {
       const full = instancePathFor(slug)
       const errStr = await shell.openPath(full)
+      if (!fs.existsSync(full)) {
+        fs.mkdirSync(full, { recursive: true })
+      }
       return errStr ? { success: false, error: errStr } : { success: true }
     } catch (err: any) {
       return fail(`Impossible d’ouvrir le dossier : ${err?.message ?? err}`)

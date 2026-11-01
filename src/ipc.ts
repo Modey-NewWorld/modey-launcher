@@ -1,5 +1,6 @@
 import type { IGameSettings, ISystemInfo } from '../electron/handlers/settings'
 import type { IFilesInfo, IInstanceInfo } from '../electron/handlers/files'
+import type { IOptionalModItem } from '../electron/handlers/optionalMods'
 import type { IAuthResponse } from '../electron/handlers/auth'
 import type { Account, BootstrapsEvents, DownloaderEvents, IAvatar, IBackground, IBootstraps, ICape, IMaintenance, INews, IServerStatus, INewsCategory, LauncherEvents, ISkin } from 'eml-lib'
 
@@ -106,6 +107,12 @@ declare global {
         deleteInstance: (slug: string) => Promise<{ success: boolean; error?: string }>
         openInstance: (slug: string) => Promise<{ success: boolean; error?: string }>
       }
+      optionalMods: {
+        list: (slug: string) => Promise<IOptionalModItem[]>
+        install: (slug: string, modId: string) => Promise<{ success: boolean; error?: string }>
+        uninstall: (slug: string, modId: string) => Promise<{ success: boolean; error?: string }>
+        toggle: (slug: string, modId: string, enable: boolean) => Promise<{ success: boolean; error?: string }>
+      }
     }
   }
 }
@@ -209,4 +216,11 @@ export const files = {
   listInstances: async () => await window.api.files.listInstances(),
   deleteInstance: async (slug: string) => await window.api.files.deleteInstance(slug),
   openInstance: async (slug: string) => await window.api.files.openInstance(slug)
+}
+
+export const optionalMods = {
+  list: async (slug: string): Promise<IOptionalModItem[]> => await window.api.optionalMods.list(slug),
+  install: async (slug: string, modId: string) => await window.api.optionalMods.install(slug, modId),
+  uninstall: async (slug: string, modId: string) => await window.api.optionalMods.uninstall(slug, modId),
+  toggle: async (slug: string, modId: string, enable: boolean) => await window.api.optionalMods.toggle(slug, modId, enable)
 }

@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { IPC } from '../ipc-channels'
+import { currentRoot } from './files'
 
 const settingsPath = path.join(app.getPath('userData'), 'settings.json')
 
@@ -16,12 +17,21 @@ export interface ISystemInfo {
   version: string
 }
 
+export interface IServerGameSettings {
+  memory?: {
+    min: number
+    max: number
+  }
+  optionalMods?: Record<string, boolean>
+}
+
 export interface IGameSettings {
   java: string
   memory: {
     min: number
     max: number
   }
+  serverSettings?: Record<string, IServerGameSettings>
   resolution: {
     width: number
     height: number
@@ -42,6 +52,7 @@ export const DEFAULT_SETTINGS: IGameSettings = {
     min: 1,
     max: 4
   },
+  serverSettings: {},
   resolution: {
     width: 1280,
     height: 720,
@@ -93,19 +104,90 @@ export function getSavedBackgroundSleep(): number {
   }
 }
 
+/**
+ * Lit le fichier server-settings.json dans le dossier d'instance %APPDATA%\.modey\<slug>
+ * s'il existe et a été modifié manuellement par l'utilisateur.
+ */
+export function readLocalServerConfig(slug: string): IServerGameSettings | null {
+  try {
+    const root = currentRoot()
+    const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+    const configPath = path.join(root, cleanSlug, 'server-settings.json')
+    if (fs.existsSync(configPath)) {
+      const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+      return data
+    }
+  } catch (err) {
+    logger.warn(`Impossible de lire server-settings.json pour ${slug}:`, err)
+  }
+  return null
+}
+
+/**
+ * Écrit / met à jour le fichier server-settings.json dans le dossier d'instance.
+ */
+export function writeLocalServerConfig(slug: string, cfg: IServerGameSettings): void {
+  try {
+    const root = currentRoot()
+    const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+    const dirPath = path.join(root, cleanSlug)
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true })
+    }
+    const configPath = path.join(dirPath, 'server-settings.json')
+    fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2), 'utf-8')
+    logger.info(`[Settings] Configuration synchronisée dans ${configPath}`)
+  } catch (err) {
+    logger.warn(`Impossible d'écrire server-settings.json pour ${slug}:`, err)
+  }
+}
+
+export function readAllSettingsWithSync(): IGameSettings {
+  let settings: IGameSettings = { ...DEFAULT_SETTINGS }
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const data = fs.readFileSync(settingsPath, 'utf-8')
+      settings = { ...DEFAULT_SETTINGS, ...JSON.parse(data) }
+    } else {
+      fs.writeFileSync(settingsPath, JSON.stringify(DEFAULT_SETTINGS, null, 2))
+    }
+  } catch (err) {
+    logger.error('Error reading settings:', err)
+  }
+
+  if (!settings.serverSettings) {
+    settings.serverSettings = {}
+  }
+
+  // Synchronisation bidirectionnelle : lire tous les dossiers de serveurs existants
+  try {
+    const root = currentRoot()
+    if (fs.existsSync(root)) {
+      const entries = fs.readdirSync(root, { withFileTypes: true })
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const srvSlug = entry.name
+          const localCfg = readLocalServerConfig(srvSlug)
+          if (localCfg) {
+            // Fusionner avec la priorité sur le fichier local du serveur s'il existe
+            settings.serverSettings[srvSlug] = {
+              ...(settings.serverSettings[srvSlug] || {}),
+              ...localCfg
+            }
+          }
+        }
+      }
+    }
+  } catch (scanErr) {
+    logger.warn('Scan des dossiers de serveurs pour configuration:', scanErr)
+  }
+
+  return settings
+}
+
 export function registerSettingsHandlers() {
   ipcMain.handle(IPC.settings.get, async () => {
-    try {
-      if (!fs.existsSync(settingsPath)) {
-        fs.writeFileSync(settingsPath, JSON.stringify(DEFAULT_SETTINGS, null, 2))
-        return DEFAULT_SETTINGS
-      }
-      const data = fs.readFileSync(settingsPath, 'utf-8')
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(data) }
-    } catch (err) {
-      logger.error('Error reading settings:', err)
-      return DEFAULT_SETTINGS
-    }
+    return readAllSettingsWithSync()
   })
 
   ipcMain.handle(IPC.settings.set, async (_event, newSettings: IGameSettings) => {
@@ -117,6 +199,16 @@ export function registerSettingsHandlers() {
       }
       fs.writeFileSync(settingsPath, JSON.stringify(toWrite, null, 2))
       applyUiScale(toWrite.uiScale)
+
+      // Synchroniser les fichiers server-settings.json dans chaque dossier d'instance
+      if (toWrite.serverSettings) {
+        for (const [slug, cfg] of Object.entries(toWrite.serverSettings)) {
+          if (cfg) {
+            writeLocalServerConfig(slug, cfg)
+          }
+        }
+      }
+
       return true
     } catch (err) {
       logger.error('Error writing settings:', err)

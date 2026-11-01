@@ -2,6 +2,7 @@ import { game, settings } from '../ipc'
 import { getUser } from '../state'
 import { targetFor } from './serverStatus'
 import { Dialog } from '../components/dialog'
+import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile, checkCanBypass } from './profiles'
 import logger from 'electron-log/renderer'
 
 /** Pont d'affichage de la progression — implémenté par components/progressBar.ts. */
@@ -32,19 +33,40 @@ let isLaunching = false
 
 export async function startLaunch() {
   if (!ui || isLaunching) return
-  const user = getUser()
+  const user = getUser() as any
   if (!user) return
-  if (ui.isComingSoon()) {
-    await ui.showBlockedDetails()
+
+  const profile = ui.getProfile()
+  const isSoon = isComingSoonProfile(profile)
+  const isMaint = isMaintenanceProfile(profile)
+  const isDisabled = isDisabledProfile(profile)
+  const canBypass = checkCanBypass(profile, user)
+
+  // Garde-fou de sécurité : vérification des droits d'accès
+  if ((isSoon || isMaint || isDisabled) && !canBypass) {
+    if (isSoon) {
+      await ui.showBlockedDetails()
+    } else if (isMaint) {
+      await Dialog.show(
+        `Le serveur est actuellement en maintenance technique.\n\n${profile?.modey?.maintenanceMessage || 'Des opérations techniques sont en cours. Seuls les membres du staff autorisés peuvent y accéder.'}`,
+        [{ text: 'Compris', type: 'ok' }],
+        'Accès Restreint'
+      )
+    } else {
+      await Dialog.show(
+        `Ce serveur a été temporairement désactivé par l'administration Modey.`,
+        [{ text: 'Compris', type: 'ok' }],
+        'Serveur Désactivé'
+      )
+    }
     return
   }
 
-  const profile = ui.getProfile()
   const profileSlug = profile?.slug || 'athena'
   let forceClean = false
 
   // Si le joueur a la permission no_cleaning, vérifier s'il possède des mods supplémentaires
-  if ((user as any)?.hasNoCleaning) {
+  if (user?.hasNoCleaning) {
     try {
       const extraCheck = await game.checkExtraMods(profileSlug)
       if (extraCheck.hasExtra && extraCheck.extraMods.length > 0) {
@@ -191,7 +213,7 @@ export function bindLaunch(launchUi: LaunchUi) {
 
   game.launched(() => {
     progress.setIndeterminate(true)
-    progress.setLabel('Minecraft est lancé — Connexion à Athéna...')
+    progress.setLabel('Minecraft est lancé — Connexion au serveur...')
   })
 
   game.launchClose(async (code: number | null) => {

@@ -3,16 +3,19 @@ import shared from '../../shared'
 import { settings, system } from '../../ipc'
 import { Dialog } from '../../components/dialog'
 import { createProgressBar } from '../../components/progressBar'
-import { setRouterHooks } from '../../router'
+import { setRouterHooks, showServerSettings, showServers } from '../../router'
 import { fetchProfiles, isComingSoonProfile } from '../../services/profiles'
 import { targetFor } from '../../services/serverStatus'
 import { startLaunch, bindLaunch } from '../../services/launch'
 import { refreshProfileServer } from '../profile/profile'
 import { refreshAthenaCard } from '../servers/servers'
 import { homeState } from './state'
-import { renderHero, updateServerStatus } from './components/hero'
+import { renderHero, updateServerStatus, checkIsAdmin } from './components/hero'
 import { loadNews } from './components/newsList'
 import { renderDiscovery } from './components/discoveryCard'
+import { renderResumeAndHistory } from './components/resumeCards'
+import { renderFriendsList, renderNotificationsList } from './components/socialSidebar'
+import { recordPlayedServer } from './components/serverHistory'
 import { renderDropdown, updateCurrentProfileName, bindSidebar } from './components/sidebar'
 import { launcherConfig } from '../../services/launcherConfig'
 import logoUrl from '../../static/images/logo.png'
@@ -37,6 +40,7 @@ export function selectProfile(profile: any) {
   renderDropdown(selectProfile)
   renderHero(profile)
   renderDiscovery(selectProfile)
+  renderResumeAndHistory(selectProfile)
   updateServerStatus(profile)
   refreshProfileServer()
 }
@@ -79,7 +83,7 @@ export async function showServerDetails() {
     return
   }
   await Dialog.show(
-    `${profile?.name ?? meta?.name ?? 'Athéna'} — Serveur officiel.\n\n${meta?.teaser?.description || 'Un monde vivant. Des villes à construire. Une aventure à partager.'}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} • NeoForge ${meta?.loaderVersion || '21.1.169'}\nConnexion : ${targetFor(profile).host}:${targetFor(profile).port}`,
+    `${profile?.name ?? meta?.name ?? 'Athéna'}.\n\n${meta?.teaser?.description || 'Un monde vivant. Des villes à construire. Une aventure à partager.'}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} • NeoForge ${meta?.loaderVersion || '21.1.169'}\nConnexion : ${targetFor(profile).host}:${targetFor(profile).port}`,
     [{ text: 'Compris', type: 'ok' }]
   )
 }
@@ -91,6 +95,9 @@ export function initHome() {
   loadNews()
   renderHero(homeState.selectedProfile)
   renderDiscovery(selectProfile)
+  renderResumeAndHistory(selectProfile)
+  renderFriendsList()
+  renderNotificationsList()
   refreshAthenaCard()
   bindSidebar()
   checkAndShowUpdateToast()
@@ -98,11 +105,35 @@ export function initHome() {
   setRouterHooks({ onShowServers: refreshAthenaCard })
 
   el('btn-details')?.addEventListener('click', showServerDetails)
+  el('btn-server-settings')?.addEventListener('click', () => {
+    const slug = homeState.selectedProfile?.slug || 'athena'
+    showServerSettings(slug)
+  })
+
+  // Liens "Voir tout"
+  el('resume-view-all')?.addEventListener('click', showServers)
+  el('news-view-all')?.addEventListener('click', () => {
+    Dialog.show('Actualités Modey\n\nRetrouvez tous les patch notes et annonces sur notre Discord et site officiel.', [{ text: 'Compris', type: 'ok' }])
+  })
+  el('discovery-view-all')?.addEventListener('click', showServers)
+  el('friends-all-link')?.addEventListener('click', () => {
+    Dialog.show('Liste d\'amis Modey\n\nCette fonction arrive très bientôt !', [{ text: 'Compris', type: 'ok' }])
+  })
 
   const playBtn = el('btn-play')
   const playHeroBtn = el('btn-play-hero')
-  playBtn?.addEventListener('click', startLaunch)
-  playHeroBtn?.addEventListener('click', startLaunch)
+  
+  const handleLaunch = () => {
+    const current = homeState.selectedProfile
+    if (current) {
+      recordPlayedServer(current.slug || 'athena', current.name || 'Athéna')
+      renderResumeAndHistory(selectProfile)
+    }
+    startLaunch()
+  }
+
+  playBtn?.addEventListener('click', handleLaunch)
+  playHeroBtn?.addEventListener('click', handleLaunch)
 
   bindLaunch({
     progress: createProgressBar({ container: 'launch-progress-container', bar: 'launch-progress-bar', label: 'launch-progress-label', percent: 'launch-progress-percent' }),
@@ -124,11 +155,12 @@ export function initHome() {
       }
     },
     getProfile: () => homeState.selectedProfile,
-    isComingSoon: () => isComingSoonProfile(homeState.selectedProfile),
+    isComingSoon: () => isComingSoonProfile(homeState.selectedProfile) && !checkIsAdmin(),
     showBlockedDetails: () => showServerDetails(),
     onGameClosed: () => {
       renderHero(homeState.selectedProfile)
       updateServerStatus(homeState.selectedProfile)
+      renderResumeAndHistory(selectProfile)
     }
   })
 }

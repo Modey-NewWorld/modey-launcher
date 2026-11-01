@@ -134,11 +134,18 @@ export function bindStudio(hooks: { onSkinChanged: () => void }) {
         return
       }
 
-      // 2. Vérification du quota de skins (5 skins max par défaut)
+      // 2. Vérification du quota de skins (quota dynamique selon le rôle)
       const currentCustomSkins = (shared.skins || []).filter(s => s.id !== 'steve' && s.id !== 'alex')
-      if (currentCustomSkins.length >= 5) {
+      // maxSkins est stocké sur l'account lors du login (depuis l'API Modey)
+      // Fondateur : 50 par défaut non affiché ; autres rôles : selon config admin
+      const isFounderUser = (user as any)?.role === 'founder'
+      const maxSkins: number = typeof (user as any)?.maxSkins === 'number'
+        ? (user as any).maxSkins
+        : (isFounderUser ? 50 : 5)
+      if (currentCustomSkins.length >= maxSkins) {
+        const limitLabel = isFounderUser ? `${maxSkins}` : `${maxSkins}`
         await Dialog.show(
-          "Votre casier a atteint sa capacité maximale (5 skins personnalisés max). Veuillez supprimer un ancien skin de votre casier avant d'en importer un nouveau.",
+          `Votre casier a atteint sa capacité maximale (${limitLabel} skin${maxSkins > 1 ? 's' : ''} personnalisé${maxSkins > 1 ? 's' : ''} max). Veuillez supprimer un skin avant d'en importer un nouveau.`,
           [{ text: 'Compris', type: 'ok' }],
           'Casier plein'
         )
@@ -190,7 +197,25 @@ export function bindStudio(hooks: { onSkinChanged: () => void }) {
       // Modèle classique 4px
       const result = await skin.updateSkin(buffer, 'classic')
       if (!result || !Array.isArray(result)) {
-        await Dialog.show("Une erreur est survenue lors de l'enregistrement de votre skin. Veuillez réessayer.", [{ text: 'OK', type: 'ok' }])
+        let rawMsg = (result as any)?.errorMessage || (result as any)?.error || ''
+        let cleanMsg = rawMsg
+        try {
+          const jsonMatch = rawMsg.match(/\{.*\}/)
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0])
+            if (parsed.errorMessage) cleanMsg = parsed.errorMessage
+            else if (parsed.error) cleanMsg = parsed.error
+          }
+        } catch (_) {}
+
+        const isQuotaError = cleanMsg && (cleanMsg.includes('casier') || cleanMsg.includes('capacit') || cleanMsg.includes('quota') || cleanMsg.includes('max'))
+        await Dialog.show(
+          cleanMsg && isQuotaError
+            ? cleanMsg
+            : (cleanMsg || "Une erreur est survenue lors de l'enregistrement de votre skin. Veuillez réessayer."),
+          [{ text: 'OK', type: 'ok' }],
+          isQuotaError ? 'Casier plein' : 'Erreur'
+        )
         return
       }
       shared.skins = result

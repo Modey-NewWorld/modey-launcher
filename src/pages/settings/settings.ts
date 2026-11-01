@@ -1,9 +1,11 @@
-import { settings, system } from '../../ipc'
+import { settings, system, profiles, files } from '../../ipc'
 import type { IGameSettings } from '../../../electron/handlers/settings'
 import { Dialog } from '../../components/dialog'
 import { setRouterHooks } from '../../router'
 import { initUpdateCard } from './components/updateCard'
 import { initFilesRoot, refreshFilesCard } from './components/filesRoot'
+import { initOptionalModsCard, refreshOptionalMods } from './components/optionalModsCard'
+import { launcherConfig } from '../../services/launcherConfig'
 import logger from 'electron-log/renderer'
 import settingsHtml from './index.html?raw'
 import './settings.scss'
@@ -28,10 +30,15 @@ const resolutionList = [
 ]
 
 let currentSettings: IGameSettings
+let currentSelectedTarget: string = 'global' // 'global' ou '<slug>'
+let allKnownProfiles: any[] = []
 
 export async function initSettings() {
   const sysInfo = await system.getInfo()
   currentSettings = await settings.get()
+  if (!currentSettings.serverSettings) {
+    currentSettings.serverSettings = {}
+  }
 
   initUIListeners()
   initDualSlider(sysInfo)
@@ -40,7 +47,23 @@ export async function initSettings() {
   populateAbout(sysInfo)
   initUpdateCard(sysInfo.version ?? '')
   initFilesRoot()
-  setRouterHooks({ onShowSettings: refreshFilesCard })
+  initOptionalModsCard()
+  await initServerPillTabs()
+  initServerLocationCardListeners()
+
+  // Écoute de l'événement de navigation directe vers un serveur
+  window.addEventListener('select-settings-server', ((e: CustomEvent<{ slug: string }>) => {
+    if (e.detail?.slug) {
+      applyServerSelection(e.detail.slug)
+    }
+  }) as EventListener)
+
+  setRouterHooks({
+    onShowSettings: () => {
+      refreshFilesCard()
+      refreshServerPillTabs()
+    }
+  })
 }
 
 function populateAbout(sysInfo: any) {
@@ -50,13 +73,192 @@ function populateAbout(sysInfo: any) {
   const osEl = el('settings-os')
   if (versionEl) versionEl.innerText = sysInfo.version ?? '—'
   if (emllibEl) emllibEl.innerText = '2.3.5'
-  if (electronEl) electronEl.innerText = process.versions.electron ?? '—'
-  if (osEl) osEl.innerText = `${process.platform} ${process.arch}`
+  if (electronEl) electronEl.innerText = (typeof process !== 'undefined' && process.versions?.electron) ? process.versions.electron : '34.0.0'
+  if (osEl) osEl.innerText = (typeof process !== 'undefined' && process.platform) ? `${process.platform} ${process.arch}` : 'Windows x64'
+}
+
+async function initServerPillTabs() {
+  const globalBtn = el('pill-tab-global')
+  globalBtn?.addEventListener('click', () => {
+    applyServerSelection('global')
+  })
+
+  await refreshServerPillTabs()
+}
+
+async function refreshServerPillTabs() {
+  const container = el('settings-pills-servers')
+  if (!container) return
+
+  try {
+    const list = await profiles.get()
+    allKnownProfiles = Array.isArray(list) ? list : []
+  } catch {
+    allKnownProfiles = []
+  }
+
+  // Également vérifier si des profils ont des configurations locales sur disque ou dans settings
+  const existingSlugs = new Set(allKnownProfiles.map((p) => p.slug))
+  if (currentSettings.serverSettings) {
+    for (const slug of Object.keys(currentSettings.serverSettings)) {
+      if (!existingSlugs.has(slug)) {
+        allKnownProfiles.push({ slug, name: slug })
+        existingSlugs.add(slug)
+      }
+    }
+  }
+
+  container.innerHTML = ''
+
+  allKnownProfiles.forEach((p) => {
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = 'slot-pill-btn'
+    btn.dataset.target = p.slug
+    btn.id = `pill-tab-server-${p.slug}`
+
+    const srvName = p.name || launcherConfig.getServer(p.slug)?.name || p.slug
+    const ramAllocated = currentSettings?.serverSettings?.[p.slug]?.memory?.max
+    const badgeText = ramAllocated ? `${ramAllocated} Go` : 'Auto'
+
+    btn.innerHTML = `
+      <i class="fa-solid fa-gamepad" style="color:var(--primary, #1a73e8);"></i>
+      <span>${srvName}</span>
+      <span class="slot-count-tag" id="pill-badge-${p.slug}" title="RAM allouée">${badgeText}</span>
+    `
+
+    btn.addEventListener('click', () => {
+      applyServerSelection(p.slug)
+    })
+
+    container.appendChild(btn)
+  })
+
+  // Synchroniser la classe active sur le bon onglet
+  updatePillsActiveState()
+}
+
+function updatePillsActiveState() {
+  document.querySelectorAll('.slot-pill-btn[data-target]').forEach((btn) => {
+    const target = (btn as HTMLElement).dataset.target
+    if (target === currentSelectedTarget) {
+      btn.classList.add('active')
+    } else {
+      btn.classList.remove('active')
+    }
+  })
+}
+
+function updateServerBadgeRam(slug: string, maxRam: number | null) {
+  const badge = el(`pill-badge-${slug}`)
+  if (badge) {
+    badge.innerText = maxRam ? `${maxRam} Go` : 'Auto'
+  }
+}
+
+export async function applyServerSelection(targetSlug: string) {
+  currentSelectedTarget = targetSlug
+  updatePillsActiveState()
+
+  const titleEl = el('settings-title')
+  const subtitleEl = el('settings-subtitle')
+  const globalView = el('global-settings-view')
+  const serverView = el('server-settings-view')
+
+  if (targetSlug === 'global') {
+    if (titleEl) titleEl.innerText = 'Paramètres généraux'
+    if (subtitleEl) subtitleEl.innerText = "Personnalise ton launcher, l'affichage, Java et tes fichiers de jeu généraux."
+
+    if (globalView) globalView.style.display = 'contents'
+    if (serverView) serverView.style.display = 'none'
+
+    // Synchroniser le slider de RAM globale
+    syncGlobalRamSliders(currentSettings.memory.min, currentSettings.memory.max)
+  } else {
+    // Si ce profil n'est pas encore dans la liste connue, on l'ajoute
+    let profile = allKnownProfiles.find((p) => p.slug === targetSlug)
+    if (!profile) {
+      profile = { slug: targetSlug, name: targetSlug }
+      allKnownProfiles.push(profile)
+      refreshServerPillTabs()
+    }
+    const serverName = profile?.name || launcherConfig.getServer(targetSlug)?.name || targetSlug
+
+    if (titleEl) titleEl.innerText = `Paramètres : ${serverName}`
+    if (subtitleEl) subtitleEl.innerText = `Personnalise la mémoire, les fichiers locaux et les extensions pour ${serverName}.`
+
+    if (globalView) globalView.style.display = 'none'
+    if (serverView) serverView.style.display = 'contents'
+
+    // Mettre à jour l'emplacement et charger les mods optionnels
+    await updateServerLocationCard(targetSlug)
+    refreshOptionalMods(targetSlug)
+
+    // Charger la RAM spécifique ou fallback sur la globale
+    const srvMem = currentSettings.serverSettings?.[targetSlug]?.memory
+    const ramMin = typeof srvMem?.min === 'number' ? srvMem.min : currentSettings.memory.min
+    const ramMax = typeof srvMem?.max === 'number' ? srvMem.max : currentSettings.memory.max
+    syncServerRamSliders(ramMin, ramMax)
+  }
+}
+
+function syncGlobalRamSliders(minVal: number, maxVal: number) {
+  const minInput = el('ram-min') as HTMLInputElement | null
+  const maxInput = el('ram-max') as HTMLInputElement | null
+  if (minInput) minInput.value = String(minVal)
+  if (maxInput) maxInput.value = String(maxVal)
+  minInput?.dispatchEvent(new Event('input'))
+}
+
+function syncServerRamSliders(minVal: number, maxVal: number) {
+  const minInput = el('server-ram-min') as HTMLInputElement | null
+  const maxInput = el('server-ram-max') as HTMLInputElement | null
+  if (minInput) minInput.value = String(minVal)
+  if (maxInput) maxInput.value = String(maxVal)
+  minInput?.dispatchEvent(new Event('input'))
+}
+
+async function updateServerLocationCard(slug: string) {
+  const pathBox = el('server-instance-path')
+  try {
+    const filesInfo = await files.info()
+    const separator = filesInfo.currentPath.includes('/') ? '/' : '\\'
+    const fullPath = `${filesInfo.currentPath}${separator}${slug}`
+    if (pathBox) pathBox.innerText = fullPath
+  } catch (err) {
+    if (pathBox) pathBox.innerText = `.../.modey/${slug}`
+  }
+}
+
+function initServerLocationCardListeners() {
+  const openFolderBtn = el('server-open-folder-btn')
+  const resetRamBtn = el('server-reset-ram-btn')
+
+  openFolderBtn?.addEventListener('click', async () => {
+    if (currentSelectedTarget === 'global') return
+    const res = await files.openInstance(currentSelectedTarget)
+    if (!res.success) {
+      await Dialog.show(res.error || 'Impossible d’ouvrir le dossier du serveur.', [{ text: 'OK', type: 'ok' }])
+    }
+  })
+
+  resetRamBtn?.addEventListener('click', async () => {
+    if (currentSelectedTarget === 'global') return
+    if (!currentSettings.serverSettings) currentSettings.serverSettings = {}
+    delete currentSettings.serverSettings[currentSelectedTarget]
+
+    syncServerRamSliders(currentSettings.memory.min, currentSettings.memory.max)
+    updateServerBadgeRam(currentSelectedTarget, null)
+    await saveSettings()
+    await Dialog.show('La mémoire RAM de ce serveur a été réalignée sur le profil général.', [{ text: 'OK', type: 'ok' }])
+  })
 }
 
 async function initUIListeners() {
   const ramMin = el('ram-min') as HTMLInputElement
   const ramMax = el('ram-max') as HTMLInputElement
+  const serverRamMin = el('server-ram-min') as HTMLInputElement
+  const serverRamMax = el('server-ram-max') as HTMLInputElement
   const resolutionSelect = el('resolution-select') as HTMLSelectElement
   const launcherActionSelect = el('launcher-action-select') as HTMLSelectElement
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
@@ -64,6 +266,8 @@ async function initUIListeners() {
 
   ramMin?.addEventListener('input', saveSettingsDebounced)
   ramMax?.addEventListener('input', saveSettingsDebounced)
+  serverRamMin?.addEventListener('input', saveSettingsDebounced)
+  serverRamMax?.addEventListener('input', saveSettingsDebounced)
   resolutionSelect?.addEventListener('change', saveSettingsDebounced)
   launcherActionSelect?.addEventListener('change', saveSettingsDebounced)
   backgroundSleepSelect?.addEventListener('change', saveSettingsDebounced)
@@ -79,16 +283,23 @@ function saveSettingsDebounced() {
 async function saveSettings() {
   const minInput = el('ram-min') as HTMLInputElement
   const maxInput = el('ram-max') as HTMLInputElement
+  const serverMinInput = el('server-ram-min') as HTMLInputElement
+  const serverMaxInput = el('server-ram-max') as HTMLInputElement
   const launcherActionSelect = el('launcher-action-select') as HTMLSelectElement
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
   const resolutionSelect = el('resolution-select') as HTMLSelectElement
   const javaSelect = el('java-select') as HTMLSelectElement
 
+  const minRam = parseFloat(minInput?.value || '2')
+  const maxRam = parseFloat(maxInput?.value || '8')
+
   const newSettings: IGameSettings = {
     ...currentSettings,
-    memory: {
-      min: parseFloat(minInput.value),
-      max: parseFloat(maxInput.value)
+    memory: currentSelectedTarget === 'global'
+      ? { min: minRam, max: maxRam }
+      : currentSettings.memory,
+    serverSettings: {
+      ...(currentSettings.serverSettings || {})
     },
     resolution: {
       height: resolutionList.find((r) => r.value === resolutionSelect.value)?.height ?? 854,
@@ -101,10 +312,23 @@ async function saveSettings() {
     uiScale: getUiScaleValue()
   }
 
+  if (currentSelectedTarget !== 'global') {
+    const srvMin = parseFloat(serverMinInput?.value || String(minRam))
+    const srvMax = parseFloat(serverMaxInput?.value || String(maxRam))
+    newSettings.serverSettings![currentSelectedTarget] = {
+      ...(newSettings.serverSettings![currentSelectedTarget] || {}),
+      memory: {
+        min: srvMin,
+        max: srvMax
+      }
+    }
+    updateServerBadgeRam(currentSelectedTarget, srvMax)
+  }
+
   try {
     await settings.set(newSettings)
     currentSettings = newSettings
-    logger.log('Settings saved')
+    logger.log('Settings saved', { target: currentSelectedTarget })
   } catch (err) {
     logger.error('Failed to save settings:', err)
     await Dialog.show('Impossible de sauvegarder les paramètres.', [{ text: 'OK', type: 'ok' }])
@@ -112,11 +336,23 @@ async function saveSettings() {
 }
 
 function initDualSlider(sysInfo: any) {
-  const minInput = el('ram-min') as HTMLInputElement
-  const maxInput = el('ram-max') as HTMLInputElement
-  const fill = el('ram-track-fill')
-  const minLabel = el('ram-min-label')
-  const maxLabel = el('ram-max-label')
+  setupDualSliderHelper('ram-min', 'ram-max', 'ram-track-fill', 'ram-min-label', 'ram-max-label', sysInfo)
+  setupDualSliderHelper('server-ram-min', 'server-ram-max', 'server-ram-track-fill', 'server-ram-min-label', 'server-ram-max-label', sysInfo)
+}
+
+function setupDualSliderHelper(
+  minId: string,
+  maxId: string,
+  fillId: string,
+  minLabelId: string,
+  maxLabelId: string,
+  sysInfo: any
+) {
+  const minInput = el(minId) as HTMLInputElement
+  const maxInput = el(maxId) as HTMLInputElement
+  const fill = el(fillId)
+  const minLabel = el(minLabelId)
+  const maxLabel = el(maxLabelId)
   if (!minInput || !maxInput || !fill) return
 
   const totalGB = Math.max(8, Number(sysInfo?.totalMem) || 16)
@@ -152,7 +388,6 @@ function initDualSlider(sysInfo: any) {
     fill.style.width = `${maxPercent - minPercent}%`
 
     // Feedback couleur dynamique selon la RAM allouée (vert / orange / rouge)
-    const totalGB = sysInfo?.totalMem || 16
     const ratio = maxVal / totalGB
     if (ratio > 0.75) {
       fill.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)'
@@ -210,7 +445,6 @@ function initUiScale() {
 
   input.addEventListener('input', () => {
     updateUiScaleUI()
-    // Sauvegarde rapide pour que le zoom suive le curseur
     if (zoomTimer) clearTimeout(zoomTimer)
     zoomTimer = setTimeout(saveSettings, 120)
   })
@@ -251,7 +485,7 @@ function initFormValues(resolution: { width: number; height: number }) {
   if (uiScaleInput) uiScaleInput.value = String(Math.round((currentSettings.uiScale ?? 1) * 100))
   updateUiScaleUI()
 
-  minInput.dispatchEvent(new Event('input'))
+  minInput?.dispatchEvent(new Event('input'))
 }
 
 function getAvailableResolutions(systemResolution: { width: number; height: number }) {

@@ -656,3 +656,189 @@
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
+
+/* --- Pill Tabs Style Admin Panel --- */
+.settings-pills-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0 2px 0;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 14px;
+  margin-bottom: 4px;
+}
+
+.slot-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+
+  i {
+    font-size: 12.5px;
+    transition: transform 0.18s ease;
+  }
+
+  &:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    background: #1a73e8;
+    color: #ffffff;
+    border-color: #1a73e8;
+    box-shadow: 0 3px 12px rgba(26, 115, 232, 0.35);
+
+    i {
+      color: #ffffff !important;
+    }
+
+    .slot-count-tag {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+  }
+}
+
+.slot-count-tag {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: all 0.18s ease;
+}
+
+
+/* --- Interactive Optional Mods Grid --- */
+.optional-mod-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  &.is-active {
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+
+  .optional-mod-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+
+    .optional-mod-info {
+      flex: 1;
+      min-width: 0;
+
+      .optional-mod-name {
+        font-weight: 700;
+        font-size: 13.5px;
+        color: #1e293b;
+        margin-bottom: 2px;
+        word-break: break-all;
+      }
+
+      .optional-mod-meta {
+        font-size: 11.5px;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+    }
+  }
+
+  .optional-mod-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+
+    .opt-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+
+      &--install {
+        background: #ede9fe;
+        color: #7c3aed;
+        border-color: #ddd6fe;
+
+        &:hover {
+          background: #7c3aed;
+          color: #ffffff;
+        }
+      }
+
+      &--toggle-on {
+        background: #dcfce7;
+        color: #15803d;
+        border-color: #bbf7d0;
+
+        &:hover {
+          background: #fef2f2;
+          color: #b91c1c;
+          border-color: #fecaca;
+        }
+      }
+
+      &--toggle-off {
+        background: #f1f5f9;
+        color: #475569;
+        border-color: #cbd5e1;
+
+        &:hover {
+          background: #dcfce7;
+          color: #15803d;
+          border-color: #bbf7d0;
+        }
+      }
+
+      &--delete {
+        background: transparent;
+        color: #94a3b8;
+        padding: 4px 8px;
+
+        &:hover {
+          color: #ef4444;
+          background: #fee2e2;
+        }
+      }
+    }
+  }
+}

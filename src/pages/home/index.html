@@ -36,30 +36,30 @@
           </div>
 
           <div class="user-menu-wrap">
-            <!-- Mini-Popup Toast Mise à jour -->
-            <div id="update-toast-popup" class="modey-update-toast" style="display: none;">
-              <div class="update-toast-head">
-                <span class="update-toast-badge"><i class="fa-solid fa-sparkles"></i> Mise à jour</span>
-                <span class="update-toast-version" id="toast-update-version">v26.1.3</span>
-                <button type="button" class="update-toast-close" id="btn-toast-dismiss" title="Fermer"><i class="fa-solid fa-xmark"></i></button>
-              </div>
-              <div class="update-toast-body">
-                <p id="toast-update-title">Une nouvelle version de Modey Launcher est disponible !</p>
-              </div>
-              <div class="update-toast-actions">
-                <button type="button" class="toast-btn-update" id="btn-toast-update"><i class="fa-solid fa-arrow-down"></i> Mettre à jour</button>
-                <div class="toast-snooze-wrap">
-                  <button type="button" class="toast-btn-snooze" id="btn-toast-snooze-toggle" title="Rappeler plus tard"><i class="fa-solid fa-clock"></i> Plus tard <i class="fa-solid fa-chevron-down" style="font-size: 9px;"></i></button>
-                  <div class="toast-snooze-menu" id="toast-snooze-menu" style="display: none;">
-                    <button type="button" class="snooze-item" data-days="1"><i class="fa-regular fa-clock"></i> Dans 1 jour</button>
-                    <button type="button" class="snooze-item" data-days="3"><i class="fa-regular fa-clock"></i> Dans 3 jours</button>
-                    <button type="button" class="snooze-item" data-days="7"><i class="fa-regular fa-clock"></i> Dans 1 semaine</button>
-                    <button type="button" class="snooze-item" data-days="30"><i class="fa-regular fa-clock"></i> Dans 1 mois</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            <!-- Mini-Popup Toast Mise à jour -->
+            <div id="update-toast-popup" class="modey-update-toast" style="display: none;">
+              <div class="update-toast-head">
+                <span class="update-toast-badge"><i class="fa-solid fa-sparkles"></i> Mise à jour</span>
+                <span class="update-toast-version" id="toast-update-version">v26.1.3</span>
+                <button type="button" class="update-toast-close" id="btn-toast-dismiss" title="Fermer"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <div class="update-toast-body">
+                <p id="toast-update-title">Une nouvelle version de Modey Launcher est disponible !</p>
+              </div>
+              <div class="update-toast-actions">
+                <button type="button" class="toast-btn-update" id="btn-toast-update"><i class="fa-solid fa-arrow-down"></i> Mettre à jour</button>
+                <div class="toast-snooze-wrap">
+                  <button type="button" class="toast-btn-snooze" id="btn-toast-snooze-toggle" title="Rappeler plus tard"><i class="fa-solid fa-clock"></i> Plus tard <i class="fa-solid fa-chevron-down" style="font-size: 9px;"></i></button>
+                  <div class="toast-snooze-menu" id="toast-snooze-menu" style="display: none;">
+                    <button type="button" class="snooze-item" data-days="1"><i class="fa-regular fa-clock"></i> Dans 1 jour</button>
+                    <button type="button" class="snooze-item" data-days="3"><i class="fa-regular fa-clock"></i> Dans 3 jours</button>
+                    <button type="button" class="snooze-item" data-days="7"><i class="fa-regular fa-clock"></i> Dans 1 semaine</button>
+                    <button type="button" class="snooze-item" data-days="30"><i class="fa-regular fa-clock"></i> Dans 1 mois</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <button id="btn-play" class="modey-play-btn"><i class="fa-solid fa-play"></i><span>Jouer à Athéna</span></button>
 
             <div class="progress-container hidden" id="launch-progress-container">
@@ -92,50 +92,118 @@
           </div>
         </aside>
 
+        <!-- Vue Accueil Principale -->
         <main class="modey-main" id="modey-main">
-          <div class="modey-scroll" id="modey-scroll">
-          <section class="page-header">
-            <h1>Accueil</h1>
-            <p>Bienvenue sur ton launcher Modey.</p>
-          </section>
-          <div class="modey-hero-row">
-          <section class="modey-hero" id="hero">
-            <div class="modey-hero-top">
-              <div class="modey-hero-badges">
-                <span class="hero-badge hero-badge-version" id="hero-version"><i class="fa-solid fa-cube"></i>&nbsp;Minecraft 1.21.1</span>
-                <span class="hero-badge hero-badge-status" id="hero-status">
-                  <span class="status-dot pinging" id="server-status-dot"></span>&nbsp;<span id="server-status-text">Vérification...</span>
-                </span>
-              </div>
-              <span class="hero-badge hero-badge-players" id="player-count"></span>
-            </div>
-            <div class="modey-hero-body">
-              <div class="modey-hero-info">
-                <h2><span id="hero-title">Athéna</span></h2>
-                <p id="hero-desc">Un monde vivant. Des villes à construire. Une aventure à partager.</p>
-                <div class="hero-tags" id="hero-tags"></div>
-              </div>
-              <div class="modey-hero-actions">
-                <button id="btn-play-hero" class="hero-play"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Jouer à Athéna</button>
-                <button id="btn-details" class="hero-details"><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;Détails du serveur</button>
-              </div>
-            </div>
-            <div class="modey-hero-foot">
-              <span id="hero-foot-note"><i class="fa-solid fa-circle-check"></i>&nbsp;Prêt au lancement • Dernière version installée</span>
-            </div>
-          </section>
+          <!-- Colonne Centrale (Scrollable) -->
+          <div class="modey-center-col" id="modey-scroll">
+            <header class="page-header">
+              <h1>Accueil</h1>
+              <p>Bienvenue sur ton launcher Modey.</p>
+            </header>
 
-            <section class="modey-news">
-              <div class="modey-section-head">
-                <h3><i class="fa-solid fa-newspaper"></i>&nbsp;&nbsp;Les actualités de Modey</h3>
+            <!-- 1. Hero Banner Athéna / Serveur Actif -->
+            <section class="modey-hero" id="hero">
+              <div class="modey-hero-top">
+                <div class="modey-hero-badges">
+                  <span class="hero-badge hero-badge-status" id="hero-status">
+                    <span class="status-dot online" id="server-status-dot"></span>&nbsp;<span id="server-status-text">En ligne</span>
+                  </span>
+                </div>
+                <div class="modey-hero-top-right">
+                  <span class="hero-badge hero-badge-players" id="player-count"><i class="fa-solid fa-users"></i>&nbsp;—</span>
+                  <span class="hero-badge hero-badge-version" id="hero-version"><i class="fa-solid fa-cube"></i>&nbsp;1.21.1</span>
+                </div>
               </div>
-              <div class="news-list" id="news-list"></div>
 
-              <section class="modey-discovery">
-                <h3><i class="fa-solid fa-compass"></i>&nbsp;&nbsp;À découvrir</h3>
-                <div class="discovery-card" id="discovery-card"></div>
-              </section>
+              <div class="modey-hero-body">
+                <div class="modey-hero-info">
+                  <h2 id="hero-title"><i class="fa-solid fa-crown" style="color: #fbbf24; margin-right: 8px;"></i>Athéna</h2>
+                  <div class="hero-tags" id="hero-tags"></div>
+                  <p id="hero-desc">Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.</p>
+                </div>
+              </div>
+
+              <div class="modey-hero-bottom-bar">
+                <div class="hero-gallery">
+                  <div class="hero-gallery-thumb active"><img src="/src/static/images/bg.png" alt="Aperçu" /></div>
+                </div>
+                <div class="modey-hero-actions">
+                  <button id="btn-play-hero" class="hero-play"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Rejoindre</button>
+                  <button id="btn-details" class="hero-icon-btn" title="Détails du serveur"><i class="fa-solid fa-circle-info"></i></button>
+                  <button id="btn-server-settings" class="hero-icon-btn" title="Paramètres du serveur"><i class="fa-solid fa-gear"></i></button>
+                </div>
+              </div>
             </section>
+
+            <!-- 2. Rangée intermédiaire (Reprends là où tu t'es arrêté + Événements & actualités) -->
+            <div class="home-grid-row">
+              <section class="home-card resume-card">
+                <div class="home-card-head">
+                  <h3><i class="fa-regular fa-clock"></i> Reprends là où tu t'es arrêté</h3>
+                  <button class="head-link" id="resume-view-all">Voir tout <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="home-card-body" id="resume-container"></div>
+              </section>
+
+              <section class="home-card news-card">
+                <div class="home-card-head">
+                  <h3><i class="fa-solid fa-bullhorn"></i> Événements & actualités</h3>
+                  <button class="head-link" id="news-view-all">Voir tout <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="home-card-body news-events-container" id="events-news-list"></div>
+              </section>
+            </div>
+
+            <!-- 3. Rangée inférieure (Historique réel + À découvrir) -->
+            <div class="home-grid-row">
+              <section class="home-card history-card-section">
+                <div class="home-card-head">
+                  <div class="head-title-badge">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Historique</h3>
+                    <span class="head-count-badge" id="history-count-badge">0 serveur</span>
+                  </div>
+                </div>
+                <div class="history-cards-scroll" id="history-cards-container"></div>
+              </section>
+
+              <section class="home-card discovery-card-section">
+                <div class="home-card-head">
+                  <h3><i class="fa-regular fa-compass"></i> À découvrir</h3>
+                  <button class="head-link" id="discovery-view-all">Voir tout <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="home-card-body discovery-items-list" id="discovery-container"></div>
+              </section>
+            </div>
           </div>
-          </div>
+
+          <!-- Volet Latéral Droit : Social & Notifs -->
+          <aside class="home-social-col">
+            <!-- Activité de tes amis -->
+            <section class="social-panel friends-panel">
+              <div class="social-panel-head">
+                <h4><i class="fa-regular fa-user"></i> Activité de tes amis</h4>
+                <button class="head-link" id="friends-view-all">Bientôt <i class="fa-solid fa-arrow-right"></i></button>
+              </div>
+              <div class="social-panel-body" id="friends-list-container"></div>
+            </section>
+
+            <!-- Dernières notifications -->
+            <section class="social-panel notifications-panel">
+              <div class="social-panel-head">
+                <h4><i class="fa-regular fa-bell"></i> Dernières notifications</h4>
+                <button class="head-link" id="notifs-view-all">Voir tout <i class="fa-solid fa-arrow-right"></i></button>
+              </div>
+              <div class="social-panel-body notifs-list" id="notifications-list-container"></div>
+            </section>
+
+            <!-- CTA Bannière Discord -->
+            <div class="discord-cta-card" id="btn-discord-join">
+              <div class="discord-icon"><i class="fa-brands fa-discord"></i></div>
+              <div class="discord-info">
+                <div class="discord-title">Rejoins la communauté Modey</div>
+                <div class="discord-sub">Sur Discord : échanges, événements, entraide...</div>
+              </div>
+              <div class="discord-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+            </div>
+          </aside>
         </main>

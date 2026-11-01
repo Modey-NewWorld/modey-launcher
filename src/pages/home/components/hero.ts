@@ -1,18 +1,18 @@
-import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile, isAthenaProfile } from '../../../services/profiles'
+import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile } from '../../../services/profiles'
 import { pingServer, targetFor } from '../../../services/serverStatus'
 import { getUser } from '../../../state'
 import { launcherConfig } from '../../../services/launcherConfig'
 import { bannerCache } from '../../../services/bannerCache'
+import bgImage from '../../../static/images/bg.png'
 
-const ATHENA_TAGS = ['Survie RP', 'Économie', 'Villes & Métropoles', 'Quêtes scénarisées']
+const ATHENA_TAGS = ['Europe (FR)', 'Survie', 'Villes', 'Aventure', 'Communauté']
 const STAFF_ROLES = ['founder', 'admin', 'moderator', 'developer', 'dev']
 
 const el = (id: string) => document.getElementById(id)
 
-// Cache le dernier statut de probe pour le profil actif
 const serverStatusCache: Record<string, { online: boolean; timestamp: number }> = {}
 
-function checkIsAdmin(): boolean {
+export function checkIsAdmin(): boolean {
   const user = getUser() as any
   const role = (user?.role || 'citizen').toLowerCase()
   return STAFF_ROLES.includes(role)
@@ -27,7 +27,6 @@ export function renderHero(profile: any) {
   const serverSlug = profile?.slug || 'athena'
   const serverMeta = launcherConfig.getServer(serverSlug) || (isSoon ? launcherConfig.getFreeBuild() : launcherConfig.getAthena())
 
-  // Vérifier si le serveur est réputé hors-ligne via le cache de ping
   const profileKey = profile?.id ?? 'default'
   const cachedStatus = serverStatusCache[profileKey]
   const isOffline = cachedStatus !== undefined && !cachedStatus.online && !isSoon
@@ -35,24 +34,19 @@ export function renderHero(profile: any) {
   const heroVersion = el('hero-version')
   if (heroVersion) {
     const mc = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
-    const loader = profile?.modey?.loaderVersion || serverMeta?.loaderVersion || '21.1.169'
-    heroVersion.innerHTML = `<i class="fa-solid fa-cube"></i>&nbsp;Minecraft ${mc} • NeoForge ${loader}`
+    heroVersion.innerHTML = `<i class="fa-solid fa-cube"></i>&nbsp;${mc}`
   }
 
   const heroEl = el('hero')
   if (heroEl) {
     const remoteBanner = profile?.modey?.bannerUrl || serverMeta?.bannerUrl
-    const effectiveBanner = bannerCache.getBanner(serverSlug, remoteBanner)
-    heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.15) 0%, rgba(10, 20, 40, 0.82) 78%), url('${effectiveBanner}') center / cover no-repeat, #24365c`
+    const effectiveBanner = bannerCache.getBanner(serverSlug, remoteBanner) || bgImage
+    heroEl.style.background = `linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.88) 80%), url('${effectiveBanner}') center / cover no-repeat, #1e293b`
   }
 
   const heroTitle = el('hero-title')
   if (heroTitle) {
-    const iconUrl = profile?.modey?.iconUrl || serverMeta?.iconUrl
-    const iconImg = iconUrl
-      ? `<img src="${iconUrl}" style="width:26px; height:26px; object-fit:contain; border-radius:5px; vertical-align:middle; margin-right:8px; box-shadow:0 2px 6px rgba(0,0,0,0.4);" />`
-      : ''
-    heroTitle.innerHTML = `${iconImg}${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
+    heroTitle.innerHTML = `<i class="fa-solid fa-crown" style="color: #fbbf24; margin-right: 10px;"></i>${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
   }
 
   const customDesc = profile?.modey?.teaser?.description || serverMeta?.teaser?.description
@@ -60,7 +54,7 @@ export function renderHero(profile: any) {
   if (heroDesc) {
     if (customDesc) heroDesc.innerText = customDesc
     else if (isSoon) heroDesc.innerText = 'Le serveur créatif libre de Modey n\'est pas encore actif. Prépare tes idées : il ouvrira à tous les joueurs, sans whitelist.'
-    else heroDesc.innerText = 'Un monde vivant. Des villes à construire. Une aventure à partager.'
+    else heroDesc.innerText = 'Un monde vivant centré sur l\'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.'
   }
 
   const heroTags = el('hero-tags')
@@ -68,15 +62,6 @@ export function renderHero(profile: any) {
     const modeyTags = profile?.modey?.tags || serverMeta?.tags
     const tags = modeyTags && modeyTags.length > 0 ? modeyTags : isSoon ? ['Créatif', 'Plots', 'Schématiques', 'Concours'] : ATHENA_TAGS
     heroTags.innerHTML = tags.map((t: string) => `<span class="hero-tag">${t}</span>`).join('')
-  }
-
-  const heroFoot = el('hero-foot-note')
-  if (heroFoot) {
-    if (isMaint) heroFoot.innerHTML = `<i class="fa-solid fa-wrench" style="color:#f59e0b"></i>&nbsp;${profile?.modey?.maintenanceMessage || 'Maintenance technique en cours'}${isAdmin ? ' • Accès Admin accordé' : ''}`
-    else if (isSoon) heroFoot.innerHTML = `<i class="fa-solid fa-hourglass-half"></i>&nbsp;${serverMeta?.maintenanceMessage || 'Serveur non actif — Arrive bientôt'} • Minecraft ${serverMeta?.minecraftVersion || '1.21.1'}`
-    else if (isDisabled) heroFoot.innerHTML = `<i class="fa-solid fa-ban" style="color:#ef4444"></i>&nbsp;Lancement désactivé par l'administration${isAdmin ? ' • Accès Admin accordé' : ''}`
-    else if (isOffline) heroFoot.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ea580c"></i>&nbsp;Serveur hors ligne ou injoignable${isAdmin ? ' • Accès Admin accordé' : ''}`
-    else heroFoot.innerHTML = `<i class="fa-solid fa-circle-check"></i>&nbsp;Prêt au lancement • Dernière version installée`
   }
 
   applyPlayButtonState(profile, { isSoon, isMaint, isDisabled, isOffline, isAdmin })
@@ -88,127 +73,196 @@ function applyPlayButtonState(
 ) {
   const { isSoon, isMaint, isDisabled, isOffline, isAdmin } = state
 
-  let playLabel = `Jouer à ${profile?.name ?? 'Athéna'}`
-  let playIcon = 'fa-play'
-  let disabled = false
-  let adminBypass = false
+  const srvName = profile?.name ?? 'Athéna'
+
+  let heroLabel = `Jouer à ${srvName}`
+  let heroIcon = 'fa-play'
+  let heroDisabled = false
+  let heroBypass = false
+
+  let sidebarLabel = `Jouer à ${srvName}`
+  let sidebarIcon = 'fa-play'
+  let sidebarDisabled = false
 
   if (isSoon) {
-    playLabel = 'Bientôt disponible'
-    playIcon = 'fa-hourglass-half'
-    disabled = true
-  } else if (isMaint || isDisabled || isOffline) {
     if (isAdmin) {
-      // Déblocage avec bouton orange pour le staff/admin
-      adminBypass = true
-      disabled = false
-      if (isMaint) {
-        playLabel = 'Maintenance • Lancer (Admin)'
-        playIcon = 'fa-screwdriver-wrench'
-      } else if (isDisabled) {
-        playLabel = 'Désactivé • Lancer (Admin)'
-        playIcon = 'fa-shield-halved'
-      } else {
-        playLabel = 'Hors-ligne • Lancer (Admin)'
-        playIcon = 'fa-bolt'
-      }
+      heroLabel = 'Bientôt • Lancer (Staff)'
+      heroIcon = 'fa-hourglass-start'
+      heroDisabled = false
+      heroBypass = true
+
+      sidebarLabel = 'Bientôt • Lancer (Staff)'
+      sidebarIcon = 'fa-hourglass-start'
+      sidebarDisabled = false
     } else {
-      // Bloqué pour les joueurs normaux
-      disabled = true
-      if (isMaint) {
-        playLabel = 'En maintenance'
-        playIcon = 'fa-wrench'
-      } else if (isDisabled) {
-        playLabel = 'Serveur désactivé'
-        playIcon = 'fa-ban'
-      } else {
-        playLabel = 'Serveur hors ligne'
-        playIcon = 'fa-triangle-exclamation'
-      }
+      heroLabel = 'Bientôt disponible'
+      heroIcon = 'fa-hourglass-start'
+      heroDisabled = true
+
+      sidebarLabel = 'Bientôt disponible'
+      sidebarIcon = 'fa-hourglass-start'
+      sidebarDisabled = true
+    }
+  } else if (isMaint) {
+    if (isAdmin) {
+      heroLabel = 'Maintenance (Staff)'
+      heroIcon = 'fa-wrench'
+      heroDisabled = false
+      heroBypass = true
+
+      sidebarLabel = 'Maintenance • Lancer (Staff)'
+      sidebarIcon = 'fa-wrench'
+      sidebarDisabled = false
+    } else {
+      heroLabel = 'En maintenance'
+      heroIcon = 'fa-wrench'
+      heroDisabled = true
+
+      sidebarLabel = 'En maintenance'
+      sidebarIcon = 'fa-wrench'
+      sidebarDisabled = true
+    }
+  } else if (isDisabled) {
+    if (isAdmin) {
+      heroLabel = 'Désactivé (Staff)'
+      heroIcon = 'fa-ban'
+      heroDisabled = false
+      heroBypass = true
+
+      sidebarLabel = 'Désactivé • Lancer (Staff)'
+      sidebarIcon = 'fa-ban'
+      sidebarDisabled = false
+    } else {
+      heroLabel = 'Désactivé'
+      heroIcon = 'fa-ban'
+      heroDisabled = true
+
+      sidebarLabel = 'Désactivé'
+      sidebarIcon = 'fa-ban'
+      sidebarDisabled = true
+    }
+  } else if (isOffline) {
+    if (isAdmin) {
+      heroLabel = 'Hors ligne (Staff)'
+      heroIcon = 'fa-triangle-exclamation'
+      heroDisabled = false
+      heroBypass = true
+
+      sidebarLabel = 'Hors ligne • Lancer (Staff)'
+      sidebarIcon = 'fa-triangle-exclamation'
+      sidebarDisabled = false
+    } else {
+      heroLabel = 'Serveur hors ligne'
+      heroIcon = 'fa-triangle-exclamation'
+      heroDisabled = true
+
+      sidebarLabel = 'Serveur hors ligne'
+      sidebarIcon = 'fa-triangle-exclamation'
+      sidebarDisabled = true
     }
   }
 
-  for (const btn of [el('btn-play'), el('btn-play-hero')]) {
-    const b = btn as HTMLButtonElement | null
-    if (!b) continue
-    if (disabled) {
-      b.setAttribute('disabled', 'true')
-      b.classList.add('btn-disabled')
+  const playHeroBtn = el('btn-play-hero') as HTMLButtonElement | null
+  if (playHeroBtn) {
+    playHeroBtn.innerHTML = `<i class="fa-solid ${heroIcon}"></i>&nbsp;&nbsp;${heroLabel}`
+    if (heroDisabled) {
+      playHeroBtn.setAttribute('disabled', 'true')
+      playHeroBtn.classList.add('btn-disabled')
+      playHeroBtn.classList.remove('btn-admin-bypass')
     } else {
-      b.removeAttribute('disabled')
-      b.classList.remove('btn-disabled')
-    }
-
-    if (adminBypass) {
-      b.classList.add('btn-admin-bypass')
-      b.title = 'Serveur en maintenance ou hors-ligne : lancement autorisé grâce à vos privilèges Staff / Admin.'
-    } else {
-      b.classList.remove('btn-admin-bypass')
-      b.removeAttribute('title')
+      playHeroBtn.removeAttribute('disabled')
+      playHeroBtn.classList.remove('btn-disabled')
+      if (heroBypass) playHeroBtn.classList.add('btn-admin-bypass')
+      else playHeroBtn.classList.remove('btn-admin-bypass')
     }
   }
 
-  const playBtn = el('btn-play')
-  const playHeroBtn = el('btn-play-hero')
-  if (playBtn) playBtn.innerHTML = `<i class="fa-solid ${playIcon}"></i><span>${playLabel}</span>`
-  if (playHeroBtn) playHeroBtn.innerHTML = `<i class="fa-solid ${playIcon}"></i>&nbsp;&nbsp;${playLabel}`
+  const sidebarBtn = el('btn-play') as HTMLButtonElement | null
+  if (sidebarBtn) {
+    sidebarBtn.innerHTML = `<i class="fa-solid ${sidebarIcon}"></i><span>${sidebarLabel}</span>`
+    if (sidebarDisabled) {
+      sidebarBtn.setAttribute('disabled', 'true')
+      sidebarBtn.classList.add('btn-disabled')
+      sidebarBtn.classList.remove('btn-admin-bypass')
+    } else {
+      sidebarBtn.removeAttribute('disabled')
+      sidebarBtn.classList.remove('btn-disabled')
+      if (heroBypass) sidebarBtn.classList.add('btn-admin-bypass')
+      else sidebarBtn.classList.remove('btn-admin-bypass')
+    }
+  }
+
+  const resumeBtn = el('btn-resume-play') as HTMLButtonElement | null
+  if (resumeBtn) {
+    const resumeText = heroLabel === `Jouer à ${srvName}` ? 'Rejoindre' : heroLabel
+    resumeBtn.innerHTML = `<i class="fa-solid ${heroIcon}"></i> ${resumeText}`
+    if (heroDisabled) {
+      resumeBtn.setAttribute('disabled', 'true')
+      resumeBtn.classList.add('btn-disabled')
+      resumeBtn.classList.remove('btn-admin-bypass')
+    } else {
+      resumeBtn.removeAttribute('disabled')
+      resumeBtn.classList.remove('btn-disabled')
+      if (heroBypass) resumeBtn.classList.add('btn-admin-bypass')
+      else resumeBtn.classList.remove('btn-admin-bypass')
+    }
+  }
 }
 
 export async function updateServerStatus(profile: any) {
-  const statusDot = el('server-status-dot')
-  const statusText = el('server-status-text')
+  const isSoon = isComingSoonProfile(profile)
+  const isMaint = isMaintenanceProfile(profile)
+  const isDisabled = isDisabledProfile(profile)
+
+  const serverStatusDot = el('server-status-dot')
+  const serverStatusText = el('server-status-text')
   const playerCount = el('player-count')
-  const heroStatus = el('hero-status')
-  const profileKey = profile?.id ?? 'default'
 
-  const serverSlug = profile?.slug || 'athena'
-  const serverMeta = launcherConfig.getServer(serverSlug) || (isComingSoonProfile(profile) ? launcherConfig.getFreeBuild() : launcherConfig.getAthena())
+  if (serverStatusDot) serverStatusDot.className = 'status-dot pinging'
+  if (serverStatusText) serverStatusText.innerText = 'Vérification...'
+  if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-users"></i>&nbsp;—'
 
-  if (isComingSoonProfile(profile)) {
-    if (statusDot) {
-      statusDot.classList.remove('pinging', 'online')
-      statusDot.classList.add('offline')
-    }
-    if (statusText) statusText.innerHTML = 'Bientôt disponible'
-    if (heroStatus) heroStatus.title = serverMeta?.maintenanceMessage || 'Serveur non actif — Arrive bientôt'
-    if (playerCount) playerCount.innerHTML = ''
-    serverStatusCache[profileKey] = { online: false, timestamp: Date.now() }
+  if (isSoon) {
+    if (serverStatusDot) serverStatusDot.className = 'status-dot soon'
+    if (serverStatusText) serverStatusText.innerText = 'Bientôt'
+    if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-users"></i>&nbsp;0/40'
     renderHero(profile)
     return
   }
 
-  if (statusDot) {
-    statusDot.classList.remove('online', 'offline')
-    statusDot.classList.add('pinging')
+  if (isMaint) {
+    if (serverStatusDot) serverStatusDot.className = 'status-dot maint'
+    if (serverStatusText) serverStatusText.innerText = 'Maintenance'
+    if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-wrench"></i>&nbsp;Maintenance'
+    renderHero(profile)
+    return
   }
-  if (statusText) statusText.innerHTML = 'Vérification...'
-  if (playerCount) playerCount.innerHTML = ''
 
-  const target = targetFor(profile)
-  const probe = await pingServer(target.host, target.port)
-  const isOnline = Boolean(probe.online && probe.status)
-  serverStatusCache[profileKey] = { online: isOnline, timestamp: Date.now() }
+  if (isDisabled) {
+    if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
+    if (serverStatusText) serverStatusText.innerText = 'Désactivé'
+    if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-ban"></i>&nbsp;Désactivé'
+    renderHero(profile)
+    return
+  }
 
-  if (isOnline && probe.status) {
-    if (statusDot) {
-      statusDot.classList.remove('pinging', 'offline')
-      statusDot.classList.add('online')
-    }
-    const mcVer = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
-    if (statusText) statusText.innerHTML = `Disponible • v${mcVer}`
+  const t = targetFor(profile)
+  const probe = await pingServer(t.host, t.port)
+
+  const profileKey = profile?.id ?? 'default'
+  serverStatusCache[profileKey] = { online: probe.online, timestamp: Date.now() }
+
+  if (probe.online && probe.status) {
+    if (serverStatusDot) serverStatusDot.className = 'status-dot online'
+    if (serverStatusText) serverStatusText.innerText = 'En ligne'
     if (playerCount) {
-      const occupantLabel = isAthenaProfile(profile) ? 'citoyens connectés' : 'joueurs connectés'
-      playerCount.innerHTML = `${probe.status.players.online.toLocaleString()} / ${probe.status.players.max.toLocaleString()} ${occupantLabel}`
+      playerCount.innerHTML = `<i class="fa-solid fa-users"></i>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
     }
   } else {
-    if (statusDot) {
-      statusDot.classList.remove('pinging', 'online')
-      statusDot.classList.add('offline')
-    }
-    if (statusText) statusText.innerHTML = 'Hors ligne'
-    if (playerCount) playerCount.innerHTML = ''
+    if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
+    if (serverStatusText) serverStatusText.innerText = 'Hors ligne'
+    if (playerCount) playerCount.innerHTML = '<i class="fa-solid fa-signal"></i>&nbsp;—'
   }
 
-  // Répercuter immédiatement l'état sur les boutons de lancement
   renderHero(profile)
 }

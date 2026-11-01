@@ -158,7 +158,8 @@ export function registerSkinHandlers() {
       await skin.updateSkin(skinSource, 'classic')
     } catch (err: any) {
       logger.error('Failed to update skin:', err)
-      return null
+      const message = err?.response?.data?.errorMessage || err?.message || 'Erreur lors de la mise à jour du skin'
+      return { error: message, errorMessage: message }
     }
 
     const fetched = ((await skin.getSkin()) as ISkin[])
