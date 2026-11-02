@@ -47,7 +47,7 @@ export async function refreshOptionalMods(slug: string) {
 
   container.innerHTML = `
     <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:18px; text-align:center; color:#64748b; font-size:13px;">
-      <i class="ph ph-spinner spin" style="font-size:22px; color:#8b5cf6; margin-bottom:8px; display:inline-block;"></i>
+      <svg class="solar-icon solar-linear spin" style="font-size:22px; color:#8b5cf6; margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>
       <div>Recherche des mods facultatifs pour ${slug}...</div>
     </div>
   `
@@ -63,7 +63,7 @@ export async function refreshOptionalMods(slug: string) {
     if (list.length === 0) {
       container.innerHTML = `
         <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:18px; text-align:center; color:#64748b; font-size:13px;">
-          <i class="ph ph-package" style="font-size:24px; color:#94a3b8; margin-bottom:8px; display:inline-block;"></i>
+          <svg class="solar-icon solar-linear" style="font-size:24px; color:#94a3b8; margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-box-linear"></use></svg>
           <div style="font-weight:600; color:#334155; margin-bottom:4px;">Aucun mod optionnel disponible pour ce serveur</div>
           <div>Tous les mods essentiels sont déjà installés et synchronisés d'office avec le serveur.</div>
         </div>
@@ -85,20 +85,20 @@ export async function refreshOptionalMods(slug: string) {
       if (!mod.isInstalled) {
         actionHtml = `
           <button type="button" class="opt-btn opt-btn--install" id="btn-install-${mod.id}">
-            <i class="ph ph-download-simple"></i> Télécharger
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg>&nbsp;Télécharger
           </button>
         `
       } else {
         const toggleClass = mod.isEnabled ? 'opt-btn--toggle-on' : 'opt-btn--toggle-off'
-        const toggleIcon = mod.isEnabled ? 'ph-toggle-right' : 'ph-toggle-left'
+        
         const toggleText = mod.isEnabled ? 'Activé' : 'Désactivé'
 
         actionHtml = `
           <button type="button" class="opt-btn ${toggleClass}" id="btn-toggle-${mod.id}" title="${mod.isEnabled ? 'Désactiver ce mod' : 'Activer ce mod'}">
-            <i class="ph ${toggleIcon}"></i> <span>${toggleText}</span>
+            <svg class="solar-icon solar-bold"><use href="#solar-check-bold"></use></svg> <span>${toggleText}</span>
           </button>
           <button type="button" class="opt-btn opt-btn--delete" id="btn-del-${mod.id}" title="Désinstaller complètement ce mod">
-            <i class="ph ph-trash"></i>
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-trash-bold"></use></svg>
           </button>
         `
       }
@@ -108,7 +108,7 @@ export async function refreshOptionalMods(slug: string) {
           <div class="optional-mod-info">
             <div class="optional-mod-name">${displayName}</div>
             <div class="optional-mod-meta">
-              <span><i class="ph ph-file-zip"></i> ${mod.name}</span>
+              <span><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-file-zip-linear"></use></svg> ${mod.name}</span>
               <span>•</span>
               <span>${sizeStr}</span>
             </div>
@@ -119,7 +119,7 @@ export async function refreshOptionalMods(slug: string) {
         </div>
         <div class="optional-mod-actions">
           <span style="font-size:11.5px; color:#64748b;">
-            ${mod.isEnabled ? '<i class="ph ph-check-circle" style="color:#10b981;"></i> Actif au lancement' : (mod.isInstalled ? '<i class="ph ph-pause" style="color:#f59e0b;"></i> En pause' : '<i class="ph ph-cloud" style="color:#8b5cf6;"></i> Non téléchargé')}
+            ${mod.isEnabled ? '<svg class="solar-icon solar-linear style="color:#10b981;"" aria-hidden="true"><use href="#solar-check-linear"></use></svg>&nbsp;Actif au lancement' : (mod.isInstalled ? '<svg class="solar-icon solar-linear style="color:#f59e0b;"" aria-hidden="true"><use href="#solar-clock-linear"></use></svg>&nbsp;En pause' : '<svg class="solar-icon solar-linear style="color:#8b5cf6;"" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;Non téléchargé')}
           </span>
           <div style="display:flex; align-items:center; gap:6px;">
             ${actionHtml}
@@ -132,7 +132,7 @@ export async function refreshOptionalMods(slug: string) {
       // Brancher les interactions
       const installBtn = card.querySelector(`#btn-install-${mod.id}`)
       installBtn?.addEventListener('click', async () => {
-        installBtn.innerHTML = '<i class="ph ph-spinner spin"></i> Installation...'
+        installBtn.innerHTML = '<svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg> Installation...'
         installBtn.setAttribute('disabled', 'true')
         try {
           const res = await optionalMods.install(slug, mod.id)
@@ -148,7 +148,7 @@ export async function refreshOptionalMods(slug: string) {
       const toggleBtn = card.querySelector(`#btn-toggle-${mod.id}`)
       toggleBtn?.addEventListener('click', async () => {
         const nextState = !mod.isEnabled
-        toggleBtn.innerHTML = '<i class="ph ph-spinner spin"></i>'
+        toggleBtn.innerHTML = '<svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>'
         try {
           const res = await optionalMods.toggle(slug, mod.id, nextState)
           if (!res.success) {
@@ -170,7 +170,7 @@ export async function refreshOptionalMods(slug: string) {
           ]
         )
         if (confirm) {
-          delBtn.innerHTML = '<i class="ph ph-spinner spin"></i>'
+          delBtn.innerHTML = '<svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>'
           try {
             const res = await optionalMods.uninstall(slug, mod.id)
             if (!res.success) {
@@ -188,7 +188,7 @@ export async function refreshOptionalMods(slug: string) {
     logger.error('Failed to load optional mods:', err)
     container.innerHTML = `
       <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#fef2f2; border:1px dashed #fca5a5; border-radius:10px; padding:18px; text-align:center; color:#991b1b; font-size:13px;">
-        <i class="ph ph-warning-circle" style="font-size:22px; color:#ef4444; margin-bottom:8px; display:inline-block;"></i>
+        <svg class="solar-icon solar-linear" style="font-size:22px; color:#ef4444; margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-danger-linear"></use></svg>
         <div>Impossible de charger les mods facultatifs. Vérifiez votre connexion.</div>
       </div>
     `

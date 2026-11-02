@@ -1,3 +1,4 @@
+import { solarIcon as solar } from '../../../components/icon'
 import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile } from '../../../services/profiles'
 import { pingServer, targetFor } from '../../../services/serverStatus'
 import { getUser } from '../../../state'
@@ -34,7 +35,7 @@ export function renderHero(profile: any) {
   const heroVersion = el('hero-version')
   if (heroVersion) {
     const mc = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
-    heroVersion.innerHTML = `<i class="ph ph-cube"></i>&nbsp;${mc}`
+    heroVersion.innerHTML = `<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;${mc}`
   }
 
   const heroEl = el('hero')
@@ -51,7 +52,7 @@ export function renderHero(profile: any) {
 
   const heroTitle = el('hero-title')
   if (heroTitle) {
-    heroTitle.innerHTML = `<i class="ph ph-crown" style="color: #fbbf24; margin-right: 10px;"></i>${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
+    heroTitle.innerHTML = `<svg class="solar-icon solar-bold style="color: #fbbf24; margin-right: 10px;"" aria-hidden="true"><use href="#solar-crown-bold"></use></svg>${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
   }
 
   const customDesc = profile?.modey?.teaser?.description || serverMeta?.teaser?.description
@@ -81,95 +82,95 @@ function applyPlayButtonState(
   const srvName = profile?.name ?? 'Athéna'
 
   let heroLabel = 'Rejoindre'
-  let heroIcon = 'ph-bold ph-play'
+  let heroIcon = 'play'
   let heroDisabled = false
   let heroBypass = false
 
   let sidebarLabel = `Jouer à ${srvName}`
-  let sidebarIcon = 'ph-bold ph-play'
+  let sidebarIcon = 'play'
   let sidebarDisabled = false
 
   if (isSoon) {
     if (isAdmin) {
       heroLabel = 'Bientôt • Lancer (Staff)'
-      heroIcon = 'ph ph-hourglass-simple'
+      heroIcon = 'hourglass'
       heroDisabled = false
       heroBypass = true
 
       sidebarLabel = 'Bientôt • Lancer (Staff)'
-      sidebarIcon = 'ph ph-hourglass-simple'
+      sidebarIcon = 'hourglass'
       sidebarDisabled = false
     } else {
       heroLabel = 'Bientôt disponible'
-      heroIcon = 'ph ph-hourglass-simple'
+      heroIcon = 'hourglass'
       heroDisabled = true
 
       sidebarLabel = 'Bientôt disponible'
-      sidebarIcon = 'ph ph-hourglass-simple'
+      sidebarIcon = 'hourglass'
       sidebarDisabled = true
     }
   } else if (isMaint) {
     if (isAdmin) {
       heroLabel = 'Maintenance (Staff)'
-      heroIcon = 'ph ph-wrench'
+      heroIcon = 'tuning'
       heroDisabled = false
       heroBypass = true
 
       sidebarLabel = 'Maintenance • Lancer (Staff)'
-      sidebarIcon = 'ph ph-wrench'
+      sidebarIcon = 'tuning'
       sidebarDisabled = false
     } else {
       heroLabel = 'En maintenance'
-      heroIcon = 'ph ph-wrench'
+      heroIcon = 'tuning'
       heroDisabled = true
 
       sidebarLabel = 'En maintenance'
-      sidebarIcon = 'ph ph-wrench'
+      sidebarIcon = 'tuning'
       sidebarDisabled = true
     }
   } else if (isDisabled) {
     if (isAdmin) {
       heroLabel = 'Désactivé (Staff)'
-      heroIcon = 'ph ph-prohibit'
+      heroIcon = 'forbidden'
       heroDisabled = false
       heroBypass = true
 
       sidebarLabel = 'Désactivé • Lancer (Staff)'
-      sidebarIcon = 'ph ph-prohibit'
+      sidebarIcon = 'forbidden'
       sidebarDisabled = false
     } else {
       heroLabel = 'Désactivé'
-      heroIcon = 'ph ph-prohibit'
+      heroIcon = 'forbidden'
       heroDisabled = true
 
       sidebarLabel = 'Désactivé'
-      sidebarIcon = 'ph ph-prohibit'
+      sidebarIcon = 'forbidden'
       sidebarDisabled = true
     }
   } else if (isOffline) {
     if (isAdmin) {
       heroLabel = 'Hors ligne (Staff)'
-      heroIcon = 'ph ph-warning'
+      heroIcon = 'danger'
       heroDisabled = false
       heroBypass = true
 
       sidebarLabel = 'Hors ligne • Lancer (Staff)'
-      sidebarIcon = 'ph ph-warning'
+      sidebarIcon = 'danger'
       sidebarDisabled = false
     } else {
       heroLabel = 'Serveur hors ligne'
-      heroIcon = 'ph ph-warning'
+      heroIcon = 'danger'
       heroDisabled = true
 
       sidebarLabel = 'Serveur hors ligne'
-      sidebarIcon = 'ph ph-warning'
+      sidebarIcon = 'danger'
       sidebarDisabled = true
     }
   }
 
   const playHeroBtn = el('btn-play-hero') as HTMLButtonElement | null
   if (playHeroBtn) {
-    playHeroBtn.innerHTML = `<i class="${heroIcon}"></i>&nbsp;&nbsp;${heroLabel}`
+    playHeroBtn.innerHTML = `${solar(heroIcon, 'bold')}&nbsp;&nbsp;${heroLabel}`
     if (heroDisabled) {
       playHeroBtn.setAttribute('disabled', 'true')
       playHeroBtn.classList.add('btn-disabled')
@@ -184,7 +185,7 @@ function applyPlayButtonState(
 
   const sidebarBtn = el('btn-play') as HTMLButtonElement | null
   if (sidebarBtn) {
-    sidebarBtn.innerHTML = `<i class="${sidebarIcon}"></i><span>${sidebarLabel}</span>`
+    sidebarBtn.innerHTML = `${solar(sidebarIcon, 'bold')}<span>${sidebarLabel}</span>`
     if (sidebarDisabled) {
       sidebarBtn.setAttribute('disabled', 'true')
       sidebarBtn.classList.add('btn-disabled')
@@ -200,7 +201,7 @@ function applyPlayButtonState(
   const resumeBtn = el('btn-resume-play') as HTMLButtonElement | null
   if (resumeBtn) {
     const resumeText = heroLabel === `Jouer à ${srvName}` ? 'Rejoindre' : heroLabel
-    resumeBtn.innerHTML = `<i class="${heroIcon}"></i> ${resumeText}`
+    resumeBtn.innerHTML = `${solar(heroIcon, 'bold')} ${resumeText}`
     if (heroDisabled) {
       resumeBtn.setAttribute('disabled', 'true')
       resumeBtn.classList.add('btn-disabled')
@@ -225,12 +226,12 @@ export async function updateServerStatus(profile: any) {
 
   if (serverStatusDot) serverStatusDot.className = 'status-dot pinging'
   if (serverStatusText) serverStatusText.innerText = 'Vérification...'
-  if (playerCount) playerCount.innerHTML = '<i class="ph ph-users" aria-hidden="true"></i>&nbsp;—'
+  if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;—'
 
   if (isSoon) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot soon'
     if (serverStatusText) serverStatusText.innerText = 'Bientôt'
-    if (playerCount) playerCount.innerHTML = '<i class="ph ph-users" aria-hidden="true"></i>&nbsp;0/40'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;0/40'
     renderHero(profile)
     return
   }
@@ -238,7 +239,7 @@ export async function updateServerStatus(profile: any) {
   if (isMaint) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot maint'
     if (serverStatusText) serverStatusText.innerText = 'Maintenance'
-    if (playerCount) playerCount.innerHTML = '<i class="ph ph-wrench" aria-hidden="true"></i>&nbsp;Maintenance'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-tuning-linear"></use></svg>&nbsp;Maintenance'
     renderHero(profile)
     return
   }
@@ -246,7 +247,7 @@ export async function updateServerStatus(profile: any) {
   if (isDisabled) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
     if (serverStatusText) serverStatusText.innerText = 'Désactivé'
-    if (playerCount) playerCount.innerHTML = '<i class="ph ph-prohibit" aria-hidden="true"></i>&nbsp;Désactivé'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-forbidden-linear"></use></svg>&nbsp;Désactivé'
     renderHero(profile)
     return
   }
@@ -261,12 +262,12 @@ export async function updateServerStatus(profile: any) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot online'
     if (serverStatusText) serverStatusText.innerText = 'En ligne'
     if (playerCount) {
-      playerCount.innerHTML = `<i class="ph ph-users" aria-hidden="true"></i>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
+      playerCount.innerHTML = `<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
     }
   } else {
     if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
     if (serverStatusText) serverStatusText.innerText = 'Hors ligne'
-    if (playerCount) playerCount.innerHTML = '<i class="ph ph-cell-signal-high" aria-hidden="true"></i>&nbsp;—'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-signal-linear"></use></svg>&nbsp;—'
   }
 
   renderHero(profile)

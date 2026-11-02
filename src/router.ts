@@ -16,8 +16,26 @@ export function setRouterHooks(h: RouterHooks) {
 const el = (id: string) => document.getElementById(id)
 
 export function setActiveNav(active: HTMLElement | null) {
-  document.querySelectorAll('.modey-nav-item').forEach((el) => el.classList.remove('active'))
-  active?.classList.add('active')
+  document.querySelectorAll('.modey-nav-item').forEach((item) => {
+    item.classList.remove('active')
+    const use = item.querySelector('use')
+    if (use) {
+      const href = use.getAttribute('href') || ''
+      if (href.endsWith('-bold')) {
+        use.setAttribute('href', href.replace('-bold', '-linear'))
+      }
+    }
+  })
+  if (active) {
+    active.classList.add('active')
+    const use = active.querySelector('use')
+    if (use) {
+      const href = use.getAttribute('href') || ''
+      if (href.endsWith('-linear')) {
+        use.setAttribute('href', href.replace('-linear', '-bold'))
+      }
+    }
+  }
 }
 
 export function showAccueil() {

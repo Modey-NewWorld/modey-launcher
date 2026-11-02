@@ -47,10 +47,10 @@ export function refreshStudioMeta() {
 
   if (formatEl && active?.url) {
     if (active.url.includes('localhost') || active.url.includes('/skins/')) {
-      formatEl.innerHTML = `<i class="ph ph-hard-drives"></i> Modey Core`
+      formatEl.innerHTML = `<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-server-linear"></use></svg>&nbsp;Modey Core`
       formatEl.title = active.url
     } else {
-      formatEl.innerHTML = `<i class="ph ph-cloud"></i> Minecraft`
+      formatEl.innerHTML = `<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;Minecraft`
       formatEl.title = active.url
     }
   }

@@ -1,13 +1,10 @@
-type IconWeight = 'regular' | 'bold' | 'fill'
+/**
+ * Solar Icons Helper (Solar Icons — 480 Design, CC BY 4.0)
+ * Rendu par Sprite SVG local intégré, zéro CDN.
+ */
+export type SolarVariant = 'bold' | 'linear'
 
-export function icon(name: string, opts: { weight?: IconWeight; size?: number; className?: string } = {}) {
-  const { weight = 'regular', size = 16, className = '' } = opts
-  const prefix = weight === 'regular' ? 'ph' : `ph-${weight}`
-  return `<i class="${prefix} ph-${name} ${className}" style="font-size:${size}px" aria-hidden="true"></i>`
-}
-
-import discordSvg from '../static/icons/discord.svg?raw'
-
-export const brandIcon = {
-  discord: (size = 20) => discordSvg.replace('<svg', `<svg width="${size}" height="${size}"`)
+export function solarIcon(name: string, variant: SolarVariant = 'linear', extraClass = '', extraAttrs = ''): string {
+  const cls = ['solar-icon', `solar-${variant}`, extraClass].filter(Boolean).join(' ')
+  return `<svg class="${cls}" aria-hidden="true" ${extraAttrs}><use href="#solar-${name}-${variant}"></use></svg>`
 }

@@ -10,7 +10,7 @@ export function initTitlebar() {
 
   window.api.window.onMaximized((maximized) => {
     if (maxIcon) {
-      maxIcon.className = maximized ? 'ph ph-copy' : 'ph ph-square'
+      const use = maxIcon.querySelector('use'); if (use) use.setAttribute('href', maximized ? '#solar-copy-bold' : '#solar-maximize-bold');
     }
   })
 }

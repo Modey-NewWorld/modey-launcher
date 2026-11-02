@@ -13,7 +13,7 @@
 | **Taille `bg.png`** | 2 640 Ko (PNG lourd) | ≤ 120 Ko | **65,6 Ko** (`bg.webp`) + **7 Ko** (thumb) | Conforme (-97%) |
 | **Requêtes Google Fonts CDN** | Actives dans `index.html` | 0 requête externe | **0 requête** (100% polices locales WOFF2) | Conforme |
 | **Poids total des Polices** | FA + CDN (~400+ Ko) | ≤ 220 Ko | **130,1 Ko** (Bricolage + Instrument + Geist) | Conforme |
-| **Font Awesome WOFF2** | 258 Ko dans le bundle | 0 Ko (retiré) | **0 Ko** (100% Phosphor Icons + SVG Discord) | Conforme |
+| **Système d'Icônes** | Font Awesome WOFF2 (258 Ko) | 0 webfont externe | **Solar Icons (Sprite SVG local 100% autonome, zéro CDN)** | Conforme |
 | **Dépendances inutilisées** | `marked`, `dompurify`, FA | 0 résidu | Désinstallés proprement de `package.json` | Conforme |
 | **Paddings des Vues** | Incohérents (14px / 28px) | **18px** harmonisé | **18px** partout (Accueil, Serveurs, Profil, Réglages) | Conforme |
 | **Dimensions Fenêtre Initiale** | 1280×720 | 1320×820 (min 1024×680) | **1320×820** (min 1024×680) | Conforme |

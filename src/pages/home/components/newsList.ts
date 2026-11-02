@@ -18,7 +18,7 @@ export async function loadNews() {
   if (feed.length === 0) {
     newsList.innerHTML = `
       <div class="news-empty">
-        <i class="ph ph-newspaper" aria-hidden="true"></i>
+        <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-feed-linear"></use></svg>
         <span>Aucune actualité pour le moment.</span>
       </div>
     `
@@ -30,13 +30,13 @@ export async function loadNews() {
     const isUpdate = (item.title || '').toLowerCase().includes('mise à jour') || (item.title || '').toLowerCase().includes('patch')
     const badgeLabel = isUpdate ? 'Mise à jour' : 'Annonce'
     const badgeClass = isUpdate ? 'badge-update' : 'badge-event'
-    const iconClass = isUpdate ? 'ph-bold ph-sparkle' : 'ph-bold ph-megaphone'
+    const iconAlias = isUpdate ? 'sparkles' : 'feed'
 
     newsList.insertAdjacentHTML(
       'beforeend',
       `
       <div class="news-event-item" data-index="${index}">
-        <div class="news-event-thumb"><i class="${iconClass}" aria-hidden="true"></i></div>
+        <div class="news-event-thumb"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-${iconAlias}-bold"></use></svg></div>
         <div class="news-event-body">
           <div class="news-event-title">${item.title}</div>
           <div class="news-event-desc">${excerpt}</div>

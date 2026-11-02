@@ -54,8 +54,8 @@ export async function refreshFilesList() {
           <span>${escapeHtml(inst.slug)} · ${formatSize(inst.size)}</span>
         </div>
         <div class="files-row-actions">
-          <button type="button" class="settings-btn settings-btn--small" data-act="open"><i class="ph ph-folder-open"></i>&nbsp;Ouvrir</button>
-          <button type="button" class="settings-btn settings-btn--danger settings-btn--small" data-act="del"><i class="ph ph-trash"></i>&nbsp;Supprimer</button>
+          <button type="button" class="settings-btn settings-btn--small" data-act="open"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir</button>
+          <button type="button" class="settings-btn settings-btn--danger settings-btn--small" data-act="del"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-trash-bold"></use></svg>&nbsp;Supprimer</button>
         </div>`
 
       row.querySelector('[data-act="open"]')?.addEventListener('click', async () => {

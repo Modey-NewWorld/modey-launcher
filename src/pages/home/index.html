@@ -11,27 +11,27 @@
           <div class="profile-selector-container" id="profile-selector">
             <div class="selected-profile">
               <span id="current-profile-name">Athéna</span>
-              <i class="ph-bold ph-caret-right"></i>
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg>
             </div>
             <div class="profile-dropdown" id="profile-dropdown"></div>
           </div>
 
           <nav class="modey-nav">
-            <button class="modey-nav-item active" id="nav-home"><i class="ph-bold ph-house icon-fw"></i><span>Accueil</span></button>
-            <button class="modey-nav-item" id="nav-servers"><i class="ph-bold ph-hard-drives icon-fw"></i><span>Serveurs</span></button>
-            <button class="modey-nav-item" id="nav-profile"><i class="ph-bold ph-user icon-fw"></i><span>Mon profil</span></button>
+            <button class="modey-nav-item active" id="nav-home"><svg class="solar-icon solar-bold icon-fw" aria-hidden="true"><use href="#solar-home-bold"></use></svg><span>Accueil</span></button>
+            <button class="modey-nav-item" id="nav-servers"><svg class="solar-icon solar-bold icon-fw" aria-hidden="true"><use href="#solar-server-bold"></use></svg><span>Serveurs</span></button>
+            <button class="modey-nav-item" id="nav-profile"><svg class="solar-icon solar-bold icon-fw" aria-hidden="true"><use href="#solar-user-bold"></use></svg><span>Mon profil</span></button>
           </nav>
 
           <div class="modey-nav-sep"></div>
           <span class="modey-nav-label">Outils Univers</span>
           <nav class="modey-nav modey-nav-tools">
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="ph ph-chart-pie icon-fw"></i><span>Vue d'ensemble</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="ph ph-t-shirt icon-fw"></i><span>Mon personnage</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="ph ph-coins icon-fw"></i><span>Mon argent</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="ph ph-bank icon-fw"></i><span>Ma ville</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="ph ph-scales icon-fw"></i><span>Vie civique</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="ph ph-users icon-fw"></i><span>Communauté</span><span class="modey-soon-badge">Bientôt</span></button>
-            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><i class="ph ph-cell-signal-high icon-fw"></i><span>Serveur live</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><svg class="solar-icon solar-linear icon-fw" aria-hidden="true"><use href="#solar-feed-linear"></use></svg><span>Vue d'ensemble</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><svg class="solar-icon solar-linear icon-fw" aria-hidden="true"><use href="#solar-t-shirt-linear"></use></svg><span>Mon personnage</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><svg class="solar-icon solar-linear icon-fw" aria-hidden="true"><use href="#solar-notes-linear"></use></svg><span>Mon argent</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><svg class="solar-icon solar-linear icon-fw" aria-hidden="true"><use href="#solar-home-linear"></use></svg><span>Ma ville</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><svg class="solar-icon solar-linear icon-fw" aria-hidden="true"><use href="#solar-scale-linear"></use></svg><span>Vie civique</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><svg class="solar-icon solar-linear icon-fw" aria-hidden="true"><use href="#solar-friends-linear"></use></svg><span>Communauté</span><span class="modey-soon-badge">Bientôt</span></button>
+            <button class="modey-nav-item disabled" disabled title="Bientôt disponible"><svg class="solar-icon solar-linear icon-fw" aria-hidden="true"><use href="#solar-signal-linear"></use></svg><span>Serveur live</span><span class="modey-soon-badge">Bientôt</span></button>
           </nav>
           </div>
 
@@ -39,28 +39,28 @@
             <!-- Mini-Popup Toast Mise à jour -->
             <div id="update-toast-popup" class="modey-update-toast" style="display: none;">
               <div class="update-toast-head">
-                <span class="update-toast-badge"><i class="ph ph-sparkle"></i> Mise à jour</span>
+                <span class="update-toast-badge"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-sparkles-linear"></use></svg> Mise à jour</span>
                 <span class="update-toast-version" id="toast-update-version">v26.1.3</span>
-                <button type="button" class="update-toast-close" id="btn-toast-dismiss" title="Fermer"><i class="ph-bold ph-x"></i></button>
+                <button type="button" class="update-toast-close" id="btn-toast-dismiss" title="Fermer"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-close-simple-bold"></use></svg></button>
               </div>
               <div class="update-toast-body">
                 <p id="toast-update-title">Une nouvelle version de Modey Launcher est disponible !</p>
               </div>
               <div class="update-toast-actions">
-                <button type="button" class="toast-btn-update" id="btn-toast-update"><i class="ph-bold ph-arrow-down"></i> Mettre à jour</button>
+                <button type="button" class="toast-btn-update" id="btn-toast-update"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg> Mettre à jour</button>
                 <div class="toast-snooze-wrap">
-                  <button type="button" class="toast-btn-snooze" id="btn-toast-snooze-toggle" title="Rappeler plus tard"><i class="ph ph-clock"></i> Plus tard <i class="ph-bold ph-caret-down" style="font-size: 9px;"></i></button>
+                  <button type="button" class="toast-btn-snooze" id="btn-toast-snooze-toggle" title="Rappeler plus tard"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-clock-linear"></use></svg> Plus tard <svg class="solar-icon solar-bold" style="font-size: 9px;" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg></button>
                   <div class="toast-snooze-menu" id="toast-snooze-menu" style="display: none;">
-                    <button type="button" class="snooze-item" data-days="1"><i class="ph ph-clock"></i> Dans 1 jour</button>
-                    <button type="button" class="snooze-item" data-days="3"><i class="ph ph-clock"></i> Dans 3 jours</button>
-                    <button type="button" class="snooze-item" data-days="7"><i class="ph ph-clock"></i> Dans 1 semaine</button>
-                    <button type="button" class="snooze-item" data-days="30"><i class="ph ph-clock"></i> Dans 1 mois</button>
+                    <button type="button" class="snooze-item" data-days="1"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-clock-linear"></use></svg> Dans 1 jour</button>
+                    <button type="button" class="snooze-item" data-days="3"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-clock-linear"></use></svg> Dans 3 jours</button>
+                    <button type="button" class="snooze-item" data-days="7"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-clock-linear"></use></svg> Dans 1 semaine</button>
+                    <button type="button" class="snooze-item" data-days="30"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-clock-linear"></use></svg> Dans 1 mois</button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <button id="btn-play" class="modey-play-btn"><i class="ph-bold ph-play"></i><span>Jouer à Athéna</span></button>
+            <button id="btn-play" class="modey-play-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg><span>Jouer à Athéna</span></button>
 
             <div class="progress-container hidden" id="launch-progress-container" role="status" aria-live="polite">
               <div class="progress-info">
@@ -73,10 +73,10 @@
             </div>
 
             <div class="user-menu" id="user-menu">
-              <button class="user-menu-item" id="user-menu-profile"><i class="ph ph-user icon-fw"></i><span>Mon profil</span></button>
-              <button class="user-menu-item" id="user-menu-settings"><i class="ph ph-gear icon-fw"></i><span>Paramètres</span></button>
+              <button class="user-menu-item" id="user-menu-profile"><svg class="solar-icon solar-bold icon-fw" aria-hidden="true"><use href="#solar-user-bold"></use></svg><span>Mon profil</span></button>
+              <button class="user-menu-item" id="user-menu-settings"><svg class="solar-icon solar-bold icon-fw" aria-hidden="true"><use href="#solar-settings-bold"></use></svg><span>Paramètres</span></button>
               <div class="user-menu-sep"></div>
-              <button class="user-menu-item danger" id="user-menu-logout"><i class="ph ph-sign-out icon-fw"></i><span>Se déconnecter</span></button>
+              <button class="user-menu-item danger" id="user-menu-logout"><svg class="solar-icon solar-bold icon-fw" aria-hidden="true"><use href="#solar-logout-bold"></use></svg><span>Se déconnecter</span></button>
             </div>
             <div class="modey-user-card" id="user-card" title="Gérer mon compte">
               <img src="" id="user-avatar" alt="Skin" />
@@ -87,7 +87,7 @@
                 </div>
                 <span class="modey-user-status"><span class="modey-status-dot"></span><span id="user-status-text">Prêt</span></span>
               </div>
-              <i class="ph-bold ph-caret-up modey-user-chevron" id="user-chevron"></i>
+              <svg class="solar-icon solar-bold" id="user-chevron" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg>
             </div>
           </div>
         </aside>
@@ -110,14 +110,14 @@
                   </span>
                 </div>
                 <div class="modey-hero-top-right">
-                  <span class="hero-badge hero-badge-players" id="player-count"><i class="ph ph-users" aria-hidden="true"></i>&nbsp;—</span>
-                  <span class="hero-badge hero-badge-version" id="hero-version"><i class="ph ph-cube" aria-hidden="true"></i>&nbsp;1.21.1</span>
+                  <span class="hero-badge hero-badge-players" id="player-count"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;—</span>
+                  <span class="hero-badge hero-badge-version" id="hero-version"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;1.21.1</span>
                 </div>
               </div>
 
               <div class="modey-hero-body">
                 <div class="modey-hero-info">
-                  <h2 id="hero-title"><i class="ph-fill ph-crown" style="color: #f59e0b; margin-right: 8px;" aria-hidden="true"></i>Athéna</h2>
+                  <h2 id="hero-title"><svg class="solar-icon solar-linear" style="color: #f59e0b; margin-right: 8px;" aria-hidden="true"><use href="#solar-box-linear"></use></svg>Athéna</h2>
                   <div class="hero-tags" id="hero-tags"></div>
                   <p id="hero-desc">Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.</p>
                 </div>
@@ -128,9 +128,9 @@
                   <div class="hero-gallery-thumb active"><img src="@STATIC_BG_THUMB@" alt="Aperçu" /></div>
                 </div>
                 <div class="modey-hero-actions">
-                  <button id="btn-play-hero" class="hero-play"><i class="ph-bold ph-play" aria-hidden="true"></i>&nbsp;&nbsp;Rejoindre</button>
-                  <button id="btn-details" class="hero-icon-btn" title="Détails du serveur" aria-label="Détails du serveur"><i class="ph-bold ph-info" aria-hidden="true"></i></button>
-                  <button id="btn-server-settings" class="hero-icon-btn" title="Paramètres du serveur" aria-label="Paramètres du serveur"><i class="ph-bold ph-gear" aria-hidden="true"></i></button>
+                  <button id="btn-play-hero" class="hero-play"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>&nbsp;&nbsp;Rejoindre</button>
+                  <button id="btn-details" class="hero-icon-btn" title="Détails du serveur" aria-label="Détails du serveur"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg></button>
+                  <button id="btn-server-settings" class="hero-icon-btn" title="Paramètres du serveur" aria-label="Paramètres du serveur"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-settings-bold"></use></svg></button>
                 </div>
               </div>
             </section>
@@ -139,8 +139,8 @@
             <div class="home-grid-row">
               <section class="home-card resume-card">
                 <div class="home-card-head">
-                  <h3><i class="ph ph-clock" aria-hidden="true"></i> Reprends là où tu t'es arrêté</h3>
-                  <button class="head-link" id="resume-view-all">Voir tout <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+                  <h3><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-clock-linear"></use></svg> Reprends là où tu t'es arrêté</h3>
+                  <button class="head-link" id="resume-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
                 </div>
                 <div class="home-card-body" id="resume-container"></div>
                 <div class="home-card-footer discovery-compact-footer" id="discovery-container"></div>
@@ -148,8 +148,8 @@
 
               <section class="home-card news-card">
                 <div class="home-card-head">
-                  <h3><i class="ph ph-megaphone" aria-hidden="true"></i> Événements & actualités</h3>
-                  <button class="head-link" id="news-view-all">Voir tout <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+                  <h3><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-feed-linear"></use></svg> Événements & actualités</h3>
+                  <button class="head-link" id="news-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
                 </div>
                 <div class="home-card-body news-events-container" id="events-news-list"></div>
               </section>
@@ -160,13 +160,13 @@
           <aside class="home-social-col">
             <div class="rail-tabs-nav" role="tablist" aria-label="Volet social et historique">
               <button type="button" class="rail-tab-btn active" role="tab" id="tab-btn-friends" aria-selected="true" aria-controls="panel-friends">
-                <i class="ph ph-user" aria-hidden="true"></i> Amis
+                <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-user-linear"></use></svg> Amis
               </button>
               <button type="button" class="rail-tab-btn" role="tab" id="tab-btn-notifs" aria-selected="false" aria-controls="panel-notifs">
-                <i class="ph ph-bell" aria-hidden="true"></i> Notifs
+                <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-bell-linear"></use></svg> Notifs
               </button>
               <button type="button" class="rail-tab-btn" role="tab" id="tab-btn-history" aria-selected="false" aria-controls="panel-history">
-                <i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i> Historique
+                <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-history-linear"></use></svg> Historique
               </button>
             </div>
 
@@ -174,7 +174,7 @@
               <!-- Activité de tes amis -->
               <section class="social-panel rail-panel active" id="panel-friends" role="tabpanel" aria-labelledby="tab-btn-friends">
                 <div class="social-panel-head">
-                  <h4><i class="ph ph-user" aria-hidden="true"></i> Activité de tes amis</h4>
+                  <h4><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-user-linear"></use></svg> Activité de tes amis</h4>
                   <span class="badge-soon">Bientôt</span>
                 </div>
                 <div class="social-panel-body" id="friends-list-container"></div>
@@ -183,8 +183,8 @@
               <!-- Dernières notifications -->
               <section class="social-panel rail-panel" id="panel-notifs" role="tabpanel" aria-labelledby="tab-btn-notifs" hidden>
                 <div class="social-panel-head">
-                  <h4><i class="ph ph-bell" aria-hidden="true"></i> Dernières notifications</h4>
-                  <button class="head-link" id="notifs-view-all">Voir tout <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+                  <h4><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-bell-linear"></use></svg> Dernières notifications</h4>
+                  <button class="head-link" id="notifs-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
                 </div>
                 <div class="social-panel-body notifs-list" id="notifications-list-container"></div>
               </section>
@@ -192,7 +192,7 @@
               <!-- Historique des serveurs -->
               <section class="social-panel rail-panel" id="panel-history" role="tabpanel" aria-labelledby="tab-btn-history" hidden>
                 <div class="social-panel-head">
-                  <h4><i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i> Historique récent</h4>
+                  <h4><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-history-linear"></use></svg> Historique récent</h4>
                   <span class="head-count-badge" id="history-count-badge">0 serveur</span>
                 </div>
                 <div class="history-cards-scroll rail-history-list" id="history-cards-container"></div>
@@ -206,7 +206,7 @@
                 <div class="discord-title">Rejoins la communauté Modey</div>
                 <div class="discord-sub">Sur Discord : échanges, événements, entraide...</div>
               </div>
-              <div class="discord-arrow"><i class="ph ph-arrow-right" aria-hidden="true"></i></div>
+              <div class="discord-arrow"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></div>
             </div>
           </aside>
         </main>

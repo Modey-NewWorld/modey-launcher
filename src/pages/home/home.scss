@@ -310,7 +310,7 @@
 
 .home-card {
   background: var(--bg-surface);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   padding: 14px 16px;
   box-shadow: var(--shadow-xs);
   border: 1px solid var(--line);
@@ -685,7 +685,7 @@
   .rail-tabs-nav {
     display: flex;
     background: var(--bg-sunken);
-    border-radius: var(--r-sm);
+    border-radius: var(--r-md);
     padding: 3px;
     gap: 3px;
     height: 34px;
@@ -695,7 +695,7 @@
       flex: 1;
       border: none;
       background: transparent;
-      border-radius: var(--r-xs);
+      border-radius: var(--r-sm);
       font-family: var(--font-ui);
       font-size: 11.5px;
       font-weight: 500;
@@ -731,7 +731,7 @@
       flex: 1;
       min-height: 0;
       background: var(--bg-surface);
-      border-radius: var(--r-md);
+      border-radius: var(--r-lg);
       padding: 14px 16px;
       border: 1px solid var(--line);
       box-shadow: var(--shadow-xs);
@@ -939,7 +939,7 @@
 /* Bannière Discord CTA */
 .discord-cta-card {
   background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   padding: 12px 14px;
   color: #ffffff;
   display: flex;

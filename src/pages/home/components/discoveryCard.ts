@@ -13,7 +13,7 @@ export function renderDiscovery(onSelectProfile: (profile: any) => void) {
   container.innerHTML = `
     <div class="discovery-compact-card" id="btn-discovery-open">
       <div class="discovery-compact-left">
-        <div class="discovery-compact-icon"><i class="ph ph-stack" aria-hidden="true"></i></div>
+        <div class="discovery-compact-icon"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-box-linear"></use></svg></div>
         <div class="discovery-compact-text">
           <span class="discovery-compact-title">${fbMeta?.name || 'Free Build'}</span>
           <span class="discovery-compact-sub">Le bac à sable créatif de Modey</span>
@@ -21,7 +21,7 @@ export function renderDiscovery(onSelectProfile: (profile: any) => void) {
       </div>
       <div class="discovery-compact-right">
         <span class="badge-soon">Bientôt</span>
-        <i class="ph-bold ph-caret-right discovery-chevron" aria-hidden="true"></i>
+        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg>
       </div>
     </div>
   `

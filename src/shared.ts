@@ -214,7 +214,7 @@ const shared = {
         // Bouton Renommer
         const editBtn = document.createElement('button')
         editBtn.classList.add('btn-skin-action', 'btn-rename-skin')
-        editBtn.innerHTML = '<i class="ph ph-pencil-simple"></i>'
+        editBtn.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-pen-bold"></use></svg>'
         editBtn.title = 'Renommer ce skin'
         editBtn.addEventListener('click', async (e) => {
           e.stopPropagation()
@@ -237,7 +237,7 @@ const shared = {
         // Bouton Supprimer
         const deleteBtn = document.createElement('button')
         deleteBtn.classList.add('btn-skin-action', 'btn-delete-skin')
-        deleteBtn.innerHTML = '<i class="ph ph-trash"></i>'
+        deleteBtn.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-trash-bold"></use></svg>'
         deleteBtn.title = 'Supprimer ce skin du casier'
         deleteBtn.addEventListener('click', async (e) => {
           e.stopPropagation()
@@ -323,7 +323,7 @@ const shared = {
     })
 
     const capeSpan = document.createElement('span')
-    capeSpan.innerHTML = '<i class="ph ph-prohibit" style="display: block; font-size: 54px; color: #525252; position: relative; top: -5px;"></i>'
+    capeSpan.innerHTML = '<svg class="solar-icon solar-linear" style="display: block; font-size: 54px; color: #525252; position: relative; top: -5px;"></i>'
     capeDiv.appendChild(capeSpan)
     capeGallerySettingsEl?.appendChild(capeDiv)
 

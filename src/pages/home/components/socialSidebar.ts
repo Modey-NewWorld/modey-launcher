@@ -51,7 +51,7 @@ export function renderFriendsList() {
   container.innerHTML = `
     <div class="friends-soon-overlay">
       <div class="friends-soon-content">
-        <div class="soon-icon"><i class="ph ph-users-three" aria-hidden="true"></i></div>
+        <div class="soon-icon"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg></div>
         <div class="soon-title">Cette fonction arrive bientôt</div>
         <div class="soon-desc">L'activité de tes amis et la connexion directe seront disponibles très prochainement.</div>
       </div>
@@ -73,7 +73,7 @@ export function renderNotificationsList() {
   // Aucune fausse notification injectée : affiche l'état réel (vide)
   container.innerHTML = `
     <div class="notifs-empty">
-      <i class="ph ph-bell-slash" aria-hidden="true"></i>
+      <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-bell-linear"></use></svg>
       <span>Aucune nouvelle notification</span>
     </div>
   `

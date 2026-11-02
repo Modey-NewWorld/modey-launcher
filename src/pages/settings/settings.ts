@@ -122,7 +122,7 @@ async function refreshServerPillTabs() {
     const badgeText = ramAllocated ? `${ramAllocated} Go` : 'Auto'
 
     btn.innerHTML = `
-      <i class="ph ph-game-controller" style="color:var(--primary, #1a73e8);"></i>
+      <svg class="solar-icon solar-linear" style="color:var(--primary, #1a73e8);" aria-hidden="true"><use href="#solar-gamepad-linear"></use></svg>
       <span>${srvName}</span>
       <span class="slot-count-tag" id="pill-badge-${p.slug}" title="RAM allouée">${badgeText}</span>
     `

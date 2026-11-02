@@ -385,3 +385,21 @@ button:active:not(:disabled) {
 .muted, p.server-desc, .discovery-card p {
   color: var(--ink-500);
 }
+
+
+/* --- Solar Icons System (Solar Icons — 480 Design, CC BY 4.0) --- */
+.solar-icon {
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.18em;
+  display: inline-block;
+  flex-shrink: 0;
+  pointer-events: none;
+
+  &.icon-fw {
+    width: 1.25em;
+  }
+  &.spin {
+    animation: iconSpin 1s infinite linear;
+  }
+}

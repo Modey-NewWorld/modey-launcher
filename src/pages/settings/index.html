@@ -10,7 +10,7 @@
               <!-- Barre d'onglets pillules style Admin Panel -->
               <div class="settings-pills-bar" id="settings-pills-bar">
                 <button type="button" class="slot-pill-btn active" data-target="global" id="pill-tab-global">
-                  <i class="ph ph-sliders"></i> Paramètres généraux
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sliders-bold"></use></svg>&nbsp;Paramètres généraux
                 </button>
                 <div class="settings-pills-servers" id="settings-pills-servers" style="display:inline-flex; gap:8px; flex-wrap:wrap;"></div>
               </div>
@@ -23,12 +23,12 @@
               <!-- Carte Emplacement & Fichiers de l'instance -->
               <section class="settings-card settings-card--wide" id="server-location-card">
                 <div class="settings-card-head">
-                  <h3><i class="ph ph-folder-open" style="color:#10b981;"></i>&nbsp;&nbsp;Stockage et fichiers du serveur</h3>
+                  <h3><svg class="solar-icon solar-bold style="color:#10b981;"" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;&nbsp;Stockage et fichiers du serveur</h3>
                 </div>
                 <div class="path-box" id="server-instance-path">Chargement...</div>
                 <div class="btn-row" style="margin-top:4px;">
-                  <button type="button" class="settings-btn" id="server-open-folder-btn"><i class="ph ph-arrow-square-out"></i>&nbsp;Ouvrir le dossier du serveur</button>
-                  <button type="button" class="settings-btn" id="server-reset-ram-btn" title="Réinitialiser la RAM de ce serveur sur les valeurs globales"><i class="ph ph-arrow-counter-clockwise"></i>&nbsp;Aligner la RAM sur le profil général</button>
+                  <button type="button" class="settings-btn" id="server-open-folder-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir le dossier du serveur</button>
+                  <button type="button" class="settings-btn" id="server-reset-ram-btn" title="Réinitialiser la RAM de ce serveur sur les valeurs globales"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Aligner la RAM sur le profil général</button>
                 </div>
                 <p class="muted">Ce dossier contient l'ensemble des fichiers locaux isolés (mods, configurations, ressources et données de jeu) spécifiques à ce serveur.</p>
               </section>
@@ -36,7 +36,7 @@
               <!-- Carte RAM spécifique à l'instance -->
               <section class="settings-card settings-card--wide" id="server-ram-card">
                 <div class="settings-card-head">
-                  <h3 id="server-ram-card-title"><i class="ph ph-cpu" style="color:#10b981;"></i>&nbsp;&nbsp;Mémoire allouée au serveur</h3>
+                  <h3 id="server-ram-card-title"><svg class="solar-icon solar-linear" style="color:#10b981;" aria-hidden="true"><use href="#solar-cpu-linear"></use></svg>&nbsp;&nbsp;Mémoire allouée au serveur</h3>
                 </div>
                 <div class="dual-slider-container" id="server-ram-slider">
                   <div class="slider-track"></div>
@@ -53,11 +53,11 @@
               <!-- Carte Mods Optionnels de l'instance -->
               <section class="settings-card settings-card--wide" id="server-optional-mods-card">
                 <div class="settings-card-head" style="display:flex; justify-content:space-between; align-items:center;">
-                  <h3><i class="ph ph-puzzle-piece" style="color:#8b5cf6;"></i>&nbsp;&nbsp;Mods facultatifs &amp; Extensions de confort</h3>
+                  <h3><svg class="solar-icon solar-bold style="color:#8b5cf6;"" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>&nbsp;&nbsp;Mods facultatifs &amp; Extensions de confort</h3>
                   <div style="display:flex; align-items:center; gap:8px;">
                     <span class="slot-count-tag" id="optional-mods-badge" style="background:#ede9fe; color:#7c3aed; font-weight:700;">0 disponible(s)</span>
                     <button type="button" class="settings-btn" id="btn-refresh-optional-mods" title="Actualiser la liste" aria-label="Actualiser la liste des mods" style="padding:4px 8px; font-size:12px;">
-                      <i class="ph ph-arrows-clockwise"></i>
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
                     </button>
                   </div>
                 </div>
@@ -65,7 +65,7 @@
                 
                 <div id="optional-mods-list-container" class="optional-mods-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; margin-top:8px;">
                   <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:18px; text-align:center; color:#64748b; font-size:13px;">
-                    <i class="ph ph-spinner spin" style="font-size:22px; color:#8b5cf6; margin-bottom:8px; display:inline-block;"></i>
+                    <div style="margin-bottom:8px;"><svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg></div>
                     <div>Chargement des mods facultatifs disponibles...</div>
                   </div>
                 </div>
@@ -79,7 +79,7 @@
               <!-- Carte RAM générale par défaut -->
               <section class="settings-card" id="ram-card">
                 <div class="settings-card-head">
-                  <h3><i class="ph ph-cpu"></i>&nbsp;&nbsp;Mémoire générale par défaut</h3>
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cpu-bold"></use></svg>&nbsp;&nbsp;Mémoire générale par défaut</h3>
                 </div>
                 <div class="dual-slider-container" id="ram-slider">
                   <div class="slider-track"></div>
@@ -95,7 +95,7 @@
 
             <section class="settings-card global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-app-window"></i>&nbsp;&nbsp;Taille de la fenêtre</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-window-bold"></use></svg>&nbsp;&nbsp;Taille de la fenêtre</h3>
               </div>
               <div class="select-wrapper">
                 <select id="resolution-select"></select>
@@ -104,11 +104,11 @@
 
             <section class="settings-card global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-arrows-out"></i>&nbsp;&nbsp;Taille du launcher</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-magnifier-bold"></use></svg>&nbsp;&nbsp;Taille du launcher</h3>
               </div>
               <div class="ui-scale-row">
                 <button type="button" class="ui-scale-btn" id="ui-scale-minus" title="Réduire l'interface">
-                  <i class="ph ph-minus"></i>
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-minus-bold"></use></svg>
                 </button>
                 <div class="ui-scale-slider" id="ui-scale-slider">
                   <div class="slider-track"></div>
@@ -116,7 +116,7 @@
                   <input type="range" id="ui-scale" min="75" max="150" step="5" value="100" />
                 </div>
                 <button type="button" class="ui-scale-btn" id="ui-scale-plus" title="Agrandir l'interface">
-                  <i class="ph ph-plus"></i>
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg>
                 </button>
                 <span class="ui-scale-value" id="ui-scale-value">100 %</span>
               </div>
@@ -125,7 +125,7 @@
 
             <section class="settings-card global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-power"></i>&nbsp;&nbsp;Action après le lancement</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-power-bold"></use></svg>&nbsp;&nbsp;Action après le lancement</h3>
               </div>
               <div class="select-wrapper">
                 <select id="launcher-action-select">
@@ -147,7 +147,7 @@
 
             <section class="settings-card global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-coffee"></i>&nbsp;&nbsp;Version de Java</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cup-bold"></use></svg>&nbsp;&nbsp;Version de Java</h3>
               </div>
               <div class="java-selector">
                 <select id="java-select">
@@ -160,7 +160,7 @@
 
             <section class="settings-card global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-arrows-clockwise"></i>&nbsp;&nbsp;Mises à jour</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;&nbsp;Mises à jour</h3>
               </div>
               
               <div class="update-grid-info" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
@@ -176,7 +176,7 @@
 
               <div class="channel-selector-wrap" style="margin-bottom:14px;">
                 <label for="update-channel-select" style="display:block; font-size:12px; font-weight:600; color:#4a5568; margin-bottom:6px;">
-                  <i class="ph ph-git-branch"></i>&nbsp;Canal de mise à jour
+                  <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-git-branch-linear"></use></svg>&nbsp;Canal de mise à jour
                 </label>
                 <select id="update-channel-select" class="settings-select" style="width:100%; max-width:280px; padding:7px 10px; border-radius:6px; border:1px solid #d2d6dc; font-size:13px;">
                   <option value="stable">Canal Stable (Production - Recommandé)</option>
@@ -185,8 +185,8 @@
               </div>
 
               <div class="btn-row">
-                <button type="button" class="settings-btn" id="update-check-btn"><i class="ph ph-magnifying-glass"></i>&nbsp;Vérifier</button>
-                <button type="button" class="settings-btn settings-btn--primary hidden" id="update-install-btn"><i class="ph ph-download-simple"></i>&nbsp;Télécharger et installer</button>
+                <button type="button" class="settings-btn" id="update-check-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-magnifier-bold"></use></svg>&nbsp;Vérifier</button>
+                <button type="button" class="settings-btn settings-btn--primary hidden" id="update-install-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg>&nbsp;Télécharger et installer</button>
               </div>
               <p class="muted" id="update-status-text">Recherche automatique au démarrage du launcher.</p>
               <div class="settings-progress hidden" id="settings-update-progress-container">
@@ -200,21 +200,21 @@
 
             <section class="settings-card global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-folder-notch-open"></i>&nbsp;&nbsp;Emplacement des fichiers</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-bold"></use></svg>&nbsp;&nbsp;Emplacement des fichiers</h3>
               </div>
               <div class="path-box" id="files-root-path">Chargement…</div>
               <p class="muted hidden" id="files-status"></p>
               <div class="btn-row">
-                <button type="button" class="settings-btn" id="files-open-root"><i class="ph ph-folder-open"></i>&nbsp;Ouvrir le dossier</button>
-                <button type="button" class="settings-btn" id="files-change-root"><i class="ph ph-arrows-clockwise"></i>&nbsp;Changer…</button>
-                <button type="button" class="settings-btn hidden" id="files-reset-root"><i class="ph ph-arrow-counter-clockwise"></i>&nbsp;Rétablir par défaut</button>
+                <button type="button" class="settings-btn" id="files-open-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir le dossier</button>
+                <button type="button" class="settings-btn" id="files-change-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Changer…</button>
+                <button type="button" class="settings-btn hidden" id="files-reset-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Rétablir par défaut</button>
               </div>
               <p class="muted">Mods, configs, sauvegardes et Java sont téléchargés ici, un dossier par serveur. Le changement peut déplacer plusieurs Gio : ne fermez pas le launcher pendant l'opération.</p>
             </section>
 
             <section class="settings-card global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-info"></i>&nbsp;&nbsp;À propos</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg>&nbsp;&nbsp;À propos</h3>
               </div>
               <div class="about-grid">
                 <div><span>Version launcher</span><strong id="settings-version">—</strong></div>
@@ -229,20 +229,20 @@
               </div>
               <div class="about-links">
                 <a href="https://emlproject.com/" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <i class="ph ph-arrow-square-out"></i>&nbsp;EML Project — https://emlproject.com/
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-up-right-bold"></use></svg>&nbsp;EML Project — https://emlproject.com/
                 </a>
                 <a href="https://github.com/Electron-Minecraft-Launcher/EML-Template" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <i class="ph ph-github-logo"></i>&nbsp;EML Template sur GitHub
+                  <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-git-branch-linear"></use></svg>&nbsp;EML Template sur GitHub
                 </a>
                 <a href="https://github.com/Electron-Minecraft-Launcher/EML-Lib" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <i class="ph ph-github-logo"></i>&nbsp;EML Lib sur GitHub
+                  <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-git-branch-linear"></use></svg>&nbsp;EML Lib sur GitHub
                 </a>
               </div>
             </section>
 
             <section class="settings-card settings-card--wide global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-hard-drives"></i>&nbsp;&nbsp;Fichiers par serveur</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>&nbsp;&nbsp;Fichiers par serveur</h3>
               </div>
               <div class="files-list" id="files-list">
                 <p class="muted">Chargement…</p>
@@ -251,9 +251,10 @@
 
             <section class="settings-card settings-card--wide global-setting-card">
               <div class="settings-card-head">
-                <h3><i class="ph ph-scales"></i>&nbsp;&nbsp;Licence &amp; infrastructure</h3>
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-scale-bold"></use></svg>&nbsp;&nbsp;Licence &amp; infrastructure</h3>
               </div>
               <div class="about-legal">
+                <p><strong>Icônes :</strong> Solar Icons — 480 Design, CC BY 4.0</p>
                 <p><strong>Licence :</strong> le code hérité d'EML (EML Template &amp; EML Lib) reste sous licence MIT ; le projet Modey n'a pas de licence publique (tous droits réservés).</p>
                 <p><strong>Données :</strong> Aucune donnée personnelle n'est collectée sans consentement. Les réglages sont stockés localement.</p>
                 <p><strong>Contact :</strong> <a href="mailto:contact@flowcrea.fr">contact@flowcrea.fr</a> · Discord : nayrolf_rdgs</p>
@@ -271,7 +272,7 @@
 
             </div>
             <footer class="settings-footer">
-              <p class="muted"><i class="ph ph-shield"></i>&nbsp;Tous les réglages sont sauvegardés localement. Aucune donnée ne quitte votre machine.</p>
+              <p class="muted"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-shield-linear"></use></svg>&nbsp;Tous les réglages sont sauvegardés localement. Aucune donnée ne quitte votre machine.</p>
             </footer>
 </div>
         </main>

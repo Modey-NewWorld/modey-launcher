@@ -12,24 +12,24 @@
                 <!-- Casier du Citoyen (Skins, Capes & Équipements futurs) -->
                 <section class="profile-card locker-card">
                   <div class="profile-card-head">
-                    <h3><i class="ph ph-t-shirt"></i>&nbsp;&nbsp;Mon Casier</h3>
-                    <span class="locker-tag"><i class="ph ph-sparkle"></i> Équipements</span>
+                    <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-t-shirt-bold"></use></svg>&nbsp;&nbsp;Mon Casier</h3>
+                    <span class="locker-tag"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-sparkles-linear"></use></svg>&nbsp;Équipements</span>
                   </div>
                   
                   <!-- Section Skin -->
                   <div class="locker-section">
                     <div class="locker-section-head">
-                      <strong><i class="ph ph-user"></i>&nbsp;&nbsp;Apparence & Skin</strong>
+                      <strong><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;&nbsp;Apparence & Skin</strong>
                       <span class="studio-skin-pill" id="studio-skin-name">Classique (4px)</span>
                     </div>
                     
                     <div class="locker-actions">
                       <button class="srv-btn srv-select" id="btn-import-skin">
-                        <i class="ph ph-upload-simple"></i>&nbsp;Importer un skin (.png)
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-upload-bold"></use></svg>&nbsp;Importer un skin (.png)
                       </button>
                       <input type="file" id="input-import-skin" accept=".png" style="display:none" />
                       <button class="srv-btn srv-discover" id="btn-download-skin" title="Télécharger l'image de votre skin actuel" aria-label="Télécharger le skin actuel">
-                        <i class="ph ph-download-simple"></i>
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg>
                       </button>
                     </div>
 
@@ -42,7 +42,7 @@
                   <!-- Section Équipements Futurs (Capes, Cosmétiques...) -->
                   <div class="locker-section locker-future">
                     <div class="locker-section-head">
-                      <strong><i class="ph ph-diamond"></i>&nbsp;&nbsp;Accessoires & Cosmétiques</strong>
+                      <strong><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sparkles-bold"></use></svg>&nbsp;&nbsp;Accessoires & Cosmétiques</strong>
                       <span class="modey-soon-badge">Bientôt</span>
                     </div>
                     <p class="muted">Capes de guilde, chapeaux, familiers et artefacts de cité seront déblocables et équipables ici.</p>
@@ -52,7 +52,7 @@
                 <!-- Section Synchronisation Discord -->
                 <section class="profile-card discord-sync-card">
                   <div class="profile-card-head">
-                    <h3><i class="ph ph-discord-logo" style="color: #5865F2;"></i>&nbsp;&nbsp;Compte Discord</h3>
+                    <h3><svg class="solar-icon solar-bold" style="color:#5865F2;" aria-hidden="true"><use href="#solar-chat-bold"></use></svg>&nbsp;&nbsp;Compte Discord</h3>
                     <span class="discord-status-badge" id="discord-badge-status">Non synchronisé</span>
                   </div>
 
@@ -64,10 +64,10 @@
                       </p>
                       <div class="discord-actions-group">
                         <button class="srv-btn srv-select discord-btn-link" id="btn-link-discord">
-                          <i class="ph ph-discord-logo"></i>&nbsp;&nbsp;Lier mon compte Discord
+                          <svg class="solar-icon solar-bold" style="color:#5865F2;" aria-hidden="true"><use href="#solar-chat-bold"></use></svg>&nbsp;&nbsp;Lier mon compte Discord
                         </button>
                         <a href="https://discord.gg/GPkAVTVNyk" target="_blank" class="srv-btn srv-discover discord-btn-join" id="btn-join-discord" title="Rejoindre le serveur Discord officiel de Modey">
-                          <i class="ph ph-arrow-square-out"></i>&nbsp;Rejoindre le Discord
+                          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-up-right-bold"></use></svg>&nbsp;Rejoindre le Discord
                         </a>
                       </div>
                     </div>
@@ -78,15 +78,15 @@
                         <img src="" id="discord-user-avatar" alt="Avatar Discord" class="discord-avatar-img">
                         <div class="discord-user-info">
                           <strong id="discord-user-tag">@Utilisateur</strong>
-                          <span class="discord-sync-label"><i class="ph ph-check-circle"></i> Synchronisé avec Modey</span>
+                          <span class="discord-sync-label"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-check-linear"></use></svg>&nbsp;Synchronisé avec Modey</span>
                         </div>
                       </div>
                       <div class="discord-actions-group linked-actions">
                         <a href="https://discord.gg/GPkAVTVNyk" target="_blank" class="srv-btn srv-discover discord-btn-join" title="Ouvrir le serveur Discord officiel de Modey">
-                          <i class="ph ph-discord-logo"></i>&nbsp;Ouvrir le Discord
+                          <svg class="solar-icon solar-bold" style="color:#5865F2;" aria-hidden="true"><use href="#solar-chat-bold"></use></svg>&nbsp;Ouvrir le Discord
                         </a>
                         <button class="eye-btn discord-unlink-btn" id="btn-unlink-discord" title="Dissocier ce compte Discord">
-                          <i class="ph ph-link-break"></i>&nbsp;Dissocier
+                          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-unlink-bold"></use></svg>&nbsp;Dissocier
                         </button>
                       </div>
                     </div>
@@ -96,7 +96,7 @@
                 <!-- Informations Joueur (sous le casier) -->
                 <section class="profile-card identity-card">
                   <div class="profile-card-head">
-                    <h3><i class="ph ph-identification-card"></i>&nbsp;&nbsp;Informations joueur</h3>
+                    <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-card-bold"></use></svg>&nbsp;&nbsp;Informations joueur</h3>
                     <span class="soon-pill">Officiel</span>
                   </div>
 
@@ -118,7 +118,7 @@
                       <span class="email-wrap">
                         <code id="profile-email">••••••••</code>
                         <button class="eye-btn" id="btn-toggle-email" title="Afficher / masquer l'email" aria-label="Afficher ou masquer l'email">
-                          <i class="ph ph-eye" id="email-eye-icon"></i>
+                          <svg class="solar-icon solar-bold" id="email-eye-icon" aria-hidden="true"><use href="#solar-eye-bold"></use></svg>
                         </button>
                       </span>
                     </div>
@@ -132,8 +132,8 @@
               <section class="profile-card full-studio-card">
                 <div class="profile-card-head studio-overlay-head">
                   <div class="studio-title-wrap">
-                    <h3><i class="ph ph-cube"></i>&nbsp;&nbsp;Studio d'Aperçu 3D</h3>
-                    <span class="studio-badge" id="studio-format"><i class="ph ph-hard-drives"></i> Modey Core</span>
+                    <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-box-bold"></use></svg>&nbsp;&nbsp;Studio d'Aperçu 3D</h3>
+                    <span class="studio-badge" id="studio-format"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-server-linear"></use></svg>&nbsp;Modey Core</span>
                   </div>
                   <div class="face-toggle">
                     <button class="face-btn active" id="btn-face">Face</button>
@@ -149,20 +149,20 @@
                   <div class="studio-floating-controls">
                     <div class="zoom-controls">
                       <button class="rotate-btn zoom-btn" id="btn-zoom-in" title="Zoomer sur le skin" aria-label="Zoom avant sur le skin">
-                        <i class="ph ph-magnifying-glass-plus"></i>
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-magnifier-zoom-in-bold"></use></svg>
                       </button>
                       <button class="rotate-btn zoom-btn" id="btn-zoom-out" title="Dézoomer sur le skin" aria-label="Zoom arrière sur le skin">
-                        <i class="ph ph-magnifying-glass-minus"></i>
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-magnifier-zoom-out-bold"></use></svg>
                       </button>
                       <button class="rotate-btn zoom-btn" id="btn-zoom-reset" title="Réinitialiser la vue et le zoom" aria-label="Réinitialiser le zoom">
-                        <i class="ph ph-arrows-clockwise"></i>
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
                       </button>
                     </div>
                     <button class="rotate-btn" id="btn-rotate">
-                      <i class="ph ph-arrow-clockwise"></i>&nbsp;Vue 360°
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-alt-bold"></use></svg>&nbsp;Vue 360°
                     </button>
                     <button class="rotate-btn active" id="btn-animation" title="Activer / couper l'animation de marche">
-                      <i class="ph ph-film-slate" id="animation-btn-icon"></i>&nbsp;<span id="animation-btn-label">Animation : ON</span>
+                      <svg class="solar-icon solar-bold" id="animation-btn-icon" aria-hidden="true"><use href="#solar-clapperboard-bold"></use></svg>&nbsp;<span id="animation-btn-label">Animation : ON</span>
                     </button>
                   </div>
                 </div>

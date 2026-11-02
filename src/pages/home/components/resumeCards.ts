@@ -1,3 +1,4 @@
+import { solarIcon as solar } from '../../../components/icon'
 import { showServers } from '../../../router'
 import { startLaunch } from '../../../services/launch'
 import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile } from '../../../services/profiles'
@@ -54,37 +55,37 @@ function renderResume(onSelectProfile: (profile: any) => void) {
   }
 
   let playLabel = 'Rejoindre'
-  let playIcon = 'ph-bold ph-play'
+  let playIcon = 'play'
   let disabled = false
 
   if (isSoon) {
     if (isAdmin) {
       playLabel = 'Bientôt • Lancer (Staff)'
-      playIcon = 'ph ph-hourglass-simple'
+      playIcon = 'hourglass'
       disabled = false
     } else {
       playLabel = 'Bientôt disponible'
-      playIcon = 'ph ph-hourglass-simple'
+      playIcon = 'hourglass'
       disabled = true
     }
   } else if (isMaint) {
     if (isAdmin) {
       playLabel = 'Maintenance • Lancer (Staff)'
-      playIcon = 'ph ph-wrench'
+      playIcon = 'tuning'
       disabled = false
     } else {
       playLabel = 'En maintenance'
-      playIcon = 'ph ph-wrench'
+      playIcon = 'tuning'
       disabled = true
     }
   } else if (isDisabled) {
     if (isAdmin) {
       playLabel = 'Désactivé • Lancer (Staff)'
-      playIcon = 'ph ph-prohibit'
+      playIcon = 'forbidden'
       disabled = false
     } else {
       playLabel = 'Serveur désactivé'
-      playIcon = 'ph ph-prohibit'
+      playIcon = 'forbidden'
       disabled = true
     }
   }
@@ -104,7 +105,7 @@ function renderResume(onSelectProfile: (profile: any) => void) {
       </div>
       <div class="resume-card-actions">
         <button class="btn-resume-play ${disabled ? 'btn-disabled' : ''} ${isAdmin && (isSoon || isMaint || isDisabled) ? 'btn-admin-bypass' : ''}" id="btn-resume-play" ${disabled ? 'disabled' : ''}>
-          <i class="${playIcon}"></i> ${playLabel}
+          ${solar(playIcon, "bold")} ${playLabel}
         </button>
         <button class="btn-resume-change" id="btn-resume-change">Changer de serveur</button>
       </div>
@@ -153,7 +154,7 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
 
   const exploreCardHtml = `
     <div class="history-card explore-card" id="history-explore-more">
-      <div class="explore-icon"><i class="ph ph-plus-circle"></i></div>
+      <div class="explore-icon"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg></div>
       <div class="explore-text">Explorer les serveurs</div>
     </div>
   `

@@ -40,7 +40,10 @@ function syncEmailUI() {
   const eyeIcon = el('email-eye-icon')
   if (emailEl) emailEl.innerText = !cachedEmail ? '—' : emailVisible ? cachedEmail : '••••••••'
   if (eyeBtn) eyeBtn.disabled = !cachedEmail
-  if (eyeIcon) eyeIcon.className = emailVisible ? 'ph ph-eye-slash' : 'ph ph-eye'
+  if (eyeIcon) {
+    const use = eyeIcon.querySelector('use');
+    if (use) use.setAttribute('href', emailVisible ? '#solar-eye-closed-bold' : '#solar-eye-bold');
+  }
 }
 
 /** Synchronisation & état Discord */
@@ -135,7 +138,7 @@ export function initProfile() {
 
     const originalHtml = unlinkBtn.innerHTML
     unlinkBtn.disabled = true
-    unlinkBtn.innerHTML = '<i class="ph ph-spinner spin"></i>&nbsp;Dissociation en cours...'
+    unlinkBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Dissociation en cours...'
 
     try {
       const res = await fetch(`${API_BASE}/api/auth/discord/unlink`, {
