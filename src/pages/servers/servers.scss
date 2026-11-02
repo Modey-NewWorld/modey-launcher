@@ -58,7 +58,7 @@
 
   .server-banner {
     position: relative;
-    min-height: clamp(150px, 20vh, 190px);
+    min-height: clamp(170px, 22vh, 210px);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -93,7 +93,8 @@
       padding-top: 70px;
 
       .server-kicker {
-        font-size: clamp(8.2px, 0.78vw, 10.0px);
+        font-size: 11px;
+        font-weight: 700;
         font-weight: 600;
         letter-spacing: 1.2px;
         text-transform: uppercase;
@@ -101,7 +102,8 @@
       }
 
       h2 {
-        font-size: clamp(21.3px, 2.03vw, 26.0px);
+        font-size: 28px;
+        font-family: var(--font-display);
         font-weight: 800;
         color: #fff;
         letter-spacing: -0.5px;
@@ -114,12 +116,12 @@
         flex-shrink: 0;
 
         span {
-          font-size: clamp(9.0px, 0.86vw, 11.0px);
+          font-size: 12px;
           font-weight: 600;
           color: #fff;
           background: rgba(16, 27, 48, 0.6);
           border: 1px solid rgba(255, 255, 255, 0.3);
-          padding: 4px 10px;
+          padding: 5px 12px;
           border-radius: 999px;
           white-space: nowrap;
         }
@@ -135,9 +137,9 @@
     flex: 1;
 
     .server-desc {
-      font-size: clamp(10.2px, 0.98vw, 12.5px);
+      font-size: 13.5px;
       color: #3d5268;
-      line-height: 1.55;
+      line-height: 1.6;
       margin: 0;
     }
 
@@ -147,12 +149,12 @@
       gap: 6px;
 
       span {
-        font-size: clamp(9.0px, 0.86vw, 11.0px);
+        font-size: 12px;
         font-weight: 500;
         color: #5b6b84;
         background: #f2f6fc;
         border: 1px solid #e2e9f4;
-        padding: 4px 11px;
+        padding: 5px 12px;
         border-radius: 7px;
       }
     }
@@ -168,7 +170,7 @@
       margin-top: auto;
 
       .server-opt {
-        font-size: clamp(9.0px, 0.86vw, 11.0px);
+        font-size: 12px;
         color: #5b6b84;
         display: flex;
         align-items: center;
@@ -231,17 +233,18 @@
 /* Vrais boutons serveurs (globaux : carte Athéna + carte Free Build) */
 .srv-btn {
   font-family: var(--font-ui);
-  font-size: clamp(9.8px, 0.94vw, 12.0px);
+  font-size: 13.5px;
   font-weight: 600;
-  padding: 9px 16px;
-  border-radius: 9px;
+  padding: 10px 18px;
+  height: 42px;
+  border-radius: 10px;
   cursor: pointer;
   border: 1px solid #e2e9f4;
   transition: all 0.15s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
   white-space: nowrap;
 }
 
@@ -285,7 +288,7 @@
     align-items: center;
 
     .soon-pill {
-      font-size: clamp(8.6px, 0.82vw, 10.5px);
+      font-size: 11.5px;
       font-weight: 700;
       color: #5b6b84;
       background: #eef1f6;
@@ -295,7 +298,7 @@
 
     .soon-rocket {
       color: #8a97ad;
-      font-size: clamp(11.5px, 1.09vw, 14.0px);
+      font-size: 16px;
     }
   }
 
@@ -311,8 +314,8 @@
     text-align: center;
 
     .soon-visual-icon {
-      width: 34px;
-      height: 34px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: #fff;
       border: 1px solid #e2e9f4;
@@ -320,25 +323,25 @@
       align-items: center;
       justify-content: center;
       color: #1a73e8;
-      font-size: clamp(11.5px, 1.09vw, 14.0px);
-      margin-bottom: 3px;
+      font-size: 18px;
+      margin-bottom: 4px;
     }
 
     strong {
-      font-size: clamp(10.2px, 0.98vw, 12.5px);
+      font-size: 14.5px;
       color: #17233a;
     }
 
     .soon-visual-sub {
-      font-size: clamp(9.0px, 0.86vw, 11.0px);
+      font-size: 12px;
       color: #8a97ad;
     }
   }
 
   p {
-    font-size: clamp(9.8px, 0.94vw, 12.0px);
+    font-size: 13px;
     color: #5b6b84;
-    line-height: 1.55;
+    line-height: 1.6;
     margin: 0;
   }
 

@@ -288,19 +288,21 @@ body.is-asleep *::after {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 
   h1 {
-    font-size: clamp(20px, 1.8vw, 26px);
+    font-size: 28px;
+    font-family: var(--font-display);
     font-weight: 800;
     color: #101b30;
+    letter-spacing: -0.6px;
     margin: 0;
-    line-height: 1.15;
+    line-height: 1.2;
   }
 
   p {
-    font-size: clamp(12px, 1vw, 13.5px);
-    color: #68798f;
+    font-size: 13.5px;
+    color: #64748b;
     margin: 0;
     line-height: 1.45;
   }
