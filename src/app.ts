@@ -6,6 +6,7 @@ import './static/styles/loading.scss'
 import './static/styles/maintenance.scss'
 import './static/styles/update.scss'
 
+import { initTheme } from './theme'
 import { initTitlebar } from './components/titlebar'
 import { initLogin } from './pages/login/login'
 import { initHome, selectProfile } from './pages/home/home'
@@ -14,6 +15,7 @@ import { initProfile } from './pages/profile/profile'
 import { initSettings } from './pages/settings/settings'
 import { bootstrap } from './init'
 
+initTheme()
 initTitlebar()
 initLogin()
 initHome()

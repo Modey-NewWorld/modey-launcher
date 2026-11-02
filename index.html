@@ -4,9 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Modey Launcher</title>
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('modey-theme');
+          var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = (saved === 'dark' || (!saved || saved === 'system') && isDark) ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch(e) {}
+      })();
+    </script>
     <style>
-      /* CSS critique anti-FOUC : appliqué avant le bundle, harmonisé avec le thème clair Modey */
+      /* CSS critique anti-FOUC : appliqué avant le bundle, support clair et sombre */
       html, body { margin: 0; height: 100%; background-color: #F3F5F9; overflow: hidden; font-family: 'Instrument Sans', system-ui, sans-serif; }
+      [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0B1017; color: #F0F4F8; }
       div.view:not(.active) { display: none; }
       body:not(.loaded) div#app { opacity: 0 !important; visibility: hidden; }
       div#app { transition: opacity 0.3s ease-out; }
@@ -14,12 +25,19 @@
         position: fixed; top: 0; left: 0;
         display: flex; justify-content: center; align-items: center;
         height: 100vh; width: 100vw;
-        padding-top: 36px; box-sizing: border-box; /* centre sous la titlebar (36px) */
+        padding-top: 36px; box-sizing: border-box;
         background-color: #F3F5F9; color: #24374F;
         font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 13px;
         opacity: 1;
         transition: opacity 0.25s ease-out, visibility 0s linear 0s;
         z-index: 9999;
+      }
+      [data-theme="dark"] div#view-loading {
+        background-color: #0B1017; color: #F0F4F8;
+      }
+      [data-theme="dark"] div#view-maintenance,
+      [data-theme="dark"] div#view-update {
+        background-color: #0B1017; color: #F0F4F8;
       }
       div#view-loading.loaded { opacity: 0; pointer-events: none !important; visibility: hidden; transition: opacity 0.25s ease-out, visibility 0s linear 0.25s; }
       div#view-loading .loading-card {
@@ -41,6 +59,22 @@
       }
       div#view-loading .spinner {
         font-size: 1.5rem; color: #1B6FD6; margin: 0;
+      }
+      [data-theme="dark"] div#view-loading .spinner {
+        color: #3B82F6;
+      }
+      .solar-icon {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        vertical-align: -0.15em;
+        fill: currentColor;
+      }
+      .solar-icon.spin {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
     </style>
   </head>
@@ -189,14 +223,21 @@
 <symbol id="solar-minimize-linear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path stroke-linejoin="round" d="M10.5 16.5V13.5H7.5M10.5 13.5L7 17"/><path stroke-linejoin="round" d="M13.5 7.5V10.5H16.5M13.5 10.5L17 7"/><path stroke-linejoin="round" d="M10.5 7.5V10.5H7.5M10.5 10.5L7 7"/><path stroke-linejoin="round" d="M13.5 16.5V13.5H16.5M13.5 13.5L17 17"/><path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z"/></g></symbol>
 <symbol id="solar-window-bold" viewBox="0 0 24 24"><g fill="currentColor"><path d="M6.5 13C8.62132 13 9.68181 13.0002 10.3408 13.6592C10.9998 14.3182 11 15.3787 11 17.5C11 19.6213 10.9998 20.6818 10.3408 21.3408C9.68181 21.9998 8.62132 22 6.5 22C4.37868 22 3.31819 21.9998 2.65918 21.3408C2.00017 20.6818 2 19.6213 2 17.5C2 15.3787 2.00017 14.3182 2.65918 13.6592C3.31819 13.0002 4.37868 13 6.5 13Z"/><path d="M17.5 13C19.6213 13 20.6818 13.0002 21.3408 13.6592C21.9998 14.3182 22 15.3787 22 17.5C22 19.6213 21.9998 20.6818 21.3408 21.3408C20.6818 21.9998 19.6213 22 17.5 22C15.3787 22 14.3182 21.9998 13.6592 21.3408C13.0002 20.6818 13 19.6213 13 17.5C13 15.3787 13.0002 14.3182 13.6592 13.6592C14.3182 13.0002 15.3787 13 17.5 13Z"/><path d="M6.5 2C8.62132 2 9.68181 2.00017 10.3408 2.65918C10.9998 3.31819 11 4.37868 11 6.5C11 8.62132 10.9998 9.68181 10.3408 10.3408C9.68181 10.9998 8.62132 11 6.5 11C4.37868 11 3.31819 10.9998 2.65918 10.3408C2.00017 9.68181 2 8.62132 2 6.5C2 4.37868 2.00017 3.31819 2.65918 2.65918C3.31819 2.00017 4.37868 2 6.5 2Z"/><path d="M17.5 2C19.6213 2 20.6818 2.00017 21.3408 2.65918C21.9998 3.31819 22 4.37868 22 6.5C22 8.62132 21.9998 9.68181 21.3408 10.3408C20.6818 10.9998 19.6213 11 17.5 11C15.3787 11 14.3182 10.9998 13.6592 10.3408C13.0002 9.68181 13 8.62132 13 6.5C13 4.37868 13.0002 3.31819 13.6592 2.65918C14.3182 2.00017 15.3787 2 17.5 2Z"/></g></symbol>
 <symbol id="solar-window-linear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path d="M2.5 6.5C2.5 4.61438 2.5 3.67157 3.08579 3.08579C3.67157 2.5 4.61438 2.5 6.5 2.5C8.38562 2.5 9.32843 2.5 9.91421 3.08579C10.5 3.67157 10.5 4.61438 10.5 6.5C10.5 8.38562 10.5 9.32843 9.91421 9.91421C9.32843 10.5 8.38562 10.5 6.5 10.5C4.61438 10.5 3.67157 10.5 3.08579 9.91421C2.5 9.32843 2.5 8.38562 2.5 6.5Z"/><path d="M13.5 17.5C13.5 15.6144 13.5 14.6716 14.0858 14.0858C14.6716 13.5 15.6144 13.5 17.5 13.5C19.3856 13.5 20.3284 13.5 20.9142 14.0858C21.5 14.6716 21.5 15.6144 21.5 17.5C21.5 19.3856 21.5 20.3284 20.9142 20.9142C20.3284 21.5 19.3856 21.5 17.5 21.5C15.6144 21.5 14.6716 21.5 14.0858 20.9142C13.5 20.3284 13.5 19.3856 13.5 17.5Z"/><path d="M2.5 17.5C2.5 15.6144 2.5 14.6716 3.08579 14.0858C3.67157 13.5 4.61438 13.5 6.5 13.5C8.38562 13.5 9.32843 13.5 9.91421 14.0858C10.5 14.6716 10.5 15.6144 10.5 17.5C10.5 19.3856 10.5 20.3284 9.91421 20.9142C9.32843 21.5 8.38562 21.5 6.5 21.5C4.61438 21.5 3.67157 21.5 3.08579 20.9142C2.5 20.3284 2.5 19.3856 2.5 17.5Z"/><path d="M13.5 6.5C13.5 4.61438 13.5 3.67157 14.0858 3.08579C14.6716 2.5 15.6144 2.5 17.5 2.5C19.3856 2.5 20.3284 2.5 20.9142 3.08579C21.5 3.67157 21.5 4.61438 21.5 6.5C21.5 8.38562 21.5 9.32843 20.9142 9.91421C20.3284 10.5 19.3856 10.5 17.5 10.5C15.6144 10.5 14.6716 10.5 14.0858 9.91421C13.5 9.32843 13.5 8.38562 13.5 6.5Z"/></g></symbol>
+<symbol id="solar-sun-bold" viewBox="0 0 24 24"><g fill="currentColor"><path d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z"/><path fill-rule="evenodd" d="M12 1.25C12.4142 1.25 12.75 1.58579 12.75 2V4C12.75 4.41421 12.4142 4.75 12 4.75C11.5858 4.75 11.25 4.41421 11.25 4V2C11.25 1.58579 11.5858 1.25 12 1.25ZM3.66865 3.71609C3.94815 3.41039 4.42255 3.38915 4.72825 3.66865L6.95026 5.70024C7.25596 5.97974 7.2772 6.45413 6.9977 6.75983C6.7182 7.06553 6.2438 7.08677 5.9381 6.80727L3.71609 4.77569C3.41039 4.49619 3.38915 4.02179 3.66865 3.71609ZM20.3314 3.71609C20.6109 4.02179 20.5896 4.49619 20.2839 4.77569L18.0619 6.80727C17.7562 7.08677 17.2818 7.06553 17.0023 6.75983C16.7228 6.45413 16.744 5.97974 17.0497 5.70024L19.2718 3.66865C19.5775 3.38915 20.0518 3.41039 20.3314 3.71609ZM1.25 12C1.25 11.5858 1.58579 11.25 2 11.25H4C4.41421 11.25 4.75 11.5858 4.75 12C4.75 12.4142 4.41421 12.75 4 12.75H2C1.58579 12.75 1.25 12.4142 1.25 12ZM19.25 12C19.25 11.5858 19.5858 11.25 20 11.25H22C22.4142 11.25 22.75 11.5858 22.75 12C22.75 12.4142 22.4142 12.75 22 12.75H20C19.5858 12.75 19.25 12.4142 19.25 12ZM17.0255 17.0252C17.3184 16.7323 17.7933 16.7323 18.0862 17.0252L20.3082 19.2475C20.6011 19.5404 20.601 20.0153 20.3081 20.3082C20.0152 20.6011 19.5403 20.601 19.2475 20.3081L17.0255 18.0858C16.7326 17.7929 16.7326 17.3181 17.0255 17.0252ZM6.97467 17.0253C7.26756 17.3182 7.26756 17.7931 6.97467 18.086L4.75244 20.3082C4.45955 20.6011 3.98468 20.6011 3.69178 20.3082C3.39889 20.0153 3.39889 19.5404 3.69178 19.2476L5.91401 17.0253C6.2069 16.7324 6.68177 16.7324 6.97467 17.0253ZM12 19.25C12.4142 19.25 12.75 19.5858 12.75 20V22C12.75 22.4142 12.4142 22.75 12 22.75C11.5858 22.75 11.25 22.4142 11.25 22V20C11.25 19.5858 11.5858 19.25 12 19.25Z" clip-rule="evenodd"/></g></symbol>
+<symbol id="solar-sun-linear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 2V4"/><path d="M12 20V22"/><path d="M4 12L2 12"/><path d="M22 12L20 12"/><path d="M19.7778 4.22266L17.5558 6.25424"/><path d="M4.22217 4.22266L6.44418 6.25424"/><path d="M6.44434 17.5557L4.22211 19.7779"/><path d="M19.7778 19.7773L17.5558 17.5551"/></g></symbol>
+<symbol id="solar-moon-bold" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22C17.5228 22 22 17.5228 22 12C22 11.5373 21.3065 11.4608 21.0672 11.8568C19.9289 13.7406 17.8615 15 15.5 15C11.9101 15 9 12.0899 9 8.5C9 6.13845 10.2594 4.07105 12.1432 2.93276C12.5392 2.69347 12.4627 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/></symbol>
+<symbol id="solar-moon-linear" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 22C17.5228 22 22 17.5228 22 12C22 11.5373 21.3065 11.4608 21.0672 11.8568C19.9289 13.7406 17.8615 15 15.5 15C11.9101 15 9 12.0899 9 8.5C9 6.13845 10.2594 4.07105 12.1432 2.93276C12.5392 2.69347 12.4627 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/></symbol>
+<symbol id="solar-monitor-bold" viewBox="0 0 24 24"><g fill="currentColor"><path d="M8 17C5.17157 17 3.75736 17 2.87868 16.1213C2.30938 15.552 2.10893 14.7579 2.03835 13.5H21.9616C21.8911 14.7579 21.6906 15.552 21.1213 16.1213C20.2426 17 18.8284 17 16 17H12.75V21H16C16.4142 21 16.75 21.3358 16.75 21.75C16.75 22.1642 16.4142 22.5 16 22.5H8C7.58579 22.5 7.25 22.1642 7.25 21.75C7.25 21.3358 7.58579 21 8 21H11.25V17H8Z"/><path d="M10 2H14C17.7712 2 19.6569 2 20.8284 3.17157C22 4.34315 22 6.22876 22 10V11C22 11.5516 22 12.0494 21.9935 12.5H2.00652C2 12.0494 2 11.5516 2 11V10C2 6.22876 2 4.34315 3.17157 3.17157C4.34315 2 6.22876 2 10 2Z"/></g></symbol>
+<symbol id="solar-monitor-linear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path d="M2 10C2 6.22876 2 4.34315 3.17157 3.17157C4.34315 2 6.22876 2 10 2H14C17.7712 2 19.6569 2 20.8284 3.17157C22 4.34315 22 6.22876 22 10V11C22 13.8284 22 15.2426 21.1213 16.1213C20.2426 17 18.8284 17 16 17H8C5.17157 17 3.75736 17 2.87868 16.1213C2 15.2426 2 13.8284 2 11V10Z"/><path d="M16 22H8"/><path d="M12 17L12 22"/><path d="M22 13H2"/></g></symbol>
 </defs>
 </svg>
+  
     <div id="titlebar">
       <div class="titlebar-drag"></div>
       <div class="titlebar-controls">
-        <button id="btn-win-minimize" class="titlebar-btn" title="Réduire" aria-label="Réduire"><i class="ph ph-minus" aria-hidden="true"></i></button>
-        <button id="btn-win-maximize" class="titlebar-btn" title="Agrandir / Restaurer" aria-label="Agrandir / Restaurer"><i class="ph ph-square" id="win-max-icon" aria-hidden="true"></i></button>
-        <button id="btn-win-close" class="titlebar-btn titlebar-close" title="Fermer" aria-label="Fermer"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+        <button id="btn-win-minimize" class="titlebar-btn" title="Réduire" aria-label="Réduire"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-minus-linear"></use></svg></button>
+        <button id="btn-win-maximize" class="titlebar-btn" title="Agrandir / Restaurer" aria-label="Agrandir / Restaurer"><svg class="solar-icon solar-bold" id="win-max-icon" aria-hidden="true"><use href="#solar-maximize-bold"></use></svg></button>
+        <button id="btn-win-close" class="titlebar-btn titlebar-close" title="Fermer" aria-label="Fermer"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-close-simple-bold"></use></svg></button>
       </div>
     </div>
 
@@ -204,7 +245,7 @@
       <div class="loading-card">
         <img src="/src/static/images/logo.png" class="loading-logo" alt="Modey" />
         <div class="loading-bottom">
-          <p class="spinner"><i class="ph ph-spinner-gap spin" aria-hidden="true"></i></p>
+          <p class="spinner"><svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg></p>
           <p class="text">Chargement...</p>
         </div>
       </div>
@@ -212,20 +253,20 @@
 
     <div id="view-maintenance" class="maintenance" data-view="maintenance">
       <div class="maintenance-card">
-        <p class="gears" id="maintenance-icon"><i class="fa-solid fa-gears"></i></p>
+        <p class="gears" id="maintenance-icon"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-settings-bold"></use></svg></p>
         <h3 id="maintenance-title">Maintenance</h3>
         <div id="maintenance-staff-badge" class="maint-staff-badge" style="display:none;"></div>
         <p class="dates" id="maintenance-dates"></p>
         <p class="text" id="maintenance-reason"></p>
         <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;" id="maintenance-actions">
           <button id="btn-maint-bypass" class="btn btn-admin-bypass" style="display:none; padding: 10px 24px; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s;">
-            <i class="fa-solid fa-arrow-right-to-bracket"></i> Accéder au Launcher
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-login-bold"></use></svg> Accéder au Launcher
           </button>
-          <button id="btn-maint-retry" class="btn btn-primary" style="padding: 10px 22px; font-weight: 600; border-radius: 8px; background: #1E88E5; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; box-shadow: 0 4px 12px rgba(30,136,229,0.3);">
-            <i class="fa-solid fa-rotate-right"></i> Réessayer
+          <button id="btn-maint-retry" class="btn btn-primary" style="padding: 10px 22px; font-weight: 600; border-radius: 8px; background: var(--accent); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; box-shadow: 0 4px 12px var(--accent-ring);">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> Réessayer
           </button>
-          <button id="btn-maint-logout" class="btn btn-secondary" style="padding: 10px 18px; font-weight: 600; border-radius: 8px; background: #E2E8F0; color: #475569; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-family: inherit;">
-            <i class="fa-solid fa-right-from-bracket"></i> Changer de compte
+          <button id="btn-maint-logout" class="btn btn-secondary" style="padding: 10px 18px; font-weight: 600; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-family: inherit;">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-logout-bold"></use></svg> Changer de compte
           </button>
         </div>
       </div>
@@ -233,7 +274,7 @@
 
     <div id="view-update" class="update" data-view="update">
       <div class="maintenance-card">
-        <p class="up"><i class="fa-solid fa-circle-up"></i></p>
+        <p class="up"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg></p>
         <h3>Une mise à jour est disponible</h3>
         <p class="text" id="update-text">Merci de patienter pendant la mise à jour du launcher...</p>
         <div class="progress-container" id="update-progress-container">
@@ -246,13 +287,13 @@
           </div>
         </div>
         <div id="update-error-container" style="display: none; margin-top: 18px; flex-direction: column; gap: 10px; align-items: center;">
-          <p id="update-error-text" style="color: #ef4444; font-size: 13px; font-weight: 500; margin: 0; text-align: center; max-width: 320px;"></p>
+          <p id="update-error-text" style="color: var(--danger); font-size: 13px; font-weight: 500; margin: 0; text-align: center; max-width: 320px;"></p>
           <div style="display: flex; gap: 10px;">
             <button id="btn-update-retry" class="btn btn-primary" style="padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;">
-              <i class="fa-solid fa-rotate-right"></i> Réessayer
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> Réessayer
             </button>
             <button id="btn-update-manual" class="btn btn-secondary" style="padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;">
-              <i class="fa-solid fa-download"></i> Télécharger manuellement
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg> Télécharger manuellement
             </button>
           </div>
         </div>

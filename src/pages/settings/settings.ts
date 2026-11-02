@@ -1,3 +1,4 @@
+import { getTheme, setTheme, onThemeChange, type ThemePreference } from "../../theme"
 import { settings, system, profiles, files } from '../../ipc'
 import type { IGameSettings } from '../../../electron/handlers/settings'
 import { Dialog } from '../../components/dialog'
@@ -122,7 +123,7 @@ async function refreshServerPillTabs() {
     const badgeText = ramAllocated ? `${ramAllocated} Go` : 'Auto'
 
     btn.innerHTML = `
-      <svg class="solar-icon solar-linear" style="color:var(--primary, #1a73e8);" aria-hidden="true"><use href="#solar-gamepad-linear"></use></svg>
+      <svg class="solar-icon solar-linear" style="color:var(--accent);" aria-hidden="true"><use href="#solar-gamepad-linear"></use></svg>
       <span>${srvName}</span>
       <span class="slot-count-tag" id="pill-badge-${p.slug}" title="RAM allouée">${badgeText}</span>
     `
@@ -272,6 +273,18 @@ async function initUIListeners() {
   launcherActionSelect?.addEventListener('change', saveSettingsDebounced)
   backgroundSleepSelect?.addEventListener('change', saveSettingsDebounced)
   javaSelect?.addEventListener('change', saveSettingsDebounced)
+
+  // Sélecteur de Thème Clair / Sombre / Système
+  const themeSelect = el('theme-select') as HTMLSelectElement | null
+  if (themeSelect) {
+    themeSelect.value = getTheme()
+    themeSelect.addEventListener('change', () => {
+      setTheme(themeSelect.value as ThemePreference)
+    })
+    onThemeChange((_, pref) => {
+      if (themeSelect.value !== pref) themeSelect.value = pref
+    })
+  }
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -390,11 +403,11 @@ function setupDualSliderHelper(
     // Feedback couleur dynamique selon la RAM allouée (vert / orange / rouge)
     const ratio = maxVal / totalGB
     if (ratio > 0.75) {
-      fill.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)'
+      fill.style.background = 'linear-gradient(90deg, var(--warning), var(--danger))'
     } else if (ratio > 0.5) {
-      fill.style.background = 'linear-gradient(90deg, #10b981, #f59e0b)'
+      fill.style.background = 'linear-gradient(90deg, var(--success), var(--warning))'
     } else {
-      fill.style.background = 'linear-gradient(90deg, #10b981, #3b82f6)'
+      fill.style.background = 'linear-gradient(90deg, var(--success), var(--accent))'
     }
   }
 

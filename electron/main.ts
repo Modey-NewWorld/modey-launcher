@@ -17,7 +17,9 @@ import { registerSkinHandlers } from './handlers/skin'
 import { IPC } from './ipc-channels'
 
 const APP_TITLE = 'Modey Launcher'
-const BG_COLOR = '#F0F4F8'
+const BG_COLOR_LIGHT = '#F0F4F8'
+const BG_COLOR_DARK = '#0B1017'
+const getInitialBgColor = () => (nativeTheme.shouldUseDarkColors ? BG_COLOR_DARK : BG_COLOR_LIGHT)
 
 let mainWindow: BrowserWindow | null = null
 
@@ -26,8 +28,6 @@ if (process.env.VITE_DEV_SERVER_URL) {
 }
 
 function createWindow() {
-  nativeTheme.themeSource = 'light'
-
   mainWindow = new BrowserWindow({
     width: 1320,
     height: 820,
@@ -35,7 +35,7 @@ function createWindow() {
     minHeight: 680,
     title: APP_TITLE,
     autoHideMenuBar: true,
-    backgroundColor: BG_COLOR,
+    backgroundColor: getInitialBgColor(),
     show: false,
     frame: false,
     icon: path.join(__dirname, '../build/icon.png'),

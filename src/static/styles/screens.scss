@@ -1,6 +1,6 @@
 /* --- Écrans système (loading / maintenance / update) + état de démarrage --- */
 body {
-  background-color: var(--bg-base, #F0F4F8);
+  background-color: var(--bg-base, var(--bg-base));
   overflow: hidden;
 }
 
@@ -30,8 +30,8 @@ div.update {
   align-items: center;
   height: 100vh;
   width: 100vw;
-  background-color: #F0F4F8;
-  color: #1A2332;
+  background-color: var(--bg-base);
+  color: var(--ink-900);
   transition: opacity 0.25s ease-out;
   z-index: 9999;
 }

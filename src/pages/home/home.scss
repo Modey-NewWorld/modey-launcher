@@ -4,7 +4,7 @@
   flex-direction: row;
   height: 100vh;
   width: 100vw;
-  background: #f4f6fb;
+  background: var(--bg-base);
   padding: 18px 0 18px 18px;
   box-sizing: border-box;
   overflow: hidden;
@@ -38,7 +38,7 @@
     width: 6px;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(30, 136, 229, 0.25);
+    background: var(--accent-soft);
     border-radius: 4px;
   }
 }
@@ -55,13 +55,13 @@
     font-size: 28px;
     font-family: var(--font-display);
     font-weight: 800;
-    color: #0f172a;
+    color: var(--ink-900);
     letter-spacing: -0.6px;
     margin: 0;
   }
   p {
     font-size: 13.5px;
-    color: #64748b;
+    color: var(--ink-500);
     margin: 4px 0 0 0;
   }
 }
@@ -71,7 +71,7 @@
   position: relative;
   border-radius: var(--r-lg);
   overflow: hidden;
-  background: #1e293b;
+  background: var(--bg-surface);
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
   border: 1px solid rgba(226, 232, 240, 0.8);
   padding: 20px 24px;
@@ -81,7 +81,7 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
-  color: #fff;
+  color: var(--bg-surface);
   flex-shrink: 0;
 
   .modey-hero-top {
@@ -110,14 +110,14 @@
 
   .hero-badge-status {
     background: rgba(255, 255, 255, 0.95);
-    color: #0f172a;
+    color: var(--ink-900);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   }
 
   .hero-badge-players,
   .hero-badge-version {
     background: rgba(15, 23, 42, 0.65);
-    color: #f8fafc;
+    color: var(--bg-hover);
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
@@ -128,21 +128,21 @@
     display: inline-block;
 
     &.online {
-      background-color: #22c55e;
+      background-color: var(--success);
       box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
     }
     &.offline {
-      background-color: #ef4444;
+      background-color: var(--danger);
     }
     &.pinging {
-      background-color: #f59e0b;
-      box-shadow: 0 0 6px #f59e0b;
+      background-color: var(--warning);
+      box-shadow: 0 0 6px var(--warning);
     }
     &.soon {
-      background-color: #38bdf8;
+      background-color: var(--accent);
     }
     &.maint {
-      background-color: #f59e0b;
+      background-color: var(--warning);
     }
   }
 
@@ -153,7 +153,7 @@
         font-family: var(--font-display);
         font-weight: 800;
         letter-spacing: -0.5px;
-        color: #ffffff;
+        color: var(--bg-surface);
         margin: 0;
         display: flex;
         align-items: center;
@@ -219,7 +219,7 @@
       &.active,
       &:hover {
         opacity: 1;
-        border-color: #38bdf8;
+        border-color: var(--accent);
       }
     }
   }
@@ -235,7 +235,7 @@
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.28);
-      color: #ffffff;
+      color: var(--bg-surface);
       font-family: var(--font-ui);
       font-size: 14px;
       font-weight: 600;
@@ -255,13 +255,13 @@
       }
 
       &.btn-admin-bypass {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-        color: #ffffff !important;
+        background: linear-gradient(135deg, var(--warning) 0%, var(--founder-gold) 100%) !important;
+        color: var(--bg-surface) !important;
         box-shadow: 0 4px 14px rgba(217, 119, 6, 0.45) !important;
         cursor: pointer !important;
 
         &:hover {
-          background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%) !important;
+          background: linear-gradient(135deg, var(--warning) 0%, var(--founder-gold) 100%) !important;
           box-shadow: 0 6px 18px rgba(217, 119, 6, 0.6) !important;
         }
       }
@@ -286,7 +286,7 @@
       border-radius: var(--r-sm);
       background: rgba(15, 23, 42, 0.55);
       backdrop-filter: blur(8px);
-      color: #ffffff;
+      color: var(--bg-surface);
       border: 1px solid rgba(255, 255, 255, 0.22);
       font-size: 16px;
       cursor: pointer;
@@ -406,12 +406,12 @@
       .resume-card-title {
         font-size: 15.5px;
         font-weight: 700;
-        color: #0f172a;
+        color: var(--ink-900);
       }
 
       .resume-card-time {
         font-size: 12.5px;
-        color: #64748b;
+        color: var(--ink-500);
         margin-top: 2px;
       }
     }
@@ -422,7 +422,7 @@
       gap: 6px;
       font-size: 11.5px;
       font-weight: 600;
-      color: #16a34a;
+      color: var(--success);
     }
   }
 
@@ -455,13 +455,13 @@
       }
 
       &.btn-admin-bypass {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-        color: #ffffff !important;
+        background: linear-gradient(135deg, var(--warning) 0%, var(--founder-gold) 100%) !important;
+        color: var(--bg-surface) !important;
         box-shadow: 0 4px 14px rgba(217, 119, 6, 0.45) !important;
         cursor: pointer !important;
 
         &:hover {
-          background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%) !important;
+          background: linear-gradient(135deg, var(--warning) 0%, var(--founder-gold) 100%) !important;
           box-shadow: 0 6px 18px rgba(217, 119, 6, 0.6) !important;
         }
       }
@@ -511,15 +511,15 @@
     height: 4px;
   }
   &::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: var(--line);
     border-radius: 2px;
   }
 }
 
 .history-card {
   flex: 0 0 130px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-hover);
+  border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
@@ -527,7 +527,7 @@
 
   &:hover {
     transform: translateY(-2px);
-    border-color: #93c5fd;
+    border-color: var(--accent-ink);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
   }
 
@@ -543,7 +543,7 @@
     .history-card-name {
       font-size: 12.5px;
       font-weight: 700;
-      color: #0f172a;
+      color: var(--ink-900);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -553,7 +553,7 @@
       display: flex;
       justify-content: space-between;
       font-size: 11px;
-      color: #64748b;
+      color: var(--ink-500);
       margin: 4px 0;
     }
 
@@ -563,7 +563,7 @@
       gap: 5px;
       font-size: 11px;
       font-weight: 600;
-      color: #16a34a;
+      color: var(--success);
     }
   }
 
@@ -574,24 +574,24 @@
     justify-content: center;
     text-align: center;
     padding: 12px 10px;
-    border: 1px dashed #93c5fd;
-    background: #eff6ff;
+    border: 1px dashed var(--accent-soft);
+    background: var(--accent-soft);
 
     .explore-icon {
       font-size: 22px;
-      color: #2563eb;
+      color: var(--accent);
       margin-bottom: 6px;
     }
 
     .explore-text {
       font-size: 11px;
       font-weight: 600;
-      color: #1e40af;
+      color: var(--accent-ink);
       line-height: 1.3;
     }
 
     &:hover {
-      background: #dbeafe;
+      background: var(--accent-soft);
     }
   }
 }
@@ -605,7 +605,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: #fff;
+  color: var(--bg-surface);
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
@@ -617,8 +617,8 @@
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 999px;
-    background: #e0f2fe;
-    color: #0284c7;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
   }
 
   .discovery-banner-content {
@@ -631,7 +631,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #ffffff;
+      color: var(--bg-surface);
     }
 
     .discovery-banner-desc {
@@ -645,7 +645,7 @@
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
+    color: var(--bg-surface);
     font-size: 11px;
     font-weight: 600;
     padding: 6px 12px;
@@ -668,7 +668,7 @@
   justify-content: center;
   gap: 8px;
   padding: 24px 12px;
-  color: #94a3b8;
+  color: var(--ink-400);
   font-size: 12px;
 
   i {
@@ -942,10 +942,10 @@
 
 /* Bannière Discord CTA */
 .discord-cta-card {
-  background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+  background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
   border-radius: var(--r-lg);
   padding: 14px 16px;
-  color: #ffffff;
+  color: var(--bg-surface);
   display: flex;
   align-items: center;
   gap: 12px;

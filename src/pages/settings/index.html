@@ -23,7 +23,7 @@
               <!-- Carte Emplacement & Fichiers de l'instance -->
               <section class="settings-card settings-card--wide" id="server-location-card">
                 <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold style="color:#10b981;"" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;&nbsp;Stockage et fichiers du serveur</h3>
+                  <h3><svg class="solar-icon solar-bold style="color:var(--success);"" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;&nbsp;Stockage et fichiers du serveur</h3>
                 </div>
                 <div class="path-box" id="server-instance-path">Chargement...</div>
                 <div class="btn-row" style="margin-top:4px;">
@@ -36,7 +36,7 @@
               <!-- Carte RAM spécifique à l'instance -->
               <section class="settings-card settings-card--wide" id="server-ram-card">
                 <div class="settings-card-head">
-                  <h3 id="server-ram-card-title"><svg class="solar-icon solar-linear" style="color:#10b981;" aria-hidden="true"><use href="#solar-cpu-linear"></use></svg>&nbsp;&nbsp;Mémoire allouée au serveur</h3>
+                  <h3 id="server-ram-card-title"><svg class="solar-icon solar-linear" style="color:var(--success);" aria-hidden="true"><use href="#solar-cpu-linear"></use></svg>&nbsp;&nbsp;Mémoire allouée au serveur</h3>
                 </div>
                 <div class="dual-slider-container" id="server-ram-slider">
                   <div class="slider-track"></div>
@@ -53,9 +53,9 @@
               <!-- Carte Mods Optionnels de l'instance -->
               <section class="settings-card settings-card--wide" id="server-optional-mods-card">
                 <div class="settings-card-head" style="display:flex; justify-content:space-between; align-items:center;">
-                  <h3><svg class="solar-icon solar-bold style="color:#8b5cf6;"" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>&nbsp;&nbsp;Mods facultatifs &amp; Extensions de confort</h3>
+                  <h3><svg class="solar-icon solar-bold style="color:var(--accent);"" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>&nbsp;&nbsp;Mods facultatifs &amp; Extensions de confort</h3>
                   <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="slot-count-tag" id="optional-mods-badge" style="background:#ede9fe; color:#7c3aed; font-weight:700;">0 disponible(s)</span>
+                    <span class="slot-count-tag" id="optional-mods-badge" style="background:var(--accent-soft); color:var(--accent); font-weight:700;">0 disponible(s)</span>
                     <button type="button" class="settings-btn" id="btn-refresh-optional-mods" title="Actualiser la liste" aria-label="Actualiser la liste des mods" style="padding:4px 8px; font-size:12px;">
                       <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
                     </button>
@@ -64,7 +64,7 @@
                 <p class="muted">Active ou désactive des améliorations visuelles et animations en jeu (animations dynamiques, shaders légers, détails sonores ou interface personnalisée) sans impacter la compatibilité multijoueur du serveur.</p>
                 
                 <div id="optional-mods-list-container" class="optional-mods-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; margin-top:8px;">
-                  <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:18px; text-align:center; color:#64748b; font-size:13px;">
+                  <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:18px; text-align:center; color:var(--ink-500); font-size:13px;">
                     <div style="margin-bottom:8px;"><svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg></div>
                     <div>Chargement des mods facultatifs disponibles...</div>
                   </div>
@@ -92,6 +92,20 @@
                   <span id="ram-max-label">Max : 8 Go</span>
                 </div>
               </section>
+
+            <section class="settings-card global-setting-card">
+              <div class="settings-card-head">
+                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sun-bold"></use></svg>&nbsp;&nbsp;Thème et apparence</h3>
+              </div>
+              <div class="select-wrapper">
+                <select id="theme-select">
+                  <option value="system">Automatique (suit le système)</option>
+                  <option value="light">Clair</option>
+                  <option value="dark">Sombre</option>
+                </select>
+              </div>
+              <p class="muted">Choisissez entre le thème clair, le thème sombre ou le mode automatique qui s'adapte à votre système d'exploitation.</p>
+            </section>
 
             <section class="settings-card global-setting-card">
               <div class="settings-card-head">
@@ -170,15 +184,15 @@
                 </div>
                 <div class="update-line">
                   <span class="update-line-label">Dernière version disponible :</span>
-                  <strong id="update-latest-version" style="color:var(--accent, #3b82f6);">—</strong>
+                  <strong id="update-latest-version" style="color:var(--accent);">—</strong>
                 </div>
               </div>
 
               <div class="channel-selector-wrap" style="margin-bottom:14px;">
-                <label for="update-channel-select" style="display:block; font-size:12px; font-weight:600; color:#4a5568; margin-bottom:6px;">
+                <label for="update-channel-select" style="display:block; font-size:12px; font-weight:600; color:var(--ink-500); margin-bottom:6px;">
                   <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-git-branch-linear"></use></svg>&nbsp;Canal de mise à jour
                 </label>
-                <select id="update-channel-select" class="settings-select" style="width:100%; max-width:280px; padding:7px 10px; border-radius:6px; border:1px solid #d2d6dc; font-size:13px;">
+                <select id="update-channel-select" class="settings-select" style="width:100%; max-width:280px; padding:7px 10px; border-radius:6px; border:1px solid var(--line); background:var(--bg-surface); color:var(--ink-900); font-size:13px;">
                   <option value="stable">Canal Stable (Production - Recommandé)</option>
                   <option value="beta">Canal Bêta (Releases expérimentales)</option>
                 </select>

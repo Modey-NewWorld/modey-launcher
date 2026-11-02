@@ -1,17 +1,19 @@
 :root {
-  /* Surfaces */
+  color-scheme: light;
+
+  /* Surfaces (Thème Clair) */
   --bg-base: #F3F5F9;
   --bg-surface: #FFFFFF;
   --bg-sunken: #E9EEF5;
   --bg-hover: #F6F8FC;
-  --bg-dark: #F3F5F9;
+  --bg-dark: var(--bg-base); /* Alias conservé pour compatibilité */
   --bg-surface-alt: #F6F8FC;
 
   /* Encre */
   --ink-900: #0D1726;   /* titres */
   --ink-700: #24374F;   /* texte fort */
   --ink-500: #55657D;   /* texte courant — 5.9:1 sur blanc */
-  --ink-400: #6F7F95;   /* display uniquement (≥ 24 px) — 4.1:1 sur blanc */
+  --ink-400: #586982;   /* texte secondaire / discret — ≥ 5.4:1 sur blanc */
 
   /* Aliases compat */
   --text-main: var(--ink-900);
@@ -131,4 +133,81 @@
   --role-citizen-color: #64748b;
   --role-citizen-bg: #f1f5f9;
   --role-citizen-border: #e2e8f0;
+}
+
+/* --- THÈME SOMBRE --- */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces (Thème Sombre — base #0B1017 alignée avec Electron) */
+  --bg-base: #0B1017;
+  --bg-surface: #131B26;
+  --bg-sunken: #0E1520;
+  --bg-hover: #1A2433;
+  --bg-dark: #0B1017;
+  --bg-surface-alt: #17212F;
+
+  /* Encre claire */
+  --ink-900: #F0F4F8;   /* titres très clairs */
+  --ink-700: #D0DBEA;   /* texte fort */
+  --ink-500: #94A3B8;   /* texte courant */
+  --ink-400: #64748B;   /* texte discret */
+
+  /* Lignes sombres */
+  --line: #1F2C3F;
+  --line-strong: #2D3E56;
+
+  /* Accent en sombre (bleu lumineux et dynamique) */
+  --accent: #3B82F6;
+  --accent-strong: #60A5FA;
+  --accent-soft: rgba(59, 130, 246, 0.15);
+  --accent-ink: #93C5FD;
+  --accent-ring: rgba(59, 130, 246, 0.4);
+
+  /* Glassmorphism sombre */
+  --glass-bg: rgba(19, 27, 38, 0.88);
+  --glass-border: var(--line);
+
+  /* Sidebar */
+  --sidebar-bg: var(--bg-surface);
+  --sidebar-border: var(--line);
+
+  /* Sémantique */
+  --success: #22C55E;
+  --success-soft: rgba(34, 197, 94, 0.16);
+  --warning: #F59E0B;
+  --warning-soft: rgba(245, 158, 11, 0.16);
+  --danger: #EF4444;
+  --danger-soft: rgba(239, 68, 68, 0.16);
+
+  /* Ombres sombres : profondeur et glow */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 2px 6px -1px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 10px 24px -8px rgba(0, 0, 0, 0.75);
+  --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.9);
+
+  /* Badges de Rôles adaptés au thème sombre */
+  --founder-gold: #FBBF24;
+  --founder-bg: rgba(245, 158, 11, 0.18);
+  --founder-border: rgba(245, 158, 11, 0.35);
+
+  --role-admin-color: #F87171;
+  --role-admin-bg: rgba(239, 68, 68, 0.18);
+  --role-admin-border: rgba(239, 68, 68, 0.35);
+
+  --role-moderator-color: #C084FC;
+  --role-moderator-bg: rgba(168, 85, 247, 0.18);
+  --role-moderator-border: rgba(168, 85, 247, 0.35);
+
+  --role-developer-color: #34D399;
+  --role-developer-bg: rgba(16, 185, 129, 0.18);
+  --role-developer-border: rgba(16, 185, 129, 0.35);
+
+  --role-builder-color: #60A5FA;
+  --role-builder-bg: rgba(59, 130, 246, 0.18);
+  --role-builder-border: rgba(59, 130, 246, 0.35);
+
+  --role-citizen-color: #94A3B8;
+  --role-citizen-bg: rgba(148, 163, 184, 0.12);
+  --role-citizen-border: rgba(148, 163, 184, 0.25);
 }

@@ -2,8 +2,8 @@
 .studio-skin-pill {
   font-size: clamp(8.6px, 0.82vw, 10.5px);
   font-weight: 700;
-  color: #1a73e8;
-  background: #e8f1fd;
+  color: var(--accent);
+  background: var(--accent-soft);
   padding: 3px 10px;
   border-radius: 999px;
   white-space: nowrap;
@@ -11,8 +11,8 @@
 
 .face-toggle {
   display: flex;
-  background: #f2f6fc;
-  border: 1px solid #e2e9f4;
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
   border-radius: 9px;
   padding: 3px;
   gap: 2px;
@@ -23,14 +23,14 @@
     font-family: var(--font-ui);
     font-size: clamp(9.4px, 0.9vw, 11.5px);
     font-weight: 600;
-    color: #8a97ad;
+    color: var(--ink-400);
     padding: 5px 14px;
     border-radius: 7px;
     cursor: pointer;
 
     &.active {
-      background: #1a73e8;
-      color: #fff;
+      background: var(--accent);
+      color: var(--bg-surface);
     }
   }
 }
@@ -43,9 +43,9 @@
   .studio-badge {
     font-size: clamp(9.0px, 0.86vw, 11.0px);
     font-weight: 500;
-    color: #5b6b84;
-    background: #f2f6fc;
-    border: 1px solid #e2e9f4;
+    color: var(--ink-500);
+    background: var(--bg-sunken);
+    border: 1px solid var(--line);
     padding: 4px 11px;
     border-radius: 999px;
   }
@@ -55,8 +55,8 @@
   width: 100%;
   height: auto;
   border-radius: 10px;
-  background: linear-gradient(180deg, #eef4fd 0%, #f7fafd 100%);
-  border: 1px solid #e6eaf2;
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--bg-surface-alt) 100%);
+  border: 1px solid var(--line);
 }
 
 .studio-view-btns {
@@ -67,9 +67,9 @@
 }
 
 .rotate-btn {
-  border: 1px solid #e2e9f4;
-  background: #fff;
-  color: #3d5268;
+  border: 1px solid var(--line);
+  background: var(--bg-surface);
+  color: var(--ink-700);
   font-family: var(--font-ui);
   font-size: clamp(9.8px, 0.94vw, 12.0px);
   font-weight: 600;
@@ -81,14 +81,14 @@
   gap: 8px;
 
   &:hover {
-    border-color: #1a73e8;
-    color: #1a73e8;
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   &.active {
-    background: #e3edfd;
-    border-color: #1a73e8;
-    color: #1a73e8;
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
   }
 }
 
@@ -99,8 +99,8 @@
 }
 
 .studio-mini {
-  background: #f7fafd;
-  border: 1px solid #e6eaf2;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 12px;
   display: flex;
@@ -113,10 +113,10 @@
     justify-content: space-between;
     align-items: center;
     font-size: clamp(9.8px, 0.94vw, 12.0px);
-    color: #101b30;
+    color: var(--ink-900);
 
     i {
-      color: #8a97ad;
+      color: var(--ink-400);
       font-size: clamp(9.0px, 0.86vw, 11.0px);
     }
   }
@@ -127,9 +127,9 @@
 
     .model-btn {
       flex: 1;
-      border: 1px solid #e2e9f4;
-      background: #fff;
-      color: #5b6b84;
+      border: 1px solid var(--line);
+      background: var(--bg-surface);
+      color: var(--ink-500);
       font-family: var(--font-ui);
       font-size: clamp(9.0px, 0.86vw, 11.0px);
       font-weight: 600;
@@ -138,9 +138,9 @@
       cursor: pointer;
 
       &.active {
-        background: #e3edfd;
-        border-color: #1a73e8;
-        color: #1a73e8;
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent);
       }
     }
   }
@@ -150,11 +150,11 @@
     align-items: center;
     gap: 8px;
     font-size: clamp(9.8px, 0.94vw, 12.0px);
-    color: #3d5268;
+    color: var(--ink-700);
     cursor: pointer;
 
     input {
-      accent-color: #1a73e8;
+      accent-color: var(--accent);
       width: 15px;
       height: 15px;
     }
@@ -177,7 +177,7 @@
 
   > strong {
     font-size: clamp(10.2px, 0.98vw, 12.5px);
-    color: #101b30;
+    color: var(--ink-900);
   }
 }
 
@@ -189,13 +189,13 @@
 
   .skin-preview,
   .cape-preview {
-    border: 2px solid #e2e9f4;
+    border: 2px solid var(--line);
     border-radius: 10px;
     cursor: pointer;
     padding: 6px;
     transition: border-color 0.15s, background 0.15s;
     position: relative;
-    background: #f7fafd;
+    background: var(--bg-surface-alt);
 
     img {
       width: 79px;
@@ -205,18 +205,18 @@
     }
 
     &:hover {
-      border-color: #bcd4f7;
+      border-color: var(--accent);
     }
 
     &.active {
       border-color: var(--primary);
-      background: #eef4fd;
+      background: var(--accent-soft);
     }
 
     span {
       display: block;
       font-size: clamp(8.2px, 0.78vw, 10.0px);
-      color: #8a97ad;
+      color: var(--ink-400);
       font-weight: 500;
       text-align: center;
       max-width: 79px;
@@ -254,12 +254,12 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  border-top: 1px solid #f0f3f8;
+  border-top: 1px solid var(--line);
   padding-top: 12px;
 
   .studio-saved {
     font-size: clamp(9.0px, 0.86vw, 11.0px);
-    color: #43a047;
+    color: var(--success);
     display: flex;
     align-items: center;
     gap: 6px;

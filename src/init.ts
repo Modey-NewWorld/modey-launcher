@@ -82,24 +82,26 @@ export function renderMaintenanceView(mn: any, session: any) {
 
   if (canBypass && account) {
     const roleLabel = (account as any).roleLabel || (userRole.charAt(0).toUpperCase() + userRole.slice(1))
-    const roleColor = (account as any).roleColor || (userRole === 'founder' ? '#ea580c' : userRole === 'admin' ? '#e11d48' : '#0284c7')
-    const roleGradient = (account as any).roleGradient || `linear-gradient(135deg, ${roleColor} 0%, ${roleColor} 100%)`
-    const roleShadow = (account as any).roleShadow || `${roleColor}70`
+    const isFounder = userRole === 'founder'
+    const isAdmin = userRole === 'admin'
+    const roleColorVar = isFounder ? 'var(--founder-gold)' : isAdmin ? 'var(--role-admin-color)' : 'var(--accent)'
+    const roleBgVar = isFounder ? 'var(--founder-bg)' : isAdmin ? 'var(--role-admin-bg)' : 'var(--accent-soft)'
+    const roleBorderVar = isFounder ? 'var(--founder-border)' : isAdmin ? 'var(--role-admin-border)' : 'var(--accent)'
 
     if (staffBadgeEl) {
       staffBadgeEl.style.display = 'inline-flex'
-      staffBadgeEl.style.background = '#fffbeb'
-      staffBadgeEl.style.color = roleColor
-      staffBadgeEl.style.border = `1.5px solid ${roleColor}`
-      staffBadgeEl.style.boxShadow = `0 2px 12px ${roleShadow}20`
-      staffBadgeEl.innerHTML = `<svg class="solar-icon solar-bold" style="color:${roleColor}; font-size:14px;"></i><span class="badge-text">Privilège Staff Détecté : <strong style="color:${roleColor}; font-weight:800;">${roleLabel}</strong> • Bypass Autorisé</span>`
+      staffBadgeEl.style.background = roleBgVar
+      staffBadgeEl.style.color = roleColorVar
+      staffBadgeEl.style.border = `1.5px solid ${roleBorderVar}`
+      staffBadgeEl.style.boxShadow = 'var(--shadow-sm)'
+      staffBadgeEl.innerHTML = `<svg class="solar-icon solar-bold" style="color:${roleColorVar}; font-size:14px;" aria-hidden="true"><use href="#solar-shield-bold"></use></svg><span class="badge-text">Privilège Staff Détecté : <strong style="color:${roleColorVar}; font-weight:800;">${roleLabel}</strong> • Bypass Autorisé</span>`
     }
 
     if (btnBypass) {
       btnBypass.style.display = 'inline-flex'
-      btnBypass.style.background = roleGradient
-      btnBypass.style.boxShadow = `0 4px 16px ${roleShadow}`
-      btnBypass.style.color = '#ffffff'
+      btnBypass.style.background = roleColorVar
+      btnBypass.style.boxShadow = 'var(--shadow-md)'
+      btnBypass.style.color = 'var(--bg-surface)'
       btnBypass.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-login-bold"></use></svg>&nbsp;Accéder au Launcher'
       btnBypass.title = `Maintenance en cours : accès autorisé grâce à votre rôle ${roleLabel}`
 

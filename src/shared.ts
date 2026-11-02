@@ -3,6 +3,7 @@ import { SkinViewer, WalkingAnimation } from 'skinview3d'
 import { skin } from './ipc'
 import { Dialog } from './components/dialog'
 import logger from 'electron-log/renderer'
+import { onThemeChange } from './theme'
 
 
 export function normalizeSkinUrl(url: string | null | undefined): string {
@@ -21,9 +22,10 @@ function createFallbackThumbnail(): string {
   canvas.height = 150
   const ctx = canvas.getContext('2d')
   if (ctx) {
-    ctx.fillStyle = '#1e293b'
+    const cs = typeof window !== 'undefined' ? getComputedStyle(document.documentElement) : null
+    ctx.fillStyle = cs ? cs.getPropertyValue('--bg-sunken').trim() || '#131B26' : '#131B26'
     ctx.fillRect(0, 0, 120, 150)
-    ctx.fillStyle = '#64748b'
+    ctx.fillStyle = cs ? cs.getPropertyValue('--ink-500').trim() || '#94A3B8' : '#94A3B8'
     ctx.font = '14px sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText('Skin', 60, 80)
@@ -323,7 +325,7 @@ const shared = {
     })
 
     const capeSpan = document.createElement('span')
-    capeSpan.innerHTML = '<svg class="solar-icon solar-linear" style="display: block; font-size: 54px; color: #525252; position: relative; top: -5px;"></i>'
+    capeSpan.innerHTML = '<svg class="solar-icon solar-linear" style="display: block; font-size: 54px; color: var(--ink-400); position: relative; top: -5px;"></i>'
     capeDiv.appendChild(capeSpan)
     capeGallerySettingsEl?.appendChild(capeDiv)
 
@@ -374,6 +376,12 @@ const shared = {
     }
   }
 }
+
+onThemeChange(() => {
+  if (shared.mainSkinViewer) {
+    shared.mainSkinViewer.render()
+  }
+})
 
 export default shared
 

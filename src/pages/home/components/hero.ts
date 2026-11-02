@@ -42,7 +42,7 @@ export function renderHero(profile: any) {
   if (heroEl) {
     const remoteBanner = profile?.modey?.bannerUrl || serverMeta?.bannerUrl
     const effectiveBanner = bannerCache.getBanner(serverSlug, remoteBanner) || bgImage
-    heroEl.style.background = `linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.88) 80%), url('${effectiveBanner}') center / cover no-repeat, #1e293b`
+    heroEl.style.background = `linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.88) 80%), url('${effectiveBanner}') center / cover no-repeat, var(--bg-surface)`
     if (isSoon || isMaint || isDisabled || isOffline) {
       heroEl.classList.add('hero-unavailable')
     } else {
@@ -52,7 +52,7 @@ export function renderHero(profile: any) {
 
   const heroTitle = el('hero-title')
   if (heroTitle) {
-    heroTitle.innerHTML = `<svg class="solar-icon solar-bold style="color: #fbbf24; margin-right: 10px;"" aria-hidden="true"><use href="#solar-crown-bold"></use></svg>${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
+    heroTitle.innerHTML = `<svg class="solar-icon solar-bold style="color: var(--founder-gold); margin-right: 10px;"" aria-hidden="true"><use href="#solar-crown-bold"></use></svg>${profile?.name ?? serverMeta?.name ?? (isSoon ? 'Free Build' : 'Athéna')}`
   }
 
   const customDesc = profile?.modey?.teaser?.description || serverMeta?.teaser?.description

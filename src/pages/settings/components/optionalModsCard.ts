@@ -46,8 +46,8 @@ export async function refreshOptionalMods(slug: string) {
   isLoading = true
 
   container.innerHTML = `
-    <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:18px; text-align:center; color:#64748b; font-size:13px;">
-      <svg class="solar-icon solar-linear spin" style="font-size:22px; color:#8b5cf6; margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>
+    <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:18px; text-align:center; color:var(--ink-500); font-size:13px;">
+      <svg class="solar-icon solar-linear spin" style="font-size:22px; color:var(--accent); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>
       <div>Recherche des mods facultatifs pour ${slug}...</div>
     </div>
   `
@@ -62,9 +62,9 @@ export async function refreshOptionalMods(slug: string) {
 
     if (list.length === 0) {
       container.innerHTML = `
-        <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:18px; text-align:center; color:#64748b; font-size:13px;">
-          <svg class="solar-icon solar-linear" style="font-size:24px; color:#94a3b8; margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-box-linear"></use></svg>
-          <div style="font-weight:600; color:#334155; margin-bottom:4px;">Aucun mod optionnel disponible pour ce serveur</div>
+        <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:18px; text-align:center; color:var(--ink-500); font-size:13px;">
+          <svg class="solar-icon solar-linear" style="font-size:24px; color:var(--ink-400); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-box-linear"></use></svg>
+          <div style="font-weight:600; color:var(--ink-700); margin-bottom:4px;">Aucun mod optionnel disponible pour ce serveur</div>
           <div>Tous les mods essentiels sont déjà installés et synchronisés d'office avec le serveur.</div>
         </div>
       `
@@ -113,13 +113,13 @@ export async function refreshOptionalMods(slug: string) {
               <span>${sizeStr}</span>
             </div>
           </div>
-          <span class="slot-count-tag" style="background:${mod.isEnabled ? '#dcfce7' : '#f1f5f9'}; color:${mod.isEnabled ? '#15803d' : '#64748b'};">
+          <span class="slot-count-tag" style="background:${mod.isEnabled ? 'var(--success-soft)' : 'var(--bg-sunken)'}; color:${mod.isEnabled ? 'var(--success)' : 'var(--ink-500)'};">
             ${mod.isEnabled ? 'En jeu' : mod.isInstalled ? 'Prêt' : 'En ligne'}
           </span>
         </div>
         <div class="optional-mod-actions">
-          <span style="font-size:11.5px; color:#64748b;">
-            ${mod.isEnabled ? '<svg class="solar-icon solar-linear style="color:#10b981;"" aria-hidden="true"><use href="#solar-check-linear"></use></svg>&nbsp;Actif au lancement' : (mod.isInstalled ? '<svg class="solar-icon solar-linear style="color:#f59e0b;"" aria-hidden="true"><use href="#solar-clock-linear"></use></svg>&nbsp;En pause' : '<svg class="solar-icon solar-linear style="color:#8b5cf6;"" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;Non téléchargé')}
+          <span style="font-size:11.5px; color:var(--ink-500);">
+            ${mod.isEnabled ? '<svg class="solar-icon solar-linear style="color:var(--success);"" aria-hidden="true"><use href="#solar-check-linear"></use></svg>&nbsp;Actif au lancement' : (mod.isInstalled ? '<svg class="solar-icon solar-linear style="color:var(--warning);"" aria-hidden="true"><use href="#solar-clock-linear"></use></svg>&nbsp;En pause' : '<svg class="solar-icon solar-linear style="color:var(--accent);"" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;Non téléchargé')}
           </span>
           <div style="display:flex; align-items:center; gap:6px;">
             ${actionHtml}

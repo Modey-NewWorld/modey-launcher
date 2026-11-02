@@ -113,7 +113,7 @@ h4, label, .badge {
       height: 100%;
       border: none;
       background: transparent;
-      color: #5b6b84;
+      color: var(--ink-500);
       font-size: clamp(9.0px, 0.86vw, 11.0px);
       cursor: pointer;
       display: flex;
@@ -122,15 +122,15 @@ h4, label, .badge {
       transition: background 0.12s, color 0.12s;
 
       &:hover {
-        background: rgba(30, 50, 100, 0.08);
-        color: #101b30;
+        background: var(--shadow-sm);
+        color: var(--ink-900);
       }
     }
 
     .titlebar-close {
       &:hover {
-        background: #e53935;
-        color: #ffffff;
+        background: var(--danger);
+        color: var(--bg-surface);
       }
     }
   }
@@ -164,9 +164,13 @@ a {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(240, 244, 248, 0.55);
+    background: rgba(240, 244, 248, 0.65);
     backdrop-filter: blur(6px);
   }
+}
+
+[data-theme="dark"] .app-background::after {
+  background: rgba(11, 16, 23, 0.78);
 }
 
 /* --- Views Management --- */
@@ -252,11 +256,11 @@ a {
 /* Secondary Button (Light/Glass) */
 .btn-secondary {
   background: rgba(30, 136, 229, 0.06);
-  border: 1px solid rgba(30, 136, 229, 0.2);
+  border: 1px solid var(--accent-soft);
   color: var(--text-secondary);
 
   &:hover:not(:disabled) {
-    background: rgba(30, 136, 229, 0.12);
+    background: var(--accent-soft);
     border-color: rgba(30, 136, 229, 0.4);
     color: var(--primary);
     text-decoration: none;
@@ -265,13 +269,13 @@ a {
 
 /* Danger Button (Red) */
 .btn-danger {
-  background: rgba(211, 47, 47, 0.08);
+  background: var(--danger-soft);
   border: 1px solid rgba(211, 47, 47, 0.3);
-  color: #C62828;
+  color: var(--danger);
 
   &:hover:not(:disabled) {
-    background: rgba(211, 47, 47, 0.15);
-    border-color: #D32F2F;
+    background: var(--danger-soft);
+    border-color: var(--danger);
   }
 }
 
@@ -294,7 +298,7 @@ body.is-asleep *::after {
     font-size: 28px;
     font-family: var(--font-display);
     font-weight: 800;
-    color: #101b30;
+    color: var(--ink-900);
     letter-spacing: -0.6px;
     margin: 0;
     line-height: 1.2;
@@ -302,7 +306,7 @@ body.is-asleep *::after {
 
   p {
     font-size: 13.5px;
-    color: #64748b;
+    color: var(--ink-500);
     margin: 0;
     line-height: 1.45;
   }

@@ -12,18 +12,18 @@ div.maintenance-card {
   h3 {
     font-size: clamp(18.0px, 1.72vw, 22.0px);
     font-weight: 600;
-    color: #1A2332;
+    color: var(--ink-900);
   }
 
   .gears {
     font-size: 2.8rem;
-    color: var(--primary, #1E88E5);
+    color: var(--primary, var(--accent));
     margin-bottom: 1.2rem;
-    filter: drop-shadow(0 4px 12px rgba(30, 136, 229, 0.25));
+    filter: drop-shadow(0 4px 12px var(--accent-soft));
   }
 
   .dates {
-    color: #5B6B84;
+    color: var(--ink-500);
     font-weight: 500;
     margin-bottom: 0.8rem;
     margin-top: 0.4rem;
@@ -31,7 +31,7 @@ div.maintenance-card {
   }
 
   .text {
-    color: #3D5268;
+    color: var(--ink-700);
     font-size: clamp(11.5px, 1.09vw, 14.0px);
     line-height: 1.5;
   }
@@ -68,8 +68,8 @@ div.maintenance-card {
   }
 
   .btn-admin-bypass {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--warning) 0%, var(--founder-gold) 100%);
+    color: var(--bg-surface) !important;
     box-shadow: 0 4px 14px rgba(217, 119, 6, 0.45);
     border: 1px solid rgba(255, 255, 255, 0.25) !important;
 

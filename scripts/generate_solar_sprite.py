@@ -94,6 +94,9 @@ mapping = [
     ('maximize', 'maximize-square-2-bold', 'maximize-square-2-linear'),
     ('minimize', 'minimize-square-2-bold', 'minimize-square-2-linear'),
     ('window', 'widget-bold', 'widget-linear'),
+    ('sun', 'sun-2-bold', 'sun-2-linear'),
+    ('moon', 'moon-bold', 'moon-linear'),
+    ('monitor', 'monitor-bold', 'monitor-linear'),
 ]
 
 symbols = []
