@@ -10,31 +10,63 @@ export function renderDiscovery(onSelectProfile: (profile: any) => void) {
   const fbMeta = launcherConfig.getFreeBuild()
   const freeBuildProfile = homeState.allProfiles.find((p) => p.slug === 'free-build' || p.slug === fbMeta?.name)
 
-  container.innerHTML = `
-    <div class="discovery-compact-card" id="btn-discovery-open">
-      <div class="discovery-compact-left">
-        <div class="discovery-compact-icon"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-box-linear"></use></svg></div>
-        <div class="discovery-compact-text">
-          <span class="discovery-compact-title">${fbMeta?.name || 'Free Build'}</span>
-          <span class="discovery-compact-sub">Le bac à sable créatif de Modey</span>
-        </div>
+  const items = [
+    {
+      id: 'free-build',
+      title: fbMeta?.name || 'Free Build',
+      desc: 'Construction libre, sans limites.',
+      badge: 'Bientôt',
+      badgeClass: 'badge-soon',
+      icon: 'box'
+    },
+    {
+      id: 'survival-plus',
+      title: 'Survival+',
+      desc: 'Plus de défis, plus de récompenses.',
+      badge: 'Bientôt',
+      badgeClass: 'badge-soon',
+      icon: 'gamepad'
+    },
+    {
+      id: 'pvp-arena',
+      title: 'PvP Arena',
+      desc: "Affronte d'autres joueurs.",
+      badge: 'En développement',
+      badgeClass: 'badge-dev',
+      icon: 'tuning'
+    }
+  ]
+
+  container.innerHTML = items
+    .map(
+      (item) => `
+    <div class="discovery-row-item" data-id="${item.id}">
+      <div class="discovery-row-icon">
+        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-${item.icon}-bold"></use></svg>
       </div>
-      <div class="discovery-compact-right">
-        <span class="badge-soon">Bientôt</span>
-        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg>
+      <div class="discovery-row-content">
+        <div class="discovery-row-title">${item.title}</div>
+        <div class="discovery-row-desc">${item.desc}</div>
       </div>
+      <div class="discovery-row-badge ${item.badgeClass}">${item.badge}</div>
     </div>
   `
+    )
+    .join('')
 
-  document.getElementById('btn-discovery-open')?.addEventListener('click', async () => {
-    if (freeBuildProfile && !isComingSoonProfile(freeBuildProfile)) {
-      onSelectProfile(freeBuildProfile)
-    } else {
-      await Dialog.show(
-        `${fbMeta?.name || 'Free Build'} — Arrive bientôt\n\n${fbMeta?.teaser?.description || 'Construction libre, parcelles créatives et outils sans limites.'}\n\nMinecraft ${fbMeta?.minecraftVersion || '1.21.1'} • NeoForge ${fbMeta?.loaderVersion || '21.1.169'}`,
-        [{ text: 'Compris', type: 'ok' }]
-      )
-    }
+  container.querySelectorAll('.discovery-row-item').forEach((node) => {
+    node.addEventListener('click', async () => {
+      const id = (node as HTMLElement).dataset.id
+      if (id === 'free-build' && freeBuildProfile && !isComingSoonProfile(freeBuildProfile)) {
+        onSelectProfile(freeBuildProfile)
+      } else {
+        const item = items.find((i) => i.id === id)
+        await Dialog.show(
+          `${item?.title || 'Mode de jeu'} — ${item?.badge}\n\n${item?.desc || ''}\n\nCe mode sera accessible très prochainement aux citoyens de Modey.`,
+          [{ text: 'Compris', type: 'ok' }]
+        )
+      }
+    })
   })
 }
 

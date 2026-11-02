@@ -1,85 +1,230 @@
 import { Dialog } from '../../../components/dialog'
 
-export function initRailTabs() {
-  const tabs = document.querySelectorAll<HTMLButtonElement>('.rail-tabs-nav button[role="tab"]')
-  const panels = document.querySelectorAll<HTMLElement>('.rail-tab-content .rail-panel')
-  if (!tabs.length || !panels.length) return
-
-  const activateTab = (tabId: string) => {
-    tabs.forEach((tab) => {
-      const active = tab.id === tabId
-      tab.classList.toggle('active', active)
-      tab.setAttribute('aria-selected', active ? 'true' : 'false')
-      tab.tabIndex = active ? 0 : -1
-    })
-    panels.forEach((panel) => {
-      const targetId = document.getElementById(tabId)?.getAttribute('aria-controls')
-      const active = panel.id === targetId
-      panel.classList.toggle('active', active)
-      panel.hidden = !active
-    })
-    try {
-      localStorage.setItem('modey.home.railTab', tabId)
-    } catch (_) {}
+// Palette & pixel-art Minecraft heads (viewBox 0 0 8 8)
+function getHeadSvg(type: 'alex' | 'lucas' | 'maxime' | 'emma' | 'theo' | 'lea'): string {
+  switch (type) {
+    case 'alex':
+      return `<svg class="friend-mc-head" viewBox="0 0 8 8" shape-rendering="crispEdges">
+        <rect x="0" y="0" width="8" height="8" fill="#ECC2A0"/>
+        <rect x="0" y="0" width="8" height="3" fill="#C65C2E"/>
+        <rect x="0" y="3" width="1" height="3" fill="#A8471D"/>
+        <rect x="7" y="3" width="1" height="2" fill="#C65C2E"/>
+        <rect x="1" y="4" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="2" y="4" width="1" height="1" fill="#388E3C"/>
+        <rect x="5" y="4" width="1" height="1" fill="#388E3C"/>
+        <rect x="6" y="4" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="3" y="5" width="2" height="1" fill="#DFA987"/>
+        <rect x="3" y="6" width="2" height="1" fill="#C07860"/>
+      </svg>`
+    case 'lucas':
+      return `<svg class="friend-mc-head" viewBox="0 0 8 8" shape-rendering="crispEdges">
+        <rect x="0" y="0" width="8" height="8" fill="#D9A066"/>
+        <rect x="0" y="0" width="8" height="2" fill="#4A3222"/>
+        <rect x="0" y="2" width="1" height="2" fill="#4A3222"/>
+        <rect x="7" y="2" width="1" height="2" fill="#4A3222"/>
+        <rect x="2" y="2" width="4" height="1" fill="#3B2616"/>
+        <rect x="1" y="3" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="2" y="3" width="1" height="1" fill="#2E52CC"/>
+        <rect x="5" y="3" width="1" height="1" fill="#2E52CC"/>
+        <rect x="6" y="3" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="3" y="4" width="2" height="1" fill="#BD8B56"/>
+        <rect x="3" y="5" width="2" height="1" fill="#6B4423"/>
+      </svg>`
+    case 'maxime':
+      return `<svg class="friend-mc-head" viewBox="0 0 8 8" shape-rendering="crispEdges">
+        <rect x="0" y="0" width="8" height="8" fill="#D59F72"/>
+        <rect x="0" y="0" width="8" height="3" fill="#241B16"/>
+        <rect x="0" y="3" width="1" height="3" fill="#241B16"/>
+        <rect x="7" y="3" width="1" height="3" fill="#241B16"/>
+        <rect x="1" y="3" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="2" y="3" width="1" height="1" fill="#4A6B82"/>
+        <rect x="5" y="3" width="1" height="1" fill="#4A6B82"/>
+        <rect x="6" y="3" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="3" y="4" width="2" height="1" fill="#BF895E"/>
+        <rect x="2" y="6" width="4" height="1" fill="#1B1410"/>
+      </svg>`
+    case 'emma':
+      return `<svg class="friend-mc-head" viewBox="0 0 8 8" shape-rendering="crispEdges">
+        <rect x="0" y="0" width="8" height="8" fill="#F7D3B5"/>
+        <rect x="0" y="0" width="8" height="3" fill="#E6C24C"/>
+        <rect x="0" y="3" width="1" height="4" fill="#CCA535"/>
+        <rect x="7" y="3" width="1" height="4" fill="#E6C24C"/>
+        <rect x="1" y="3" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="2" y="3" width="1" height="1" fill="#3B82F6"/>
+        <rect x="5" y="3" width="1" height="1" fill="#3B82F6"/>
+        <rect x="6" y="3" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="3" y="4" width="2" height="1" fill="#E5BDA0"/>
+        <rect x="3" y="5" width="2" height="1" fill="#E08B8B"/>
+      </svg>`
+    case 'theo':
+      return `<svg class="friend-mc-head" viewBox="0 0 8 8" shape-rendering="crispEdges">
+        <rect x="0" y="0" width="8" height="8" fill="#DCAB7D"/>
+        <rect x="0" y="0" width="8" height="3" fill="#2563EB"/>
+        <rect x="0" y="2" width="8" height="1" fill="#1D4ED8"/>
+        <rect x="0" y="3" width="1" height="1" fill="#382415"/>
+        <rect x="7" y="3" width="1" height="1" fill="#382415"/>
+        <rect x="1" y="4" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="2" y="4" width="1" height="1" fill="#1F2937"/>
+        <rect x="5" y="4" width="1" height="1" fill="#1F2937"/>
+        <rect x="6" y="4" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="3" y="5" width="2" height="1" fill="#B88A60"/>
+      </svg>`
+    case 'lea':
+      return `<svg class="friend-mc-head" viewBox="0 0 8 8" shape-rendering="crispEdges">
+        <rect x="0" y="0" width="8" height="8" fill="#E8BA9B"/>
+        <rect x="0" y="0" width="8" height="2" fill="#5C2B14"/>
+        <rect x="0" y="2" width="8" height="1" fill="#8B5CF6"/>
+        <rect x="0" y="3" width="1" height="4" fill="#5C2B14"/>
+        <rect x="7" y="3" width="1" height="4" fill="#5C2B14"/>
+        <rect x="1" y="4" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="2" y="4" width="1" height="1" fill="#9333EA"/>
+        <rect x="5" y="4" width="1" height="1" fill="#9333EA"/>
+        <rect x="6" y="4" width="1" height="1" fill="#FFFFFF"/>
+        <rect x="3" y="5" width="2" height="1" fill="#D39775"/>
+      </svg>`
   }
-
-  const savedTab = localStorage.getItem('modey.home.railTab')
-  const initialTab = savedTab && document.getElementById(savedTab) ? savedTab : 'tab-btn-friends'
-  activateTab(initialTab)
-
-  tabs.forEach((tab, index) => {
-    tab.addEventListener('click', () => activateTab(tab.id))
-    tab.addEventListener('keydown', (e) => {
-      let nextIndex = index
-      if (e.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length
-      else if (e.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length
-      else if (e.key === 'Home') nextIndex = 0
-      else if (e.key === 'End') nextIndex = tabs.length - 1
-      else return
-
-      e.preventDefault()
-      tabs[nextIndex].focus()
-      activateTab(tabs[nextIndex].id)
-    })
-  })
 }
 
 export function renderFriendsList() {
   const container = document.getElementById('friends-list-container')
   if (!container) return
 
-  container.innerHTML = `
-    <div class="friends-soon-overlay">
-      <div class="friends-soon-content">
-        <div class="soon-icon"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg></div>
-        <div class="soon-title">Cette fonction arrive bientôt</div>
-        <div class="soon-desc">L'activité de tes amis et la connexion directe seront disponibles très prochainement.</div>
+  const friends = [
+    {
+      name: 'Alex',
+      type: 'alex' as const,
+      online: true,
+      sub: 'Athéna • Explore sa ville',
+      action: true
+    },
+    {
+      name: 'Lucas',
+      type: 'lucas' as const,
+      online: true,
+      sub: 'Valloria • En aventure',
+      action: true
+    },
+    {
+      name: 'Maxime',
+      type: 'maxime' as const,
+      online: true,
+      sub: 'Athéna • Construit sa maison',
+      action: true
+    },
+    {
+      name: 'Emma',
+      type: 'emma' as const,
+      online: false,
+      sub: 'Hors ligne • Il y a 2h',
+      action: false
+    },
+    {
+      name: 'Théo',
+      type: 'theo' as const,
+      online: false,
+      sub: 'Hors ligne • Il y a 5h',
+      action: false
+    },
+    {
+      name: 'Léa',
+      type: 'lea' as const,
+      online: false,
+      sub: 'Hors ligne • Il y a 1j',
+      action: false
+    }
+  ]
+
+  container.innerHTML = friends
+    .map(
+      (f) => `
+    <div class="friend-card ${f.online ? 'is-online' : 'is-offline'}">
+      <div class="friend-avatar-wrap">
+        ${getHeadSvg(f.type)}
+        ${f.online ? '<span class="friend-online-dot"></span>' : ''}
       </div>
+      <div class="friend-info">
+        <div class="friend-name-row">
+          <span class="friend-name">${f.name}</span>
+          ${f.online ? '<span class="status-dot-inline online"></span>' : ''}
+        </div>
+        <div class="friend-sub">${f.sub}</div>
+      </div>
+      ${f.action ? '<button type="button" class="btn-friend-join">Rejoindre</button>' : ''}
     </div>
   `
+    )
+    .join('')
 
-  document.getElementById('friends-view-all')?.addEventListener('click', async () => {
-    await Dialog.show(
-      'Liste d\'amis Modey\n\nLa gestion sociale et l\'activité en direct de vos amis arrivent dans une prochaine mise à jour du launcher !',
+  // Boutons et liens d'action
+  const showSoonDialog = () => {
+    Dialog.show(
+      'Liste d\'amis Modey\n\nCette fonction arrive bientôt ! L\'activité de tes amis et la connexion directe seront disponibles très prochainement.',
       [{ text: 'Compris', type: 'ok' }]
     )
-  })
+  }
+
+  container.querySelectorAll('.btn-friend-join').forEach((b) => b.addEventListener('click', showSoonDialog))
+  document.getElementById('friends-view-all')?.addEventListener('click', showSoonDialog)
+  document.getElementById('friends-all-link')?.addEventListener('click', showSoonDialog)
 }
 
 export function renderNotificationsList() {
   const container = document.getElementById('notifications-list-container')
   if (!container) return
 
-  // Aucune fausse notification injectée : affiche l'état réel (vide)
-  container.innerHTML = `
-    <div class="notifs-empty">
-      <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-bell-linear"></use></svg>
-      <span>Aucune nouvelle notification</span>
+  const notifs = [
+    {
+      avatarSvg: getHeadSvg('lucas'),
+      title: "Lucas t'a invité sur Valloria",
+      time: 'Il y a 10 min',
+      hasMenu: true
+    },
+    {
+      iconHtml: '<div class="notif-badge-icon maint"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg></div>',
+      title: 'Maintenance serveur Athéna',
+      sub: 'Prévue ce soir à 22h',
+      time: 'Il y a 1h',
+      hasMenu: false
+    },
+    {
+      avatarSvg: getHeadSvg('alex'),
+      title: 'Nouveau message de Alex',
+      sub: '« On se retrouve sur Athéna ? »',
+      time: 'Il y a 2h',
+      hasMenu: false
+    },
+    {
+      iconHtml: '<div class="notif-badge-icon modey"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-feed-bold"></use></svg></div>',
+      title: 'Modey a publié un article',
+      sub: 'Les nouveautés de la 1.21.1',
+      time: 'Il y a 4h',
+      hasMenu: false
+    }
+  ]
+
+  container.innerHTML = notifs
+    .map(
+      (n) => `
+    <div class="notif-item">
+      <div class="notif-avatar-col">
+        ${n.avatarSvg || n.iconHtml}
+      </div>
+      <div class="notif-content-col">
+        <div class="notif-title">${n.title}</div>
+        ${n.sub ? `<div class="notif-sub">${n.sub}</div>` : ''}
+        ${!n.sub && n.time ? `<div class="notif-time-sub">${n.time}</div>` : ''}
+      </div>
+      <div class="notif-meta-col">
+        ${n.sub && n.time ? `<span class="notif-time">${n.time}</span>` : ''}
+        ${n.hasMenu ? '<button type="button" class="notif-menu-btn" title="Options" aria-label="Options">⋮</button>' : ''}
+      </div>
     </div>
   `
+    )
+    .join('')
 
   document.getElementById('notifs-view-all')?.addEventListener('click', async () => {
-    await Dialog.show('Centre de notifications\n\nToutes vos alertes et notifications s\'afficheront ici.', [
+    await Dialog.show('Centre de notifications\n\nToutes vos alertes et notifications en direct s\'afficheront ici.', [
       { text: 'Compris', type: 'ok' }
     ])
   })
@@ -89,3 +234,5 @@ export function renderNotificationsList() {
     window.open(url, '_blank')
   })
 }
+
+export function initRailTabs() {}

@@ -108,29 +108,39 @@
                   <span class="hero-badge hero-badge-status" id="hero-status">
                     <span class="status-dot online" id="server-status-dot"></span>&nbsp;<span id="server-status-text" aria-live="polite">En ligne</span>
                   </span>
+                  <span class="hero-badge hero-badge-official" id="hero-official-badge">Serveur officiel</span>
                 </div>
                 <div class="modey-hero-top-right">
-                  <span class="hero-badge hero-badge-players" id="player-count"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;—</span>
-                  <span class="hero-badge hero-badge-version" id="hero-version"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;1.21.1</span>
+                  <span class="hero-badge hero-badge-meta" id="hero-meta-badge">
+                    <span id="player-count"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;0/40</span>
+                    <span class="meta-sep">•</span>
+                    <span id="hero-version"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;1.21.1</span>
+                  </span>
                 </div>
               </div>
 
               <div class="modey-hero-body">
                 <div class="modey-hero-info">
-                  <h2 id="hero-title"><svg class="solar-icon solar-linear" style="color: #f59e0b; margin-right: 8px;" aria-hidden="true"><use href="#solar-box-linear"></use></svg>Athéna</h2>
+                  <h2 id="hero-title"><svg class="solar-icon solar-bold" style="color: var(--founder-gold); margin-right: 10px;" aria-hidden="true"><use href="#solar-crown-bold"></use></svg>Athéna</h2>
                   <div class="hero-tags" id="hero-tags"></div>
                   <p id="hero-desc">Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.</p>
                 </div>
               </div>
 
               <div class="modey-hero-bottom-bar">
-                <div class="hero-gallery">
-                  <div class="hero-gallery-thumb active"><img src="@STATIC_BG_THUMB@" alt="Aperçu" /></div>
+                <div class="hero-gallery" id="hero-gallery">
+                  <div class="hero-gallery-thumb active"><img src="@STATIC_BG_THUMB@" alt="Aperçu 1" /></div>
+                  <div class="hero-gallery-thumb"><img src="@STATIC_BG_THUMB@" alt="Aperçu 2" /></div>
+                  <div class="hero-gallery-thumb"><img src="@STATIC_BG_THUMB@" alt="Aperçu 3" /></div>
+                  <div class="hero-gallery-thumb"><img src="@STATIC_BG_THUMB@" alt="Aperçu 4" /></div>
+                  <div class="hero-gallery-thumb"><img src="@STATIC_BG_THUMB@" alt="Aperçu 5" /></div>
+                  <button type="button" class="hero-gallery-nav" id="hero-gallery-next" title="Suivant" aria-label="Suivant">
+                    <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg>
+                  </button>
                 </div>
-                <div class="modey-hero-actions">
+                <div class="modey-hero-actions-stacked">
                   <button id="btn-play-hero" class="hero-play"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>&nbsp;&nbsp;Rejoindre</button>
-                  <button id="btn-details" class="hero-icon-btn" title="Détails du serveur" aria-label="Détails du serveur"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg></button>
-                  <button id="btn-server-settings" class="hero-icon-btn" title="Paramètres du serveur" aria-label="Paramètres du serveur"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-settings-bold"></use></svg></button>
+                  <button id="btn-details" class="hero-details-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-eye-bold"></use></svg>&nbsp;&nbsp;Voir les détails</button>
                 </div>
               </div>
             </section>
@@ -143,7 +153,6 @@
                   <button class="head-link" id="resume-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
                 </div>
                 <div class="home-card-body" id="resume-container"></div>
-                <div class="home-card-footer discovery-compact-footer" id="discovery-container"></div>
               </section>
 
               <section class="home-card news-card">
@@ -154,50 +163,63 @@
                 <div class="home-card-body news-events-container" id="events-news-list"></div>
               </section>
             </div>
+
+            <!-- 3. Rangée inférieure (Tes serveurs officiels + À découvrir) -->
+            <div class="home-grid-row home-grid-row-bottom">
+              <section class="home-card official-servers-card">
+                <div class="home-card-head">
+                  <div class="card-title-group">
+                    <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-star-bold"></use></svg> Tes serveurs officiels</h3>
+                    <span class="count-badge">3 jeux</span>
+                  </div>
+                </div>
+                <div class="home-card-body official-servers-grid" id="official-servers-container"></div>
+              </section>
+
+              <section class="home-card discovery-card">
+                <div class="home-card-head">
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-compass-bold"></use></svg> À découvrir</h3>
+                  <button class="head-link" id="discovery-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
+                </div>
+                <div class="home-card-body discovery-list" id="discovery-container"></div>
+              </section>
+            </div>
           </div>
 
-          <!-- Volet Latéral Droit : Rail à Onglets (Amis / Notifs / Historique) -->
+          <!-- Volet Latéral Droit (Activité de tes amis avec flou frosted glass + Notifications + Discord) -->
           <aside class="home-social-col">
-            <div class="rail-tabs-nav" role="tablist" aria-label="Volet social et historique">
-              <button type="button" class="rail-tab-btn active" role="tab" id="tab-btn-friends" aria-selected="true" aria-controls="panel-friends">
-                <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-user-linear"></use></svg> Amis
-              </button>
-              <button type="button" class="rail-tab-btn" role="tab" id="tab-btn-notifs" aria-selected="false" aria-controls="panel-notifs">
-                <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-bell-linear"></use></svg> Notifs
-              </button>
-              <button type="button" class="rail-tab-btn" role="tab" id="tab-btn-history" aria-selected="false" aria-controls="panel-history">
-                <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-history-linear"></use></svg> Historique
-              </button>
-            </div>
-
-            <div class="rail-tab-content">
-              <!-- Activité de tes amis -->
-              <section class="social-panel rail-panel active" id="panel-friends" role="tabpanel" aria-labelledby="tab-btn-friends">
-                <div class="social-panel-head">
-                  <h4><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-user-linear"></use></svg> Activité de tes amis</h4>
-                  <span class="badge-soon">Bientôt</span>
+            <!-- Activité de tes amis -->
+            <section class="social-panel friends-panel" id="panel-friends">
+              <div class="social-panel-head">
+                <h4><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg> Activité de tes amis</h4>
+                <button class="head-link" id="friends-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
+              </div>
+              <div class="friends-content-wrapper">
+                <div class="friends-list" id="friends-list-container"></div>
+                <!-- Frosted glass blur overlay on top! -->
+                <div class="friends-blur-overlay">
+                  <div class="blur-soon-card">
+                    <div class="blur-soon-pill">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-hourglass-bold"></use></svg>
+                      <span>Arrive bientôt</span>
+                    </div>
+                    <p class="blur-soon-text">L'activité de tes amis et la connexion directe seront disponibles très prochainement.</p>
+                  </div>
                 </div>
-                <div class="social-panel-body" id="friends-list-container"></div>
-              </section>
+              </div>
+              <div class="friends-footer">
+                <button class="friends-footer-link" id="friends-all-link">Voir tous mes amis <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
+              </div>
+            </section>
 
-              <!-- Dernières notifications -->
-              <section class="social-panel rail-panel" id="panel-notifs" role="tabpanel" aria-labelledby="tab-btn-notifs" hidden>
-                <div class="social-panel-head">
-                  <h4><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-bell-linear"></use></svg> Dernières notifications</h4>
-                  <button class="head-link" id="notifs-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
-                </div>
-                <div class="social-panel-body notifs-list" id="notifications-list-container"></div>
-              </section>
-
-              <!-- Historique des serveurs -->
-              <section class="social-panel rail-panel" id="panel-history" role="tabpanel" aria-labelledby="tab-btn-history" hidden>
-                <div class="social-panel-head">
-                  <h4><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-history-linear"></use></svg> Historique récent</h4>
-                  <span class="head-count-badge" id="history-count-badge">0 serveur</span>
-                </div>
-                <div class="history-cards-scroll rail-history-list" id="history-cards-container"></div>
-              </section>
-            </div>
+            <!-- Dernières notifications -->
+            <section class="social-panel notifs-panel" id="panel-notifs">
+              <div class="social-panel-head">
+                <h4><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-bell-linear"></use></svg> Dernières notifications</h4>
+                <button class="head-link" id="notifs-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
+              </div>
+              <div class="social-panel-body notifs-list" id="notifications-list-container"></div>
+            </section>
 
             <!-- CTA Bannière Discord -->
             <div class="discord-cta-card" id="btn-discord-join">

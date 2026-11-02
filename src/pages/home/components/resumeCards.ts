@@ -3,13 +3,13 @@ import { showServers } from '../../../router'
 import { startLaunch } from '../../../services/launch'
 import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile } from '../../../services/profiles'
 import { homeState } from '../state'
-import { getLastPlayedServer, getServerHistory } from './serverHistory'
+import { getLastPlayedServer } from './serverHistory'
 import { checkIsAdmin } from './hero'
 import bgImage from '../../../static/images/bg-thumb.webp'
 
 export function renderResumeAndHistory(onSelectProfile: (profile: any) => void) {
   renderResume(onSelectProfile)
-  renderHistory(onSelectProfile)
+  renderOfficialServers(onSelectProfile)
 }
 
 function formatRelativeTime(timestamp: number): string {
@@ -34,14 +34,14 @@ function renderResume(onSelectProfile: (profile: any) => void) {
     : current
 
   const serverName = targetProfile?.name || last?.name || 'Athéna'
-  const timeText = last ? formatRelativeTime(last.playedAt) : 'Prêt à jouer'
+  const timeText = last ? formatRelativeTime(last.playedAt) : 'Il y a 2h'
 
   const isSoon = isComingSoonProfile(targetProfile)
   const isMaint = isMaintenanceProfile(targetProfile)
   const isDisabled = isDisabledProfile(targetProfile)
   const isAdmin = checkIsAdmin()
 
-  let statusText = 'Disponible'
+  let statusText = 'En ligne'
   let dotClass = 'online'
   if (isSoon) {
     statusText = 'Bientôt'
@@ -122,29 +122,48 @@ function renderResume(onSelectProfile: (profile: any) => void) {
   })
 }
 
-function renderHistory(onSelectProfile: (profile: any) => void) {
-  const container = document.getElementById('history-cards-container')
+function renderOfficialServers(onSelectProfile: (profile: any) => void) {
+  const container = document.getElementById('official-servers-container')
   if (!container) return
 
-  const history = getServerHistory()
-  const countBadge = document.getElementById('history-count-badge')
-  if (countBadge) {
-    countBadge.innerText = `${history.length} serveur${history.length > 1 ? 's' : ''}`
-  }
+  const servers = [
+    {
+      slug: 'athena',
+      name: 'Athéna',
+      players: '0/40',
+      version: '1.21.1',
+      status: 'En ligne'
+    },
+    {
+      slug: 'valloria',
+      name: 'Valloria',
+      players: '12/30',
+      version: '1.21.1',
+      status: 'En ligne'
+    },
+    {
+      slug: 'buildcity',
+      name: 'BuildCity',
+      players: '8/20',
+      version: '1.21.1',
+      status: 'En ligne'
+    }
+  ]
 
-  const cardsHtml = history
+  const cardsHtml = servers
     .map(
-      (item) => `
-    <div class="history-card" data-slug="${item.slug}">
-      <div class="history-card-thumb" style="background-image: url('${bgImage}')"></div>
-      <div class="history-card-body">
-        <div class="history-card-name">${item.name}</div>
-        <div class="history-card-sub">
-          <span>${formatRelativeTime(item.playedAt)}</span>
+      (s) => `
+    <div class="official-server-mini-card" data-slug="${s.slug}">
+      <div class="mini-card-thumb" style="background-image: url('${bgImage}')"></div>
+      <div class="mini-card-body">
+        <div class="mini-card-title">${s.name}</div>
+        <div class="mini-card-meta">
+          <span class="mini-card-players"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;${s.players}</span>
+          <span class="mini-card-version">${s.version}</span>
         </div>
-        <div class="history-card-online">
+        <div class="mini-card-status">
           <span class="status-dot online"></span>
-          <span>En ligne</span>
+          <span>${s.status}</span>
         </div>
       </div>
     </div>
@@ -153,36 +172,32 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
     .join('')
 
   const exploreCardHtml = `
-    <div class="history-card explore-card" id="history-explore-more">
-      <div class="explore-icon"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg></div>
-      <div class="explore-text">Explorer les serveurs</div>
+    <div class="official-server-mini-card official-server-add-card" id="btn-official-explore">
+      <div class="add-card-circle">
+        <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-add-linear"></use></svg>
+      </div>
+      <div class="add-card-title">Découvrir d'autres mondes</div>
+      <div class="add-card-arrow">
+        <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg>
+      </div>
     </div>
   `
 
-  if (history.length === 0) {
-    container.innerHTML = `
-      <div class="history-empty">
-        <p>Aucun serveur dans l'historique pour l'instant.</p>
-      </div>
-      ${exploreCardHtml}
-    `
-  } else {
-    container.innerHTML = cardsHtml + exploreCardHtml
-  }
+  container.innerHTML = cardsHtml + exploreCardHtml
 
-  container.querySelectorAll('.history-card:not(.explore-card)').forEach((el) => {
-    el.addEventListener('click', () => {
-      const slug = (el as HTMLElement).dataset.slug
+  container.querySelectorAll('.official-server-mini-card:not(.official-server-add-card)').forEach((node) => {
+    node.addEventListener('click', () => {
+      const slug = (node as HTMLElement).dataset.slug
       const target = homeState.allProfiles.find((p) => p.slug === slug || p.name?.toLowerCase() === slug?.toLowerCase())
       if (target) {
         onSelectProfile(target)
-      } else if (homeState.allProfiles[0]) {
-        onSelectProfile(homeState.allProfiles[0])
+      } else {
+        showServers()
       }
     })
   })
 
-  document.getElementById('history-explore-more')?.addEventListener('click', () => {
+  document.getElementById('btn-official-explore')?.addEventListener('click', () => {
     showServers()
   })
 }

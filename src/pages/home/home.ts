@@ -10,7 +10,7 @@ import { startLaunch, bindLaunch } from '../../services/launch'
 import { refreshProfileServer } from '../profile/profile'
 import { refreshAthenaCard } from '../servers/servers'
 import { homeState } from './state'
-import { renderHero, updateServerStatus, checkIsAdmin } from './components/hero'
+import { renderHero, updateServerStatus, checkIsAdmin, initHeroGallery } from './components/hero'
 import { loadNews } from './components/newsList'
 import { renderDiscovery } from './components/discoveryCard'
 import { renderResumeAndHistory } from './components/resumeCards'
@@ -108,6 +108,7 @@ export function initHome() {
   updateServerStatus(homeState.selectedProfile)
   loadNews()
   renderHero(homeState.selectedProfile)
+  initHeroGallery()
   renderDiscovery(selectProfile)
   renderResumeAndHistory(selectProfile)
   renderFriendsList()
@@ -174,6 +175,7 @@ export function initHome() {
     showBlockedDetails: () => showServerDetails(),
     onGameClosed: () => {
       renderHero(homeState.selectedProfile)
+  initHeroGallery()
       updateServerStatus(homeState.selectedProfile)
       renderResumeAndHistory(selectProfile)
     }

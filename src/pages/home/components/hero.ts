@@ -32,6 +32,11 @@ export function renderHero(profile: any) {
   const cachedStatus = serverStatusCache[profileKey]
   const isOffline = cachedStatus !== undefined && !cachedStatus.online && !isSoon
 
+  const officialBadge = el('hero-official-badge')
+  if (officialBadge) {
+    officialBadge.innerText = isSoon ? 'Serveur créatif' : 'Serveur officiel'
+  }
+
   const heroVersion = el('hero-version')
   if (heroVersion) {
     const mc = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
@@ -271,4 +276,23 @@ export async function updateServerStatus(profile: any) {
   }
 
   renderHero(profile)
+}
+
+
+export function initHeroGallery() {
+  const thumbs = document.querySelectorAll<HTMLElement>('.hero-gallery-thumb')
+  const nextBtn = document.getElementById('hero-gallery-next')
+  if (!thumbs.length) return
+
+  let activeIndex = 0
+  const setActive = (idx: number) => {
+    activeIndex = (idx + thumbs.length) % thumbs.length
+    thumbs.forEach((t, i) => t.classList.toggle('active', i === activeIndex))
+  }
+
+  thumbs.forEach((t, idx) => {
+    t.addEventListener('click', () => setActive(idx))
+  })
+
+  nextBtn?.addEventListener('click', () => setActive(activeIndex + 1))
 }

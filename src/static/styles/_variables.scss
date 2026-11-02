@@ -39,6 +39,7 @@
 
   /* Glassmorphism compat */
   --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-overlay: rgba(255, 255, 255, 0.72);
   --glass-border: var(--line);
   --glass-blur: 12px;
 
@@ -166,6 +167,7 @@
 
   /* Glassmorphism sombre */
   --glass-bg: rgba(19, 27, 38, 0.88);
+  --glass-overlay: rgba(19, 27, 38, 0.72);
   --glass-border: var(--line);
 
   /* Sidebar */
