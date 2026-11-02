@@ -22,7 +22,7 @@ export async function refreshAthenaCard() {
     const banner = athena.modey?.bannerUrl || athenaMeta?.bannerUrl
     const bannerEl = athenaCard.querySelector('.server-banner') as HTMLElement | null
     if (bannerEl && banner) {
-      bannerEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.1) 0%, rgba(10, 20, 40, 0.75) 82%), url('${banner}') center / cover no-repeat, var(--bg-surface)`
+      bannerEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.1) 0%, rgba(10, 20, 40, 0.75) 82%), url('${banner}') center / cover no-repeat, #131B26`
     }
     const iconUrl = athena.modey?.iconUrl || athenaMeta?.iconUrl
     const titleEl = athenaCard.querySelector('.server-banner-title h2') as HTMLElement | null

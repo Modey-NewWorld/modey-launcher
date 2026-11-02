@@ -277,12 +277,12 @@
 
     .btn-rename-skin {
       background: var(--accent);
-      color: var(--bg-surface);
+      color: #FFFFFF;
     }
 
     .btn-delete-skin {
       background: var(--danger);
-      color: var(--bg-surface);
+      color: #FFFFFF;
     }
 
     &:hover .skin-card-actions {
@@ -493,7 +493,7 @@
 
     &.active {
       background: var(--accent);
-      color: var(--bg-surface);
+      color: #FFFFFF;
     }
   }
 }
@@ -622,7 +622,7 @@
 
     .discord-btn-link {
       background: #5865F2;
-      color: var(--bg-surface);
+      color: #FFFFFF;
       border: none;
       font-weight: 600;
       padding: 10px 16px;

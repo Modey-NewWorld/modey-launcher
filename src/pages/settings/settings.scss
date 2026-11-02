@@ -702,7 +702,7 @@
 
   &.active {
     background: var(--accent);
-    color: var(--bg-surface);
+    color: #FFFFFF;
     border-color: var(--accent);
     box-shadow: 0 3px 12px rgba(26, 115, 232, 0.35);
 
@@ -712,7 +712,7 @@
 
     .slot-count-tag {
       background: rgba(255, 255, 255, 0.25);
-      color: var(--bg-surface);
+      color: #FFFFFF;
     }
   }
 }

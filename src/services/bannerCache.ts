@@ -91,7 +91,7 @@ class BannerCacheService {
             // Notifier si l'élément hero est présent pour appliquer à chaud sans rechargement
             const heroEl = document.getElementById('hero')
             if (heroEl) {
-              heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.15) 0%, rgba(10, 20, 40, 0.82) 78%), url('${base64}') center / cover no-repeat, var(--bg-surface)`
+              heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.15) 0%, rgba(10, 20, 40, 0.82) 78%), url('${base64}') center / cover no-repeat, #131B26`
             }
           } catch (e) {
             logger.warn(`[BannerCache] Impossible de sauvegarder la bannière dans le stockage local :`, e)
