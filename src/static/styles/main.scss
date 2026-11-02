@@ -113,16 +113,20 @@ h4, label, .badge {
       height: 100%;
       border: none;
       background: transparent;
-      color: var(--ink-500);
-      font-size: clamp(9.0px, 0.86vw, 11.0px);
+      color: var(--ink-400);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.12s, color 0.12s;
 
+      .solar-icon {
+        width: 16px;
+        height: 16px;
+      }
+
       &:hover {
-        background: var(--shadow-sm);
+        background: var(--bg-hover);
         color: var(--ink-900);
       }
     }

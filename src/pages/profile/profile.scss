@@ -448,8 +448,9 @@
 
   .studio-overlay-head {
     padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-bg);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line);
     z-index: 5;
 
@@ -521,12 +522,13 @@
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--glass-bg);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  box-shadow: 0 4px 16px rgba(16, 27, 48, 0.08);
+  box-shadow: var(--shadow-md);
   z-index: 10;
 
   .zoom-controls {

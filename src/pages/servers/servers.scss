@@ -72,8 +72,11 @@
       position: absolute;
       top: 12px;
       left: 14px;
-      background: rgba(255, 255, 255, 0.94);
-      color: var(--ink-700);
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--ink-900);
+      border: 1px solid var(--line);
     }
 
     .server-official-tag {
@@ -271,7 +274,7 @@
 }
 
 .server-soon {
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--bg-surface);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1.5px dashed var(--line-strong);

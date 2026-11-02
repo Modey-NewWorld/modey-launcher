@@ -6,7 +6,7 @@
   background: var(--bg-surface);
   border-radius: 22px;
   box-shadow: 0 8px 32px var(--shadow-sm), 0 2px 8px var(--shadow-xs);
-  border: 1px solid rgba(230, 234, 242, 0.7);
+  border: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
   padding: 14px 16px 14px 16px;
