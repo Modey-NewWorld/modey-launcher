@@ -272,22 +272,20 @@
     }
   }
 
-  /* Boutons Action Hero Stacked */
-  .modey-hero-actions-stacked {
+  /* Boutons Action Hero (Jouer + i + Paramètres) */
+  .modey-hero-actions {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-    min-width: 175px;
+    align-items: center;
+    gap: 10px;
 
     .hero-play {
       background: var(--accent);
       border: none;
       color: #FFFFFF;
       font-family: var(--font-ui);
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 700;
-      padding: 0 28px;
+      padding: 0 24px;
       height: 42px;
       border-radius: 10px;
       cursor: pointer;
@@ -320,28 +318,26 @@
       }
     }
 
-    .hero-details-btn {
+    .hero-icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
       background: rgba(15, 23, 42, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: #FFFFFF;
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 600;
-      padding: 0 18px;
-      height: 34px;
-      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      font-size: 17px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: all 0.15s ease;
+      transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
 
       &:hover {
         background: rgba(15, 23, 42, 0.85);
         border-color: rgba(255, 255, 255, 0.45);
+        transform: translateY(-1px);
       }
     }
   }
@@ -604,8 +600,8 @@
   }
 }
 
-/* 3. Carte Tes serveurs officiels */
-.official-servers-card {
+/* 3. Carte Historique des serveurs réels */
+.history-card-section {
   .card-title-group {
     display: flex;
     align-items: center;
@@ -621,15 +617,61 @@
     border-radius: 999px;
   }
 
-  .official-servers-grid {
+  .history-servers-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 10px;
     align-items: stretch;
   }
+
+  .history-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    text-align: center;
+    background: var(--bg-sunken);
+    border-radius: 10px;
+    border: 1px dashed var(--line-strong);
+    grid-column: 1 / -1;
+
+    .history-empty-icon {
+      font-size: 24px;
+      color: var(--ink-400);
+      margin-bottom: 6px;
+    }
+
+    .history-empty-text {
+      font-size: 12.5px;
+      color: var(--ink-500);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .btn-history-discover {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+      }
+    }
+  }
 }
 
-.official-server-mini-card {
+.history-server-mini-card {
   background: var(--bg-surface);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -668,17 +710,16 @@
       text-overflow: ellipsis;
     }
 
-    .mini-card-meta {
+    .mini-card-time {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 5px;
       font-size: 11px;
       color: var(--ink-500);
       margin-top: 4px;
 
-      .mini-card-players {
-        display: inline-flex;
-        align-items: center;
+      .solar-icon {
+        font-size: 12px;
       }
     }
 
@@ -693,7 +734,7 @@
     }
   }
 
-  &.official-server-add-card {
+  &.history-server-add-card {
     border: 1.5px dashed var(--line-strong);
     background: var(--bg-sunken);
     align-items: center;
@@ -1063,109 +1104,103 @@
 
 /* Panneau Notifications */
 .notifs-panel {
-  .notifs-list {
+  .notifs-content-wrapper {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    min-height: 130px;
+  }
+
+  .notif-skeleton-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding: 6px 0;
 
-    .notif-item {
+    .notif-skeleton-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 6px 0;
-      border-bottom: 1px solid var(--line);
 
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .notif-avatar-col {
+      .skeleton-avatar {
         width: 32px;
         height: 32px;
+        border-radius: 8px;
+        background: var(--bg-sunken);
+        opacity: 0.6;
         flex-shrink: 0;
-
-        .friend-mc-head {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          display: block;
-        }
-
-        .notif-badge-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 15px;
-
-          &.maint {
-            background: var(--warning-soft);
-            color: var(--warning);
-          }
-
-          &.modey {
-            background: var(--accent-soft);
-            color: var(--accent);
-          }
-        }
       }
 
-      .notif-content-col {
+      .skeleton-lines {
         flex: 1;
-        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
 
-        .notif-title {
-          font-size: 12.5px;
-          font-weight: 700;
-          color: var(--ink-900);
-          line-height: 1.25;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+        .skeleton-bar {
+          background: var(--bg-sunken);
+          border-radius: 4px;
+
+          &.title {
+            width: 70%;
+            height: 12px;
+            opacity: 0.6;
+          }
+
+          &.sub {
+            width: 45%;
+            height: 10px;
+            opacity: 0.4;
+          }
         }
+      }
+    }
+  }
 
-        .notif-sub {
-          font-size: 11px;
-          color: var(--ink-500);
-          margin-top: 1px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
+  .notifs-blur-overlay {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: var(--glass-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    text-align: center;
+    border-radius: 10px;
+    z-index: 5;
 
-        .notif-time-sub {
-          font-size: 10.5px;
-          color: var(--ink-400);
-          margin-top: 2px;
+    .blur-soon-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      max-width: 230px;
+
+      .blur-soon-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #FFFFFF;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+
+        .solar-icon {
+          font-size: 13px;
         }
       }
 
-      .notif-meta-col {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        flex-shrink: 0;
-
-        .notif-time {
-          font-size: 10.5px;
-          color: var(--ink-400);
-          white-space: nowrap;
-        }
-
-        .notif-menu-btn {
-          background: none;
-          border: none;
-          color: var(--ink-400);
-          font-size: 14px;
-          cursor: pointer;
-          padding: 0 2px;
-
-          &:hover {
-            color: var(--ink-900);
-          }
-        }
+      .blur-soon-text {
+        font-size: 11.5px;
+        line-height: 1.4;
+        color: var(--ink-800);
+        margin: 0;
+        font-weight: 600;
       }
     }
   }

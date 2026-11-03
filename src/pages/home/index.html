@@ -138,9 +138,10 @@
                     <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg>
                   </button>
                 </div>
-                <div class="modey-hero-actions-stacked">
+                <div class="modey-hero-actions">
                   <button id="btn-play-hero" class="hero-play"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>&nbsp;&nbsp;Rejoindre</button>
-                  <button id="btn-details" class="hero-details-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-eye-bold"></use></svg>&nbsp;&nbsp;Voir les détails</button>
+                  <button id="btn-details" class="hero-icon-btn" title="Détails du serveur" aria-label="Détails du serveur"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg></button>
+                  <button id="btn-server-settings" class="hero-icon-btn" title="Paramètres du serveur" aria-label="Paramètres du serveur"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-settings-bold"></use></svg></button>
                 </div>
               </div>
             </section>
@@ -166,14 +167,15 @@
 
             <!-- 3. Rangée inférieure (Tes serveurs officiels + À découvrir) -->
             <div class="home-grid-row home-grid-row-bottom">
-              <section class="home-card official-servers-card">
+              <section class="home-card history-card-section" id="section-history">
                 <div class="home-card-head">
                   <div class="card-title-group">
-                    <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-star-bold"></use></svg> Tes serveurs officiels</h3>
-                    <span class="count-badge">3 jeux</span>
+                    <h3><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-history-linear"></use></svg> Historique</h3>
+                    <span class="count-badge" id="history-count-badge">0 serveur</span>
                   </div>
+                  <button class="head-link" id="history-view-all">Explorer les serveurs <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
                 </div>
-                <div class="home-card-body official-servers-grid" id="official-servers-container"></div>
+                <div class="home-card-body history-servers-grid" id="history-servers-container"></div>
               </section>
 
               <section class="home-card discovery-card">
@@ -218,7 +220,19 @@
                 <h4><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-bell-linear"></use></svg> Dernières notifications</h4>
                 <button class="head-link" id="notifs-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
               </div>
-              <div class="social-panel-body notifs-list" id="notifications-list-container"></div>
+              <div class="notifs-content-wrapper">
+                <div class="notifs-list" id="notifications-list-container"></div>
+                <!-- Frosted glass blur overlay on top! -->
+                <div class="notifs-blur-overlay">
+                  <div class="blur-soon-card">
+                    <div class="blur-soon-pill">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-hourglass-bold"></use></svg>
+                      <span>Arrive bientôt</span>
+                    </div>
+                    <p class="blur-soon-text">Le centre de notifications et les alertes en direct seront disponibles très prochainement.</p>
+                  </div>
+                </div>
+              </div>
             </section>
 
             <!-- CTA Bannière Discord -->

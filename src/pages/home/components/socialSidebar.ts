@@ -172,62 +172,41 @@ export function renderNotificationsList() {
   const container = document.getElementById('notifications-list-container')
   if (!container) return
 
-  const notifs = [
-    {
-      avatarSvg: getHeadSvg('lucas'),
-      title: "Lucas t'a invité sur Valloria",
-      time: 'Il y a 10 min',
-      hasMenu: true
-    },
-    {
-      iconHtml: '<div class="notif-badge-icon maint"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg></div>',
-      title: 'Maintenance serveur Athéna',
-      sub: 'Prévue ce soir à 22h',
-      time: 'Il y a 1h',
-      hasMenu: false
-    },
-    {
-      avatarSvg: getHeadSvg('alex'),
-      title: 'Nouveau message de Alex',
-      sub: '« On se retrouve sur Athéna ? »',
-      time: 'Il y a 2h',
-      hasMenu: false
-    },
-    {
-      iconHtml: '<div class="notif-badge-icon modey"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-feed-bold"></use></svg></div>',
-      title: 'Modey a publié un article',
-      sub: 'Les nouveautés de la 1.21.1',
-      time: 'Il y a 4h',
-      hasMenu: false
-    }
-  ]
-
-  container.innerHTML = notifs
-    .map(
-      (n) => `
-    <div class="notif-item">
-      <div class="notif-avatar-col">
-        ${n.avatarSvg || n.iconHtml}
+  // Squelettes abstraits sous l'overlay frosted glass (aucun faux message inventé)
+  container.innerHTML = `
+    <div class="notif-skeleton-list">
+      <div class="notif-skeleton-item">
+        <div class="skeleton-avatar"></div>
+        <div class="skeleton-lines">
+          <div class="skeleton-bar title"></div>
+          <div class="skeleton-bar sub"></div>
+        </div>
       </div>
-      <div class="notif-content-col">
-        <div class="notif-title">${n.title}</div>
-        ${n.sub ? `<div class="notif-sub">${n.sub}</div>` : ''}
-        ${!n.sub && n.time ? `<div class="notif-time-sub">${n.time}</div>` : ''}
+      <div class="notif-skeleton-item">
+        <div class="skeleton-avatar"></div>
+        <div class="skeleton-lines">
+          <div class="skeleton-bar title"></div>
+          <div class="skeleton-bar sub"></div>
+        </div>
       </div>
-      <div class="notif-meta-col">
-        ${n.sub && n.time ? `<span class="notif-time">${n.time}</span>` : ''}
-        ${n.hasMenu ? '<button type="button" class="notif-menu-btn" title="Options" aria-label="Options">⋮</button>' : ''}
+      <div class="notif-skeleton-item">
+        <div class="skeleton-avatar"></div>
+        <div class="skeleton-lines">
+          <div class="skeleton-bar title"></div>
+          <div class="skeleton-bar sub"></div>
+        </div>
       </div>
     </div>
   `
-    )
-    .join('')
 
-  document.getElementById('notifs-view-all')?.addEventListener('click', async () => {
-    await Dialog.show('Centre de notifications\n\nToutes vos alertes et notifications en direct s\'afficheront ici.', [
-      { text: 'Compris', type: 'ok' }
-    ])
-  })
+  const showNotifsDialog = async () => {
+    await Dialog.show(
+      'Centre de notifications Modey\n\nCette fonction arrive très bientôt ! Vos alertes de serveur, messages et invitations s\'afficheront ici.',
+      [{ text: 'Compris', type: 'ok' }]
+    )
+  }
+
+  document.getElementById('notifs-view-all')?.addEventListener('click', showNotifsDialog)
 
   document.getElementById('btn-discord-join')?.addEventListener('click', () => {
     const url = 'https://discord.gg/modey'

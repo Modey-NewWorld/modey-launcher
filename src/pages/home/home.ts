@@ -128,6 +128,7 @@ export function initHome() {
 
   // Liens "Voir tout"
   el('resume-view-all')?.addEventListener('click', showServers)
+  el('history-view-all')?.addEventListener('click', showServers)
   el('news-view-all')?.addEventListener('click', () => {
     Dialog.show('Actualités Modey\n\nRetrouvez tous les patch notes et annonces sur notre Discord et site officiel.', [{ text: 'Compris', type: 'ok' }])
   })
