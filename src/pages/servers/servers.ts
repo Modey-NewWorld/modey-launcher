@@ -42,14 +42,14 @@ export async function refreshAthenaCard() {
   if (probe.online && probe.status) {
     const mcVer = athena?.modey?.minecraftVersion || athenaMeta?.minecraftVersion || '1.21.1'
     if (srvStatusBadge) srvStatusBadge.innerHTML = `<span class="status-dot online"></span>&nbsp;Disponible • ${mcVer}`
-    if (srvPing) srvPing.innerHTML = `<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-signal-linear"></use></svg>&nbsp;${probe.pingMs} ms`
+    if (srvPing) srvPing.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-signal-bold"></use></svg>&nbsp;${probe.pingMs} ms`
     const txt = `${probe.status.players.online.toLocaleString()} / ${probe.status.players.max.toLocaleString()}`
-    if (srvPlayers) srvPlayers.innerHTML = `<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;${txt}`
+    if (srvPlayers) srvPlayers.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;${txt}`
     if (perkPlayers) perkPlayers.innerText = `${probe.status.players.online.toLocaleString()} aventuriers en ligne`
   } else {
     if (srvStatusBadge) srvStatusBadge.innerHTML = '<span class="status-dot offline"></span>&nbsp;Hors ligne'
-    if (srvPing) srvPing.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-signal-linear"></use></svg>&nbsp;—'
-    if (srvPlayers) srvPlayers.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;—'
+    if (srvPing) srvPing.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-signal-bold"></use></svg>&nbsp;—'
+    if (srvPlayers) srvPlayers.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;—'
   }
 }
 

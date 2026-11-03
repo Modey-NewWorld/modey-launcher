@@ -20,7 +20,7 @@ export async function loadNews() {
   if (feed.length === 0) {
     newsList.innerHTML = `
       <div class="news-empty-state">
-        <svg class="solar-icon solar-linear news-empty-icon" aria-hidden="true"><use href="#solar-feed-linear"></use></svg>
+        <svg class="solar-icon solar-bold news-empty-icon" aria-hidden="true"><use href="#solar-feed-bold"></use></svg>
         <span class="news-empty-text">Aucune actualité pour le moment</span>
       </div>
     `
@@ -31,18 +31,36 @@ export async function loadNews() {
   feed.forEach((item: any, index: number) => {
     const rawContent = item.content || ''
     const excerpt = stripMarkdown(rawContent).slice(0, 110)
+    const category = (item.category || '').toLowerCase()
     const isUpdate =
+      category === 'update' ||
+      category === 'patchnote' ||
       (item.title || '').toLowerCase().includes('mise à jour') ||
       (item.badge || '').toLowerCase().includes('mise')
-    const badgeLabel = item.badge || (isUpdate ? 'Mise à jour' : 'Événement')
-    const badgeClass = item.badgeClass || (isUpdate ? 'badge-update' : 'badge-event')
+    const isMaintenance = category === 'maintenance'
+    
+    let badgeLabel = item.badge
+    let badgeClass = item.badgeClass
+    if (!badgeLabel) {
+      if (isMaintenance) {
+        badgeLabel = 'Maintenance'
+        badgeClass = 'badge-maintenance'
+      } else if (isUpdate) {
+        badgeLabel = 'Mise à jour'
+        badgeClass = 'badge-update'
+      } else {
+        badgeLabel = 'Événement'
+        badgeClass = 'badge-event'
+      }
+    }
     const dateText = item.createdAt ? formatDate(item.createdAt) : 'Récent'
+    const thumbImg = item.icon || item.icon_url || item.image || bgImage
 
     newsList.insertAdjacentHTML(
       'beforeend',
       `
       <div class="news-event-item" data-index="${index}">
-        <div class="news-event-thumb" style="background-image: url('${bgImage}')"></div>
+        <div class="news-event-thumb" style="background-image: url('${thumbImg}')"></div>
         <div class="news-event-body">
           <div class="news-event-title" title="${item.title}">${item.title}</div>
           <div class="news-event-desc">${excerpt}</div>

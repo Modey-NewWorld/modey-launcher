@@ -630,11 +630,13 @@
     }
 
     .news-event-thumb {
-      width: 58px;
-      height: 44px;
-      border-radius: 6px;
+      width: 48px;
+      height: 48px;
+      aspect-ratio: 1;
+      border-radius: 8px;
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
       flex-shrink: 0;
       box-shadow: 0 1px 3px var(--shadow-xs);
     }
@@ -690,6 +692,11 @@
         &.badge-event {
           background: var(--accent-soft);
           color: var(--accent);
+        }
+
+        &.badge-maintenance {
+          background: rgba(239, 68, 68, 0.15);
+          color: #ef4444;
         }
       }
 

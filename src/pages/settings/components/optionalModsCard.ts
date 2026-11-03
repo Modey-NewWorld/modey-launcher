@@ -47,7 +47,7 @@ export async function refreshOptionalMods(slug: string) {
 
   container.innerHTML = `
     <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:18px; text-align:center; color:var(--ink-500); font-size:13px;">
-      <svg class="solar-icon solar-linear spin" style="font-size:22px; color:var(--accent); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>
+      <svg class="solar-icon solar-bold spin" style="font-size:22px; color:var(--accent); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
       <div>Recherche des mods facultatifs pour ${slug}...</div>
     </div>
   `
@@ -63,7 +63,7 @@ export async function refreshOptionalMods(slug: string) {
     if (list.length === 0) {
       container.innerHTML = `
         <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:18px; text-align:center; color:var(--ink-500); font-size:13px;">
-          <svg class="solar-icon solar-linear" style="font-size:24px; color:var(--ink-400); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-box-linear"></use></svg>
+          <svg class="solar-icon solar-bold" style="font-size:24px; color:var(--ink-400); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-box-bold"></use></svg>
           <div style="font-weight:600; color:var(--ink-700); margin-bottom:4px;">Aucun mod optionnel disponible pour ce serveur</div>
           <div>Tous les mods essentiels sont déjà installés et synchronisés d'office avec le serveur.</div>
         </div>
@@ -108,7 +108,7 @@ export async function refreshOptionalMods(slug: string) {
           <div class="optional-mod-info">
             <div class="optional-mod-name">${displayName}</div>
             <div class="optional-mod-meta">
-              <span><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-file-zip-linear"></use></svg> ${mod.name}</span>
+              <span><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-file-zip-bold"></use></svg> ${mod.name}</span>
               <span>•</span>
               <span>${sizeStr}</span>
             </div>
@@ -119,7 +119,7 @@ export async function refreshOptionalMods(slug: string) {
         </div>
         <div class="optional-mod-actions">
           <span style="font-size:11.5px; color:var(--ink-500);">
-            ${mod.isEnabled ? '<svg class="solar-icon solar-linear style="color:var(--success);"" aria-hidden="true"><use href="#solar-check-linear"></use></svg>&nbsp;Actif au lancement' : (mod.isInstalled ? '<svg class="solar-icon solar-linear style="color:var(--warning);"" aria-hidden="true"><use href="#solar-clock-linear"></use></svg>&nbsp;En pause' : '<svg class="solar-icon solar-linear style="color:var(--accent);"" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;Non téléchargé')}
+            ${mod.isEnabled ? '<svg class="solar-icon solar-bold style="color:var(--success);"" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Actif au lancement' : (mod.isInstalled ? '<svg class="solar-icon solar-bold style="color:var(--warning);"" aria-hidden="true"><use href="#solar-clock-bold"></use></svg>&nbsp;En pause' : '<svg class="solar-icon solar-bold style="color:var(--accent);"" aria-hidden="true"><use href="#solar-box-bold"></use></svg>&nbsp;Non téléchargé')}
           </span>
           <div style="display:flex; align-items:center; gap:6px;">
             ${actionHtml}
@@ -132,7 +132,7 @@ export async function refreshOptionalMods(slug: string) {
       // Brancher les interactions
       const installBtn = card.querySelector(`#btn-install-${mod.id}`)
       installBtn?.addEventListener('click', async () => {
-        installBtn.innerHTML = '<svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg> Installation...'
+        installBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> Installation...'
         installBtn.setAttribute('disabled', 'true')
         try {
           const res = await optionalMods.install(slug, mod.id)
@@ -148,7 +148,7 @@ export async function refreshOptionalMods(slug: string) {
       const toggleBtn = card.querySelector(`#btn-toggle-${mod.id}`)
       toggleBtn?.addEventListener('click', async () => {
         const nextState = !mod.isEnabled
-        toggleBtn.innerHTML = '<svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>'
+        toggleBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>'
         try {
           const res = await optionalMods.toggle(slug, mod.id, nextState)
           if (!res.success) {
@@ -170,7 +170,7 @@ export async function refreshOptionalMods(slug: string) {
           ]
         )
         if (confirm) {
-          delBtn.innerHTML = '<svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>'
+          delBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>'
           try {
             const res = await optionalMods.uninstall(slug, mod.id)
             if (!res.success) {
@@ -188,7 +188,7 @@ export async function refreshOptionalMods(slug: string) {
     logger.error('Failed to load optional mods:', err)
     container.innerHTML = `
       <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#fef2f2; border:1px dashed #fca5a5; border-radius:10px; padding:18px; text-align:center; color:#991b1b; font-size:13px;">
-        <svg class="solar-icon solar-linear" style="font-size:22px; color:#ef4444; margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-danger-linear"></use></svg>
+        <svg class="solar-icon solar-bold" style="font-size:22px; color:#ef4444; margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-danger-bold"></use></svg>
         <div>Impossible de charger les mods facultatifs. Vérifiez votre connexion.</div>
       </div>
     `

@@ -138,11 +138,11 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
     container.innerHTML = `
       <div class="history-empty-state">
         <div class="history-empty-icon">
-          <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-history-linear"></use></svg>
+          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-history-bold"></use></svg>
         </div>
         <div class="history-empty-text">Aucun serveur joué récemment</div>
         <button type="button" class="btn-history-discover" id="btn-history-discover-empty">
-          <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-compass-linear"></use></svg>
+          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-compass-bold"></use></svg>
           <span>Explorer les mondes</span>
         </button>
       </div>
@@ -163,7 +163,7 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
           <div class="mini-card-body">
             <div class="mini-card-title">${item.name}</div>
             <div class="mini-card-time">
-              <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-clock-linear"></use></svg>
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-clock-bold"></use></svg>
               <span>${formatRelativeTime(item.playedAt)}</span>
             </div>
             <div class="mini-card-status">
@@ -179,11 +179,11 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
   const exploreMoreHtml = `
     <div class="history-server-mini-card history-server-add-card" id="btn-history-explore-more">
       <div class="add-card-circle">
-        <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-add-linear"></use></svg>
+        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg>
       </div>
       <div class="add-card-title">Explorer d'autres serveurs</div>
       <div class="add-card-arrow">
-        <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg>
+        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg>
       </div>
     </div>
   `

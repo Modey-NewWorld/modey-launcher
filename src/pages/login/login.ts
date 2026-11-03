@@ -48,7 +48,7 @@ export async function initLogin() {
       tabLogin?.classList.add('active')
       tabRegister?.classList.remove('active')
       if (groupEmail) groupEmail.style.display = 'none'
-      if (labelUsername) labelUsername.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-user-linear"></use></svg> Pseudo ou Email'
+      if (labelUsername) labelUsername.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg> Pseudo ou Email'
       if (inputUsername) inputUsername.placeholder = 'Votre pseudo ou email'
       if (usernameHint) usernameHint.innerText = 'Votre identifiant de joueur'
       if (btnSubmitText) btnSubmitText.innerText = 'Se connecter à Modey'
@@ -56,7 +56,7 @@ export async function initLogin() {
       tabRegister?.classList.add('active')
       tabLogin?.classList.remove('active')
       if (groupEmail) groupEmail.style.display = 'flex'
-      if (labelUsername) labelUsername.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-user-linear"></use></svg> Nom de joueur (Pseudo unique)'
+      if (labelUsername) labelUsername.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg> Nom de joueur (Pseudo unique)'
       if (inputUsername) inputUsername.placeholder = 'Ex: Alex_75, JeanMartin'
       if (usernameHint) usernameHint.innerText = '3 à 16 caractères (unique pour chaque joueur)'
       if (btnSubmitText) btnSubmitText.innerText = 'Créer mon compte joueur'
@@ -92,7 +92,7 @@ export async function initLogin() {
 
       const originalHtml = btnSubmit.innerHTML
       btnSubmit.disabled = true
-      btnSubmit.innerHTML = `<svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg> ${mode === 'register' ? 'Création du compte...' : 'Connexion à la cité...'}`
+      btnSubmit.innerHTML = `<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> ${mode === 'register' ? 'Création du compte...' : 'Connexion à la cité...'}`
 
       try {
         let session

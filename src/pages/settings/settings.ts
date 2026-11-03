@@ -7,6 +7,7 @@ import { initUpdateCard } from './components/updateCard'
 import { initFilesRoot, refreshFilesCard } from './components/filesRoot'
 import { initOptionalModsCard, refreshOptionalMods } from './components/optionalModsCard'
 import { launcherConfig } from '../../services/launcherConfig'
+import { openDiscordInvite } from '../../services/discord'
 import logger from 'electron-log/renderer'
 import settingsHtml from './index.html?raw'
 import './settings.scss'
@@ -76,6 +77,11 @@ function populateAbout(sysInfo: any) {
   if (emllibEl) emllibEl.innerText = '2.3.5'
   if (electronEl) electronEl.innerText = (typeof process !== 'undefined' && process.versions?.electron) ? process.versions.electron : '34.0.0'
   if (osEl) osEl.innerText = (typeof process !== 'undefined' && process.platform) ? `${process.platform} ${process.arch}` : 'Windows x64'
+
+  el('settings-discord-link')?.addEventListener('click', (e) => {
+    e.preventDefault()
+    openDiscordInvite()
+  })
 }
 
 async function initServerPillTabs() {
@@ -123,7 +129,7 @@ async function refreshServerPillTabs() {
     const badgeText = ramAllocated ? `${ramAllocated} Go` : 'Auto'
 
     btn.innerHTML = `
-      <svg class="solar-icon solar-linear" style="color:var(--accent);" aria-hidden="true"><use href="#solar-gamepad-linear"></use></svg>
+      <svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-gamepad-bold"></use></svg>
       <span>${srvName}</span>
       <span class="slot-count-tag" id="pill-badge-${p.slug}" title="RAM allouée">${badgeText}</span>
     `

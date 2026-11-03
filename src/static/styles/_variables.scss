@@ -24,12 +24,12 @@
   --line: #E4E9F0;
   --line-strong: #C9D4E2;
 
-  /* Accent unique */
-  --accent: #1B6FD6;
-  --accent-strong: #1457AD;
-  --accent-soft: #E7F0FC;
-  --accent-ink: #0B4A94;
-  --accent-ring: rgba(27, 111, 214, 0.35);
+  /* Accent unique (Bleu vif et moderne en thème clair) */
+  --accent: #2563EB;
+  --accent-strong: #1D4ED8;
+  --accent-soft: #EFF6FF;
+  --accent-ink: #1E40AF;
+  --accent-ring: rgba(37, 99, 235, 0.28);
 
   /* Aliases compat primary */
   --primary: var(--accent);

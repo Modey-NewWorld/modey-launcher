@@ -3,6 +3,7 @@ import shared from '../../shared'
 import { bindStudio, refreshStudioMeta } from './components/studio3d'
 import { Dialog } from '../../components/dialog'
 import { getApiBaseUrl } from '../../services/runtime'
+import { openDiscordInvite, openDiscordConnect, updateDiscordConfigFromStatus } from '../../services/discord'
 import profileHtml from './index.html?raw'
 import './profile.scss'
 
@@ -69,6 +70,7 @@ export async function refreshDiscordStatus() {
   try {
     const res = await fetch(`${API_BASE}/api/auth/discord/status?token=${encodeURIComponent(token)}`)
     const data = await res.json()
+    if (data) updateDiscordConfigFromStatus(data)
 
     if (data && data.linked) {
       if (unlinkedView) unlinkedView.style.display = 'none'
@@ -108,18 +110,22 @@ export function initProfile() {
     syncEmailUI()
   })
 
-  // Bouton : Lier mon compte Discord
+  // Bouton : Lier mon compte Discord (URL dynamique via Modey Core)
   el('btn-link-discord')?.addEventListener('click', () => {
-    const token = shared.account?.accessToken
-    const loginUrl = token
-      ? `${API_BASE}/api/auth/discord/login?token=${encodeURIComponent(token)}`
-      : `${API_BASE}/api/auth/discord/login`
-    window.open(loginUrl)
+    openDiscordConnect(shared.account?.accessToken)
 
     // Poller quelques fois pour rafraîchir l'interface dès que la liaison est terminée
     setTimeout(refreshDiscordStatus, 3000)
     setTimeout(refreshDiscordStatus, 8000)
     setTimeout(refreshDiscordStatus, 15000)
+  })
+
+  // Boutons : Rejoindre / Ouvrir le Discord officiel (dynamique)
+  el('btn-join-discord')?.addEventListener('click', () => {
+    openDiscordInvite()
+  })
+  el('btn-open-discord')?.addEventListener('click', () => {
+    openDiscordInvite()
   })
 
   // Bouton : Dissocier le compte Discord (avec état de chargement et retrait de rôle)

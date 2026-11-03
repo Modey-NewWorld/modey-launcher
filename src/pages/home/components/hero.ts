@@ -45,7 +45,7 @@ export function renderHero(profile: any) {
   const heroVersion = el('hero-version')
   if (heroVersion) {
     const mc = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
-    heroVersion.innerHTML = `<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-box-linear"></use></svg>&nbsp;${mc}`
+    heroVersion.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-box-bold"></use></svg>&nbsp;${mc}`
   }
 
   const heroEl = el('hero')
@@ -236,12 +236,12 @@ export async function updateServerStatus(profile: any) {
 
   if (serverStatusDot) serverStatusDot.className = 'status-dot pinging'
   if (serverStatusText) serverStatusText.innerText = 'Vérification...'
-  if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;—'
+  if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;—'
 
   if (isSoon) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot soon'
     if (serverStatusText) serverStatusText.innerText = 'Bientôt'
-    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;0/40'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;0/40'
     renderHero(profile)
     return
   }
@@ -249,7 +249,7 @@ export async function updateServerStatus(profile: any) {
   if (isMaint) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot maint'
     if (serverStatusText) serverStatusText.innerText = 'Maintenance'
-    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-tuning-linear"></use></svg>&nbsp;Maintenance'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>&nbsp;Maintenance'
     renderHero(profile)
     return
   }
@@ -257,7 +257,7 @@ export async function updateServerStatus(profile: any) {
   if (isDisabled) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
     if (serverStatusText) serverStatusText.innerText = 'Désactivé'
-    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-forbidden-linear"></use></svg>&nbsp;Désactivé'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-forbidden-bold"></use></svg>&nbsp;Désactivé'
     renderHero(profile)
     return
   }
@@ -272,12 +272,12 @@ export async function updateServerStatus(profile: any) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot online'
     if (serverStatusText) serverStatusText.innerText = 'En ligne'
     if (playerCount) {
-      playerCount.innerHTML = `<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-friends-linear"></use></svg>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
+      playerCount.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
     }
   } else {
     if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
     if (serverStatusText) serverStatusText.innerText = 'Hors ligne'
-    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-signal-linear"></use></svg>&nbsp;—'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-signal-bold"></use></svg>&nbsp;—'
   }
 
   renderHero(profile)

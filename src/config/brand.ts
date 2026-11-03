@@ -10,6 +10,6 @@ export const BRAND = Object.freeze({
   contactEmail: 'contact@flowcrea.fr',
   websiteUrl: 'https://modey.flowcrea.fr',
   apiUrl: 'https://api.modey.flowcrea.fr',
-  discordUrl: 'https://discord.gg/wK5zV9G8pY',
+  discordUrl: '', // Dynamique : alimenté par l'API Modey Core (/api/auth/discord/config)
   githubUrl: 'https://github.com/Modey-NewWorld'
 })

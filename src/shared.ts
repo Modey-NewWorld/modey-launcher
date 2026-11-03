@@ -326,7 +326,7 @@ const shared = {
     })
 
     const capeSpan = document.createElement('span')
-    capeSpan.innerHTML = '<svg class="solar-icon solar-linear" style="display: block; font-size: 54px; color: var(--ink-400); position: relative; top: -5px;"></i>'
+    capeSpan.innerHTML = '<svg class="solar-icon solar-bold" style="display: block; font-size: 54px; color: var(--ink-400); position: relative; top: -5px;"></i>'
     capeDiv.appendChild(capeSpan)
     capeGallerySettingsEl?.appendChild(capeDiv)
 

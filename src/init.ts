@@ -108,7 +108,7 @@ export function renderMaintenanceView(mn: any, session: any) {
 
       btnBypass.onclick = async () => {
         btnBypass.disabled = true
-        btnBypass.innerHTML = '<svg class="solar-icon solar-linear spin" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg> Accès en cours...'
+        btnBypass.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> Accès en cours...'
         try {
           if (session && session.account) {
             const { skins, capes, avatar } = await loadSkinAssets(session.account)
@@ -257,7 +257,7 @@ export async function bootstrap() {
         maintenanceTitle.innerText = isOnline ? 'Services Modey Indisponibles' : 'Connexion Réseau Requise'
       }
       if (maintenanceIcon) {
-        maintenanceIcon.innerHTML = isOnline ? '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-server-linear"></use></svg>' : '<svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-wifi-linear"></use></svg>'
+        maintenanceIcon.innerHTML = isOnline ? '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>' : '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-wifi-bold"></use></svg>'
       }
       if (maintenanceDates) {
         maintenanceDates.innerText = isOnline
