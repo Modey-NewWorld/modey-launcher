@@ -160,7 +160,17 @@
               <section class="home-card news-card">
                 <div class="home-card-head">
                   <h3><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-feed-linear"></use></svg> Événements & actualités</h3>
-                  <button class="head-link" id="news-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
+                  <div class="news-head-actions">
+                    <div class="news-nav-arrows">
+                      <button type="button" class="news-nav-btn" id="news-nav-prev" title="Précédent" aria-label="Précédent" style="display: none;">
+                        <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-left-linear"></use></svg>
+                      </button>
+                      <button type="button" class="news-nav-btn" id="news-nav-next" title="Suivant" aria-label="Suivant" style="display: none;">
+                        <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg>
+                      </button>
+                    </div>
+                    <button class="head-link" id="news-view-all">Voir tout <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-right-linear"></use></svg></button>
+                  </div>
                 </div>
                 <div class="home-card-body news-events-container" id="events-news-list"></div>
               </section>

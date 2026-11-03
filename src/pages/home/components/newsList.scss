@@ -130,8 +130,10 @@
 
 
 .news-skeleton-item {
-  height: 120px;
-  border-radius: 12px;
+  flex: 0 0 calc((100% - 12px) / 2);
+  min-width: 220px;
+  height: 100%;
+  border-radius: 10px;
   border: 1px solid var(--line);
   box-shadow: 0 2px 8px var(--shadow-xs);
 }
