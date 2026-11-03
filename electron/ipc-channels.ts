@@ -8,7 +8,8 @@ export const IPC = {
     maximize: 'window:maximize',
     close: 'window:close',
     isMaximized: 'window:isMaximized',
-    maximized: 'window:maximized'
+    maximized: 'window:maximized',
+    setTitleBarTheme: 'window:setTitleBarTheme'
   },
   auth: {
     /** @internal — login Microsoft, conservation EML, pas d'UI Modey */

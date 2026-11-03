@@ -91,8 +91,6 @@ h4, label, .badge {
   height: 36px;
   background: transparent;
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
   z-index: 10000;
   pointer-events: none;
 
@@ -100,43 +98,6 @@ h4, label, .badge {
     flex: 1;
     height: 100%;
     -webkit-app-region: drag;
-  }
-
-  .titlebar-controls {
-    display: flex;
-    height: 100%;
-    pointer-events: all;
-    -webkit-app-region: no-drag;
-
-    .titlebar-btn {
-      width: 46px;
-      height: 100%;
-      border: none;
-      background: transparent;
-      color: var(--ink-400);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.12s, color 0.12s;
-
-      .solar-icon {
-        width: 16px;
-        height: 16px;
-      }
-
-      &:hover {
-        background: var(--bg-hover);
-        color: var(--ink-900);
-      }
-    }
-
-    .titlebar-close {
-      &:hover {
-        background: var(--danger);
-        color: var(--bg-surface);
-      }
-    }
   }
 }
 

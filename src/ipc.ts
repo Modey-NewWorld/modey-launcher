@@ -13,6 +13,7 @@ declare global {
         close: () => void
         isMaximized: () => Promise<boolean>
         onMaximized: (callback: (maximized: boolean) => void) => void
+        setTitleBarTheme: (isDark: boolean) => void
       }
       auth: {
         loginCustom: (identifier: string, password?: string) => Promise<IAuthResponse>

@@ -14,7 +14,8 @@ contextBridge.exposeInMainWorld('api', {
     close: () => ipcRenderer.send(IPC.window.close),
     isMaximized: (): Promise<boolean> => ipcRenderer.invoke(IPC.window.isMaximized),
     onMaximized: (callback: (maximized: boolean) => void) =>
-      ipcRenderer.on(IPC.window.maximized, (_event, maximized) => callback(maximized))
+      ipcRenderer.on(IPC.window.maximized, (_event, maximized) => callback(maximized)),
+    setTitleBarTheme: (isDark: boolean) => ipcRenderer.send(IPC.window.setTitleBarTheme, isDark)
   },
   auth: {
     loginCustom: (identifier: string, password?: string): Promise<IAuthResponse> =>

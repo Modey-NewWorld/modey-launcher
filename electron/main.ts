@@ -28,6 +28,9 @@ if (process.env.VITE_DEV_SERVER_URL) {
 }
 
 function createWindow() {
+  const isWin = process.platform === 'win32'
+  const isDark = nativeTheme.shouldUseDarkColors
+
   mainWindow = new BrowserWindow({
     width: 1320,
     height: 820,
@@ -37,7 +40,16 @@ function createWindow() {
     autoHideMenuBar: true,
     backgroundColor: getInitialBgColor(),
     show: false,
-    frame: false,
+    titleBarStyle: 'hidden',
+    ...(isWin
+      ? {
+          titleBarOverlay: {
+            color: '#00000000',
+            symbolColor: isDark ? '#F1F5F9' : '#0F172A',
+            height: 36
+          }
+        }
+      : {}),
     icon: path.join(__dirname, '../build/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -55,8 +67,33 @@ function createWindow() {
   })
   ipcMain.on(IPC.window.close, () => mainWindow?.close())
   ipcMain.handle(IPC.window.isMaximized, () => mainWindow?.isMaximized() ?? false)
+  ipcMain.on(IPC.window.setTitleBarTheme, (_event, dark: boolean) => {
+    if (mainWindow && !mainWindow.isDestroyed() && process.platform === 'win32') {
+      try {
+        mainWindow.setTitleBarOverlay({
+          color: '#00000000',
+          symbolColor: dark ? '#F1F5F9' : '#0F172A',
+          height: 36
+        })
+      } catch (err) {
+        console.warn('Failed to update titleBarOverlay:', err)
+      }
+    }
+  })
   mainWindow.on('maximize', () => mainWindow?.webContents.send(IPC.window.maximized, true))
   mainWindow.on('unmaximize', () => mainWindow?.webContents.send(IPC.window.maximized, false))
+
+  nativeTheme.on('updated', () => {
+    if (mainWindow && !mainWindow.isDestroyed() && process.platform === 'win32') {
+      try {
+        mainWindow.setTitleBarOverlay({
+          color: '#00000000',
+          symbolColor: nativeTheme.shouldUseDarkColors ? '#F1F5F9' : '#0F172A',
+          height: 36
+        })
+      } catch {}
+    }
+  })
 
   // Veille en arrière-plan : la fenêtre réduite/inactive descend à ~1 image/s
   // et fige les animations du renderer après le délai configuré.

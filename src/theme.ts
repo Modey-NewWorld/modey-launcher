@@ -39,6 +39,9 @@ export function applyTheme(pref: ThemePreference): void {
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem(STORAGE_KEY, pref)
   }
+  if (typeof window !== 'undefined' && window.api?.window?.setTitleBarTheme) {
+    window.api.window.setTitleBarTheme(resolved === 'dark')
+  }
   listeners.forEach((cb) => {
     try {
       cb(resolved, pref)
