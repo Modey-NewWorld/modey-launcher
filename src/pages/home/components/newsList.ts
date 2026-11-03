@@ -1,4 +1,4 @@
-import { Dialog } from '../../../components/dialog'
+import { NewsModal } from '../../../components/newsModal'
 import { fetchNews, stripMarkdown, formatDate } from '../../../services/news'
 import { homeState } from '../state'
 import bgImage from '../../../static/images/bg-thumb.webp'
@@ -30,7 +30,9 @@ export async function loadNews() {
 
   feed.forEach((item: any, index: number) => {
     const rawContent = item.content || ''
-    const excerpt = stripMarkdown(rawContent).slice(0, 110)
+    const teaser = (item.summary && String(item.summary).trim())
+      ? String(item.summary).trim()
+      : stripMarkdown(rawContent).slice(0, 110)
     const category = (item.category || '').toLowerCase()
     const isUpdate =
       category === 'update' ||
@@ -63,7 +65,7 @@ export async function loadNews() {
         <div class="news-event-thumb" style="background-image: url('${thumbImg}')"></div>
         <div class="news-event-body">
           <div class="news-event-title" title="${item.title}">${item.title}</div>
-          <div class="news-event-desc">${excerpt}</div>
+          <div class="news-event-desc" title="${teaser}">${teaser}</div>
         </div>
         <div class="news-event-meta-col">
           <span class="news-event-badge ${badgeClass}">${badgeLabel}</span>
@@ -74,12 +76,12 @@ export async function loadNews() {
     )
   })
 
-  // Clic pour ouvrir le modal de l\'actualité
+  // Clic pour ouvrir le modal immersif de l'actualité
   newsList.querySelectorAll('.news-event-item[data-index]').forEach((node) => {
-    node.addEventListener('click', async () => {
+    node.addEventListener('click', () => {
       const item = homeState.newsFeed[Number((node as HTMLElement).dataset.index)]
       if (!item) return
-      await Dialog.show(`${item.title}\n\n${stripMarkdown(item.content || '')}`, [{ text: 'Fermer', type: 'ok' }])
+      NewsModal.show(item)
     })
   })
 

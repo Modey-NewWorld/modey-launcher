@@ -134,9 +134,6 @@ export function initHome() {
     Dialog.show('Actualités Modey\n\nRetrouvez tous les patch notes et annonces sur notre Discord et site officiel.', [{ text: 'Compris', type: 'ok' }])
   })
   el('discovery-view-all')?.addEventListener('click', showServers)
-  el('friends-all-link')?.addEventListener('click', () => {
-    Dialog.show('Liste d\'amis Modey\n\nCette fonction arrive très bientôt !', [{ text: 'Compris', type: 'ok' }])
-  })
 
   const playBtn = el('btn-play')
   const playHeroBtn = el('btn-play-hero')
