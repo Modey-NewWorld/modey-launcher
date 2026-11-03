@@ -4,6 +4,8 @@
  * Consomme l'endpoint dynamique /api/roles avec cache mémoire et fallback canonique sécurisé.
  */
 
+import { getApiBaseUrl } from './runtime'
+
 export interface RoleDefinition {
   slug: string
   name: string
@@ -216,7 +218,7 @@ export function checkCanBypass(profile?: any, user?: any): boolean {
 
 export async function fetchRoles(apiBaseUrl?: string): Promise<Record<string, RoleDefinition>> {
   if (rolesCache) return rolesCache
-  const base = apiBaseUrl || 'https://api.modey.flowcrea.fr'
+  const base = apiBaseUrl || getApiBaseUrl()
   try {
     const res = await fetch(`${base}/api/roles?format=list`).catch(() => null)
     if (res && res.ok) {

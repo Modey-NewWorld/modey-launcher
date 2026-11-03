@@ -2,13 +2,14 @@ import { getUser } from '../../state'
 import shared from '../../shared'
 import { bindStudio, refreshStudioMeta } from './components/studio3d'
 import { Dialog } from '../../components/dialog'
+import { getApiBaseUrl } from '../../services/runtime'
 import profileHtml from './index.html?raw'
 import './profile.scss'
 
 let emailVisible = false
 let cachedEmail: string | null = null
 
-const API_BASE = 'https://api.modey.flowcrea.fr'
+const API_BASE = getApiBaseUrl()
 
 const el = (id: string) => document.getElementById(id)
 

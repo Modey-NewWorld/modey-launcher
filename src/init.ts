@@ -2,6 +2,7 @@ import { clearBlockingView, setBlockingView, setUser, setView } from './state'
 import { auth, background, bootstraps, maintenance } from './ipc'
 import { createProgressBar } from './components/progressBar'
 import { loadSkinAssets } from './services/skin'
+import { initRuntimeConfig } from './services/runtime'
 import logger from 'electron-log/renderer'
 
 import defaultBgUrl from './static/images/bg.webp'
@@ -132,6 +133,7 @@ export function renderMaintenanceView(mn: any, session: any) {
 
 export async function bootstrap() {
   logger.log('Initializing Launcher...')
+  await initRuntimeConfig().catch((e) => logger.warn('Runtime config init fallback:', e))
 
   const bgElement = document.querySelector('.app-background') as HTMLElement
   const maintenanceDates = document.getElementById('maintenance-dates')!

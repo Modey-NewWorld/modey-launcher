@@ -11,7 +11,7 @@ export function normalizeSkinUrl(url: string | null | undefined): string {
   let clean = url.trim()
   clean = clean.replace(/^http:\/\/192\.168\.1\.\d+(:\d+)?/, AUTH_API_URL)
   clean = clean.replace(/^http:\/\/localhost(:\d+)?/, AUTH_API_URL)
-  clean = clean.replace(/^http:\/\/api\.modey\.flowcrea\.fr/, 'https://api.modey.flowcrea.fr')
+  clean = clean.replace(/^https?:\/\/api\.modey\.flowcrea\.fr/, AUTH_API_URL)
   return clean
 }
 

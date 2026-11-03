@@ -4,12 +4,13 @@ import { skin } from './ipc'
 import { Dialog } from './components/dialog'
 import logger from 'electron-log/renderer'
 import { onThemeChange } from './theme'
+import { getApiBaseUrl } from './services/runtime'
 
 
 export function normalizeSkinUrl(url: string | null | undefined): string {
   if (!url) return ''
   let clean = url.trim()
-  const domain = 'https://api.modey.flowcrea.fr'
+  const domain = getApiBaseUrl()
   clean = clean.replace(/^http:\/\/192\.168\.1\.\d+(:\d+)?/, domain)
   clean = clean.replace(/^http:\/\/localhost(:\d+)?/, domain)
   clean = clean.replace(/^http:\/\/api\.modey\.flowcrea\.fr/, domain)
