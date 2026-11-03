@@ -1205,14 +1205,14 @@
     }
   }
 
-  /* Frosted Glass Blur Overlay */
+  /* Frosted Glass Blur Overlay (temporairement masqué pour prévisualisation et ajustements) */
   .friends-blur-overlay {
+    display: none;
     position: absolute;
     inset: 0;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     background: var(--glass-overlay);
-    display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px 16px;
