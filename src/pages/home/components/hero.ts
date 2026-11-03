@@ -34,7 +34,12 @@ export function renderHero(profile: any) {
 
   const officialBadge = el('hero-official-badge')
   if (officialBadge) {
-    officialBadge.innerText = isSoon ? 'Serveur créatif' : 'Serveur officiel'
+    if (isSoon) {
+      officialBadge.style.display = 'none'
+    } else {
+      officialBadge.style.display = 'inline-flex'
+      officialBadge.innerText = 'Serveur officiel'
+    }
   }
 
   const heroVersion = el('hero-version')
