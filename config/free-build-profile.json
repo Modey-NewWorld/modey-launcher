@@ -16,7 +16,7 @@
     "recommendedRamMb": 8192
   },
   "sync": {
-    "baseUrl": "https://sync.modey.project/free-build",
+    "baseUrl": "https://api.modey.flowcrea.fr/storage/files/files-updater/free-build",
     "manifestPath": "/modpack/manifest.json",
     "autoUpdate": true
   },

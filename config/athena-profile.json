@@ -13,7 +13,7 @@
     "recommendedRamMb": 8192
   },
   "sync": {
-    "baseUrl": "https://sync.modey.project/athena",
+    "baseUrl": "https://api.modey.flowcrea.fr/storage/files/files-updater/athena",
     "manifestPath": "/modpack/manifest.json",
     "autoUpdate": true
   },
