@@ -353,14 +353,16 @@
   }
 }
 
-/* --- RANGÉES EN GRILLE --- */
+/* --- RANGÉES EN GRILLE (1/3 et 2/3 asymétriques & pleine hauteur) --- */
 .home-grid-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: var(--gap, 16px);
+  flex: 1;
+  min-height: 175px;
 
   &.home-grid-row-bottom {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   }
 }
 
@@ -373,12 +375,14 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
 
   .home-card-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    flex-shrink: 0;
 
     h3 {
       font-size: 15.5px;
@@ -418,16 +422,19 @@
 .resume-card-box {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  height: 100%;
+  flex: 1;
+  gap: 10px;
 
   .resume-card-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 
     .resume-card-thumb {
-      width: 52px;
-      height: 52px;
+      width: 44px;
+      height: 44px;
       border-radius: 10px;
       background-size: cover;
       background-position: center;
@@ -439,13 +446,16 @@
       min-width: 0;
 
       .resume-card-title {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 700;
         color: var(--ink-900);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .resume-card-time {
-        font-size: 12px;
+        font-size: 11.5px;
         color: var(--ink-500);
         margin-top: 2px;
       }
@@ -454,19 +464,23 @@
     .resume-card-status {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11.5px;
+      gap: 5px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--success);
+      flex-shrink: 0;
     }
   }
 
   .resume-card-actions {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
 
     .btn-resume-play {
-      flex: 1;
+      width: 100%;
+      flex-shrink: 0;
       background: var(--accent);
       color: #FFFFFF;
       border: none;
@@ -504,7 +518,8 @@
     }
 
     .btn-resume-change {
-      flex: 1;
+      width: 100%;
+      flex-shrink: 0;
       background: var(--bg-sunken);
       color: var(--ink-700);
       border: 1px solid var(--line);
@@ -530,17 +545,21 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: 100%;
+  flex: 1;
 
   .news-event-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 10px;
+    padding: 8px 12px;
     border-radius: 8px;
     background: var(--bg-sunken);
     border: 1px solid var(--line);
     cursor: pointer;
     transition: all 0.15s ease;
+    flex: 1;
+    min-height: 0;
 
     &:hover {
       background: var(--bg-hover);
@@ -629,9 +648,11 @@
 
   .history-servers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 10px;
     align-items: stretch;
+    height: 100%;
+    flex: 1;
   }
 
   .history-empty-state {
@@ -639,7 +660,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px 16px;
+    padding: 16px;
+    height: 100%;
+    flex: 1;
     text-align: center;
     background: var(--bg-sunken);
     border-radius: 10px;
@@ -797,18 +820,22 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    height: 100%;
+    flex: 1;
   }
 
   .discovery-row-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
+    gap: 10px;
+    padding: 6px 10px;
     border-radius: 8px;
     background: var(--bg-sunken);
     border: 1px solid var(--line);
     cursor: pointer;
     transition: all 0.15s ease;
+    flex: 1;
+    min-height: 0;
 
     &:hover {
       background: var(--bg-hover);
@@ -897,6 +924,14 @@
     box-shadow: var(--shadow-xs);
     display: flex;
     flex-direction: column;
+    min-height: 0;
+
+    &.friends-panel {
+      flex: 1.15;
+    }
+    &.notifs-panel {
+      flex: 0.85;
+    }
 
     .social-panel-head {
       display: flex;
