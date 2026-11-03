@@ -178,13 +178,10 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
 
   const exploreMoreHtml = `
     <div class="history-server-mini-card history-server-add-card" id="btn-history-explore-more">
-      <div class="add-card-circle">
+      <div class="add-card-plus">
         <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg>
       </div>
       <div class="add-card-title">Explorer d'autres serveurs</div>
-      <div class="add-card-arrow">
-        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg>
-      </div>
     </div>
   `
 

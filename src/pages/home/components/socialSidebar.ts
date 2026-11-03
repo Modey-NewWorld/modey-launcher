@@ -118,20 +118,6 @@ export function renderFriendsList() {
       online: false,
       sub: 'Hors ligne • Il y a 2h',
       action: false
-    },
-    {
-      name: 'Théo',
-      type: 'theo' as const,
-      online: false,
-      sub: 'Hors ligne • Il y a 5h',
-      action: false
-    },
-    {
-      name: 'Léa',
-      type: 'lea' as const,
-      online: false,
-      sub: 'Hors ligne • Il y a 1j',
-      action: false
     }
   ]
 
@@ -166,7 +152,6 @@ export function renderFriendsList() {
 
   container.querySelectorAll('.btn-friend-join').forEach((b) => b.addEventListener('click', showSoonDialog))
   document.getElementById('friends-view-all')?.addEventListener('click', showSoonDialog)
-  document.getElementById('friends-all-link')?.addEventListener('click', showSoonDialog)
 }
 
 export function renderNotificationsList() {
