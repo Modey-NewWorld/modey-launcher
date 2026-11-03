@@ -18,19 +18,7 @@ export const isDisabledProfile = (profile: any) => getProfileModeyStatus(profile
 
 export const isAthenaProfile = (profile: any) => !profile || profile.slug === 'athena'
 
-export const DEFAULT_BYPASS_ROLES = ['founder', 'super_admin', 'admin', 'moderator']
-export const STAFF_ROLES = ['founder', 'super_admin', 'superadmin', 'admin', 'super_moderator', 'moderator', 'developer', 'dev']
-
-export function checkCanBypass(profile?: any, user?: any): boolean {
-  if (!user) return false
-  const role = (user.role || 'citizen').toLowerCase()
-  if (role === 'founder' || role === 'super_admin' || role === 'superadmin') return true
-  const perms: string[] = Array.isArray(user.permissions) ? user.permissions : []
-  if (perms.includes('*') || perms.includes('server:bypass_maintenance') || perms.includes('launcher:bypass_maintenance')) return true
-  const bypassRoles: string[] = profile?.modey?.bypassRoles || DEFAULT_BYPASS_ROLES
-  if (bypassRoles.map((r: string) => r.toLowerCase()).includes(role)) return true
-  return STAFF_ROLES.includes(role)
-}
+export { DEFAULT_BYPASS_ROLES, STAFF_ROLES, checkCanBypass } from './roles'
 
 export async function fetchProfiles(): Promise<any[]> {
   const list = (((await profilesIpc.get()) as any[]) || [])
