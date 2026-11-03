@@ -1102,6 +1102,127 @@
     min-height: 0;
   }
 
+  /* Section Groupe (en haut) */
+  .party-group-section {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 10px;
+
+    .party-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      padding: 0 2px;
+
+      .party-group-title {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--ink-700);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+
+        .solar-icon {
+          font-size: 14px;
+          color: var(--founder-gold, #b45309);
+        }
+      }
+
+      .party-badge {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+    }
+
+    .party-self-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: var(--bg-hover);
+        border-color: var(--accent);
+        transform: translateY(-1px);
+      }
+
+      .friend-avatar-wrap {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+
+        .friend-mc-head {
+          width: 44px;
+          height: 44px;
+          border-radius: 9px;
+          overflow: hidden;
+          display: block;
+          box-shadow: 0 2px 4px var(--shadow-xs);
+          border: 1px solid var(--line);
+        }
+      }
+
+      .friend-info {
+        flex: 1;
+        min-width: 0;
+
+        .friend-name-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          .friend-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink-900);
+          }
+
+          .party-role-tag {
+            font-size: 10px;
+            font-weight: 700;
+            color: #b45309;
+            background: #fef3c7;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+          }
+        }
+
+        .friend-sub {
+          font-size: 12px;
+          color: var(--ink-500);
+          margin-top: 2px;
+        }
+      }
+
+      .party-card-chevron {
+        color: var(--ink-400);
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        transition: transform 0.15s ease;
+      }
+
+      &:hover .party-card-chevron {
+        transform: translateX(2px);
+        color: var(--accent);
+      }
+    }
+  }
+
   .friends-list {
     display: flex;
     flex-direction: column;
@@ -1112,13 +1233,15 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
+    padding: 8px 10px;
     border-radius: 10px;
     background: var(--bg-surface);
-    transition: background 0.15s ease;
+    cursor: pointer;
+    transition: all 0.15s ease;
 
     &:hover {
       background: var(--bg-hover);
+      transform: translateX(2px);
     }
 
     .friend-avatar-wrap {
@@ -1130,23 +1253,11 @@
       .friend-mc-head {
         width: 44px;
         height: 44px;
-        border-radius: 9px; // CARRÉ AVEC COINS LÉGERS (pas 50% rond !)
+        border-radius: 9px;
         overflow: hidden;
         display: block;
         box-shadow: 0 2px 4px var(--shadow-xs);
         border: 1px solid var(--line);
-      }
-
-      .friend-online-dot {
-        width: 13px;
-        height: 13px;
-        border-radius: 50%;
-        background: var(--success);
-        position: absolute;
-        bottom: -2px;
-        left: -2px;
-        border: 2.5px solid var(--bg-surface);
-        box-shadow: 0 0 4px rgba(34, 197, 94, 0.6);
       }
     }
 
@@ -1164,13 +1275,6 @@
           font-weight: 700;
           color: var(--ink-900);
         }
-
-        .status-dot-inline {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: var(--success);
-        }
       }
 
       .friend-sub {
@@ -1183,23 +1287,48 @@
       }
     }
 
-    .btn-friend-join {
-      background: var(--accent-soft);
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      font-family: var(--font-ui);
-      font-size: 12px;
-      font-weight: 700;
-      padding: 5px 14px;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      flex-shrink: 0;
+    &.offline {
+      opacity: 0.65;
+      &:hover { opacity: 0.9; }
+    }
+  }
 
-      &:hover {
-        background: var(--accent);
-        color: #FFFFFF;
+  /* Indicateur de Statut (En bas à droite du logo/avatar) */
+  .friend-status-dot {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2.5px solid var(--bg-surface);
+    box-sizing: border-box;
+
+    &.online {
+      background: #22C55E;
+      box-shadow: 0 0 5px rgba(34, 197, 94, 0.6);
+    }
+
+    &.dnd {
+      background: #EF4444;
+      box-shadow: 0 0 5px rgba(239, 68, 68, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &::after {
+        content: '';
+        width: 5px;
+        height: 1.8px;
+        background: #FFFFFF;
+        border-radius: 1px;
+        display: block;
       }
+    }
+
+    &.offline {
+      background: var(--ink-400);
+      opacity: 0.6;
     }
   }
 
@@ -1423,4 +1552,323 @@
     color: rgba(255, 255, 255, 0.8);
     flex-shrink: 0;
   }
+}
+
+/* Petite Pancarte (Modal Flyout de Profil & Actions) */
+.pancarte-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: pancarteFadeIn 0.15s ease;
+
+  .pancarte-modal-card {
+    width: 320px;
+    max-width: 90vw;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    animation: pancarteScaleUp 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+
+    .pancarte-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h5 {
+        margin: 0;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--ink-900);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .solar-icon {
+          font-size: 16px;
+          color: var(--accent);
+        }
+      }
+
+      .btn-close-pancarte {
+        background: none;
+        border: none;
+        color: var(--ink-400);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        transition: all 0.15s ease;
+
+        &:hover {
+          color: var(--ink-900);
+          background: var(--bg-hover);
+        }
+      }
+    }
+
+    .pancarte-profile-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg-sunken);
+      border-radius: 12px;
+
+      .pancarte-avatar-wrap {
+        width: 48px;
+        height: 48px;
+        position: relative;
+        flex-shrink: 0;
+
+        .friend-mc-head {
+          width: 48px;
+          height: 48px;
+          border-radius: 10px;
+          border: 1px solid var(--line);
+          display: block;
+        }
+
+        .friend-status-dot {
+          position: absolute;
+          bottom: -2px;
+          right: -2px;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          border: 2.5px solid var(--bg-surface);
+          box-sizing: border-box;
+
+          &.online {
+            background: #22C55E;
+            box-shadow: 0 0 5px rgba(34, 197, 94, 0.6);
+          }
+
+          &.dnd {
+            background: #EF4444;
+            box-shadow: 0 0 5px rgba(239, 68, 68, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &::after {
+              content: '';
+              width: 5px;
+              height: 1.8px;
+              background: #FFFFFF;
+              border-radius: 1px;
+            }
+          }
+
+          &.offline {
+            background: var(--ink-400);
+            opacity: 0.6;
+          }
+        }
+      }
+
+      .pancarte-profile-info {
+        flex: 1;
+        min-width: 0;
+
+        .pancarte-name-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          .pancarte-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink-900);
+          }
+
+          .party-role-tag {
+            font-size: 10px;
+            font-weight: 700;
+            color: #b45309;
+            background: #fef3c7;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+          }
+        }
+
+        .pancarte-name {
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--ink-900);
+        }
+
+        .pancarte-status-badge {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--ink-500);
+          margin-top: 2px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+
+          .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+
+            &.online { background: #22C55E; }
+            &.dnd { background: #EF4444; }
+            &.offline { background: var(--ink-400); }
+          }
+        }
+      }
+    }
+
+    .pancarte-section-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--ink-600);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 2px;
+    }
+
+    .status-switch-row {
+      display: flex;
+      gap: 8px;
+
+      .status-switch-btn {
+        flex: 1;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--bg-surface);
+        font-family: var(--font-ui);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        color: var(--ink-700);
+        transition: all 0.15s ease;
+
+        .status-indicator {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          &.online { background: #22C55E; }
+          &.dnd { background: #EF4444; }
+        }
+
+        &:hover {
+          background: var(--bg-hover);
+          border-color: var(--line-strong);
+        }
+
+        &.active {
+          border-color: var(--accent);
+          background: var(--accent-soft);
+          color: var(--accent-ink);
+          font-weight: 700;
+        }
+      }
+    }
+
+    .pancarte-notice {
+      font-size: 11.5px;
+      line-height: 1.45;
+      color: var(--ink-600);
+      background: var(--bg-sunken);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 500;
+
+      strong {
+        color: var(--ink-900);
+      }
+    }
+
+    .pancarte-actions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .pancarte-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--bg-surface);
+        color: var(--ink-900);
+        font-family: var(--font-ui);
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        .solar-icon {
+          font-size: 16px;
+          color: var(--accent);
+        }
+
+        .discord-svg {
+          flex-shrink: 0;
+        }
+
+        &:hover {
+          background: var(--bg-hover);
+          border-color: var(--accent);
+          color: var(--accent);
+          transform: translateY(-1px);
+        }
+
+        &.discord {
+          background: rgba(88, 101, 242, 0.08);
+          border-color: rgba(88, 101, 242, 0.3);
+          color: #5865F2;
+
+          &:hover {
+            background: #5865F2;
+            color: #FFFFFF;
+          }
+        }
+
+        &.primary {
+          background: var(--accent);
+          color: #FFFFFF;
+          border-color: var(--accent);
+          justify-content: center;
+
+          &:hover {
+            background: var(--accent-strong);
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes pancarteFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pancarteScaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
