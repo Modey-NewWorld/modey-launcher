@@ -103,6 +103,7 @@ export async function showServerDetails() {
 }
 
 export function initHome() {
+  updateCurrentProfileName(homeState.selectedProfile)
   loadProfiles()
   loadHeader()
   updateServerStatus(homeState.selectedProfile)

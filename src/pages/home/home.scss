@@ -328,6 +328,31 @@
       }
     }
 
+    .hero-btn-details {
+      height: 42px;
+      padding: 0 18px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+
+      &:hover {
+        background: rgba(15, 23, 42, 0.85);
+        border-color: rgba(255, 255, 255, 0.45);
+        transform: translateY(-1px);
+      }
+    }
+
     .hero-icon-btn {
       width: 42px;
       height: 42px;

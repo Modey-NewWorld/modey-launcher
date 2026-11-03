@@ -86,15 +86,14 @@ class BannerCacheService {
           try {
             window.localStorage.setItem(`${BANNER_BLOB_PREFIX}${slug}`, base64)
             this.setLastUrl(slug, url)
-            logger.info(`[BannerCache] ✅ Nouvelle bannière téléchargée et stockée en cache local pour ${slug}`)
-
-            // Notifier si l'élément hero est présent pour appliquer à chaud sans rechargement
-            const heroEl = document.getElementById('hero')
-            if (heroEl) {
-              heroEl.style.background = `linear-gradient(180deg, rgba(10, 20, 40, 0.15) 0%, rgba(10, 20, 40, 0.82) 78%), url('${base64}') center / cover no-repeat, #131B26`
-            }
+            logger.info(`[BannerCache] Nouvelle banniere telechargee pour ${slug}`)
           } catch (e) {
-            logger.warn(`[BannerCache] Impossible de sauvegarder la bannière dans le stockage local :`, e)
+            logger.warn(`[BannerCache] Impossible de sauvegarder la banniere dans le stockage local :`, e)
+          }
+
+          const heroEl = document.getElementById("hero")
+          if (heroEl) {
+            heroEl.style.backgroundImage = `linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.88) 80%), url('${base64}'), url('${defaultBannerUrl}')`
           }
         }
       }
