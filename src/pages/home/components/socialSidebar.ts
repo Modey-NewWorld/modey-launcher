@@ -132,7 +132,6 @@ export function renderFriendsList() {
       <div class="friend-info">
         <div class="friend-name-row">
           <span class="friend-name">${f.name}</span>
-          ${f.online ? '<span class="status-dot-inline online"></span>' : ''}
         </div>
         <div class="friend-sub">${f.sub}</div>
       </div>
