@@ -1,4 +1,5 @@
 import { Dialog } from '../../../components/dialog'
+import { BRAND } from '../../../config/brand'
 
 // Palette & pixel-art Minecraft heads (viewBox 0 0 8 8)
 function getHeadSvg(type: 'alex' | 'lucas' | 'maxime' | 'emma' | 'theo' | 'lea'): string {
@@ -209,8 +210,7 @@ export function renderNotificationsList() {
   document.getElementById('notifs-view-all')?.addEventListener('click', showNotifsDialog)
 
   document.getElementById('btn-discord-join')?.addEventListener('click', () => {
-    const url = 'https://discord.gg/modey'
-    window.open(url, '_blank')
+    window.open(BRAND.discordUrl, '_blank')
   })
 }
 
