@@ -540,7 +540,7 @@
   }
 }
 
-/* Bloc Événements & actualités (Slider horizontal 2 cartes visibles) */
+/* Bloc Événements & actualités (Lignes horizontales en ligne & slidable si > 2) */
 .news-head-actions {
   display: flex;
   align-items: center;
@@ -586,63 +586,66 @@
 
 .news-events-container {
   display: flex;
-  flex-direction: row;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   height: 100%;
   flex: 1;
   min-height: 0;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
+  justify-content: flex-start;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
-  padding: 2px 2px 4px 2px;
-  scrollbar-width: none;
+  padding-right: 4px;
+
+  scrollbar-width: thin;
   &::-webkit-scrollbar {
-    display: none;
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 2px;
   }
 
   .news-event-item {
-    flex: 0 0 calc((100% - 12px) / 2);
-    min-width: 220px;
+    width: 100%;
+    min-height: 56px;
+    height: clamp(56px, 7vh, 66px);
+    flex-shrink: 0;
     scroll-snap-align: start;
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
     background: var(--bg-sunken);
     border: 1px solid var(--line);
     cursor: pointer;
-    transition: all 0.18s ease;
-    height: 100%;
     box-sizing: border-box;
+    transition: all 0.15s ease;
 
     &:hover {
       background: var(--bg-hover);
       border-color: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px var(--shadow-xs);
+      transform: translateX(2px);
     }
 
     .news-event-thumb {
-      width: 64px;
-      height: 100%;
-      min-height: 52px;
-      border-radius: 8px;
+      width: 58px;
+      height: 44px;
+      border-radius: 6px;
       background-size: cover;
       background-position: center;
       flex-shrink: 0;
-      box-shadow: 0 2px 4px var(--shadow-xs);
+      box-shadow: 0 1px 3px var(--shadow-xs);
     }
 
     .news-event-body {
       flex: 1;
       min-width: 0;
-      height: 100%;
+      padding: 0 14px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
 
       .news-event-title {
         font-size: 13.5px;
@@ -657,44 +660,65 @@
       .news-event-desc {
         font-size: 11.5px;
         color: var(--ink-500);
-        margin-top: 3px;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        margin-top: 2px;
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.35;
       }
+    }
 
-      .news-event-bottom {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 6px;
-        margin-top: 5px;
+    .news-event-meta-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
 
-        .news-event-meta {
-          font-size: 11px;
-          color: var(--ink-400);
+      .news-event-badge {
+        font-size: 10.5px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 6px;
+        white-space: nowrap;
+
+        &.badge-update {
+          background: var(--accent-soft);
+          color: var(--accent);
         }
 
-        .news-event-badge {
-          font-size: 10.5px;
-          font-weight: 600;
-          padding: 2px 7px;
-          border-radius: 6px;
-          white-space: nowrap;
-
-          &.badge-update {
-            background: var(--accent-soft);
-            color: var(--accent);
-          }
-
-          &.badge-event {
-            background: var(--accent-soft);
-            color: var(--accent);
-          }
+        &.badge-event {
+          background: var(--accent-soft);
+          color: var(--accent);
         }
       }
+
+      .news-event-meta {
+        font-size: 11px;
+        color: var(--ink-400);
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .news-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    height: 100%;
+    color: var(--ink-400);
+    text-align: center;
+    gap: 6px;
+
+    .news-empty-icon {
+      font-size: 22px;
+    }
+
+    .news-empty-text {
+      font-size: 12.5px;
+      color: var(--ink-500);
     }
   }
 }
