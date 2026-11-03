@@ -68,9 +68,9 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
               const userPerms: string[] = Array.isArray((account as any)?.permissions) ? (account as any).permissions : []
               const bypassRoles: string[] = Array.isArray(serverInfo.bypassRoles)
                 ? serverInfo.bypassRoles.map((r: string) => r.toLowerCase())
-                : ['founder', 'super_admin', 'admin', 'moderator', 'developer', 'dev']
+                : ['founder', 'super_admin', 'admin', 'moderator']
               
-              const isStaff = userRole === 'founder' || userRole === 'super_admin' ||
+              const isStaff = userRole === 'founder' || userRole === 'super_admin' || userRole === 'superadmin' ||
                 ['admin', 'moderator', 'developer', 'dev', 'super_moderator'].includes(userRole) ||
                 bypassRoles.includes(userRole) ||
                 userPerms.includes('*') ||
