@@ -3,6 +3,7 @@ import { getUser } from '../state'
 import { targetFor } from './serverStatus'
 import { Dialog } from '../components/dialog'
 import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile, checkCanBypass } from './profiles'
+import { FALLBACK_MC_VERSION, FALLBACK_LOADER, FALLBACK_LOADER_VERSION } from './launcherConfig'
 import logger from 'electron-log/renderer'
 
 /** Pont d'affichage de la progression — implémenté par components/progressBar.ts. */
@@ -105,9 +106,9 @@ export async function startLaunch() {
     const target = targetFor(profile)
 
     logger.log(`Lancement pour ${user.name} vers ${target.host}:${target.port}`)
-    const mcVersion = profile?.modey?.minecraftVersion || profile?.version || '1.21.1'
-    const ldrType = (profile?.modey?.loader || profile?.loaderVersion?.type || 'neoforge') as any
-    const ldrVersion = profile?.modey?.loaderVersion || profile?.loaderVersion?.version || '21.1.169'
+    const mcVersion = profile?.modey?.minecraftVersion || profile?.version || FALLBACK_MC_VERSION
+    const ldrType = (profile?.modey?.loader || profile?.loaderVersion?.type || FALLBACK_LOADER) as any
+    const ldrVersion = profile?.modey?.loaderVersion || profile?.loaderVersion?.version || FALLBACK_LOADER_VERSION
 
     await game.launch({
       account: user,
@@ -177,7 +178,7 @@ export function bindLaunch(launchUi: LaunchUi) {
 
   game.launchInstallLoader(() => {
     progress.setIndeterminate(true)
-    progress.setLabel('Installation de NeoForge 21.1.169...')
+    progress.setLabel('Installation du ModLoader...')
     progress.setPercent('')
   })
 
@@ -193,12 +194,12 @@ export function bindLaunch(launchUi: LaunchUi) {
 
   game.launchPatchLoader(() => {
     progress.setIndeterminate(true)
-    progress.setLabel('Configuration du ModLoader NeoForge...')
+    progress.setLabel('Configuration du ModLoader...')
   })
 
   game.launchCheckJava(() => {
     progress.setIndeterminate(true)
-    progress.setLabel('Vérification de Java 21...')
+    progress.setLabel('Vérification de l\'environnement Java...')
   })
 
   game.launchClean(() => {
@@ -208,7 +209,7 @@ export function bindLaunch(launchUi: LaunchUi) {
 
   game.launchLaunch(() => {
     progress.setIndeterminate(true)
-    progress.setLabel('Démarrage de Minecraft 1.21.1...')
+    progress.setLabel('Démarrage de Minecraft...')
   })
 
   game.launched(() => {

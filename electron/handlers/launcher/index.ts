@@ -4,7 +4,7 @@ import type { Account } from 'eml-lib'
 import type { IGameSettings } from '../settings'
 import { readLocalServerConfig, writeLocalServerConfig } from '../settings'
 import logger from 'electron-log/main'
-import { ADMINTOOL_URL, AUTH_SERVER_URL, SYSTEM_JAVA_21_PATH } from '../../const'
+import { ADMINTOOL_URL, AUTH_SERVER_URL, SYSTEM_JAVA_21_PATH, DEFAULT_MC_VERSION, DEFAULT_LOADER, DEFAULT_LOADER_VERSION } from '../../const'
 import fs from 'node:fs'
 import { IPC } from '../../ipc-channels'
 import { getAuthlibInjectorPath } from './authlib'
@@ -101,9 +101,9 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       const gameArgs = ['--quickPlayMultiplayer', `${host}:${port}`, '--quickPlayPath', 'quickPlay.json']
       let actionTimer: ReturnType<typeof setTimeout> | null = null
 
-      const targetMcVersion = minecraftVersion || '1.21.1'
-      const targetLoaderType = loaderType || 'neoforge'
-      const targetLoaderVersion = loaderVersion || '21.1.169'
+      const targetMcVersion = minecraftVersion || DEFAULT_MC_VERSION
+      const targetLoaderType = loaderType || DEFAULT_LOADER
+      const targetLoaderVersion = loaderVersion || DEFAULT_LOADER_VERSION
 
       // Synchroniser avec server-settings.json s'il a été édité sur disque
       const localDiskCfg = readLocalServerConfig(profileSlug)

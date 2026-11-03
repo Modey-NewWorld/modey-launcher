@@ -1,6 +1,10 @@
 import athenaDefault from '../../config/athena-profile.json'
 import freeBuildDefault from '../../config/free-build-profile.json'
 
+export const FALLBACK_MC_VERSION = '1.21.1'
+export const FALLBACK_LOADER = 'neoforge'
+export const FALLBACK_LOADER_VERSION = '21.1.169'
+
 export interface ServerMeta {
   name: string
   ip: string
@@ -56,9 +60,9 @@ class LauncherConfigService {
         teaser: {
           description: 'Un monde persistant et vivant. Fondez vos cités et développez une véritable société.'
         },
-        minecraftVersion: athenaDefault.minecraftVersion || '1.21.1',
-        loader: athenaDefault.modLoader?.type || 'neoforge',
-        loaderVersion: athenaDefault.modLoader?.version || '21.1.169'
+        minecraftVersion: athenaDefault.minecraftVersion || FALLBACK_MC_VERSION,
+        loader: athenaDefault.modLoader?.type || FALLBACK_LOADER,
+        loaderVersion: athenaDefault.modLoader?.version || FALLBACK_LOADER_VERSION
       },
       'free-build': {
         name: freeBuildDefault.name || 'Free Build',
@@ -73,9 +77,9 @@ class LauncherConfigService {
         launcherIcon: 'wand-magic-sparkles',
         tags: ['Créatif', 'Plots', 'Schématiques', 'Concours'],
         teaser: freeBuildDefault.teaser,
-        minecraftVersion: freeBuildDefault.minecraftVersion || '1.21.1',
-        loader: freeBuildDefault.modLoader?.type || 'neoforge',
-        loaderVersion: freeBuildDefault.modLoader?.version || '21.1.169'
+        minecraftVersion: freeBuildDefault.minecraftVersion || FALLBACK_MC_VERSION,
+        loader: freeBuildDefault.modLoader?.type || FALLBACK_LOADER,
+        loaderVersion: freeBuildDefault.modLoader?.version || FALLBACK_LOADER_VERSION
       }
     }
   }

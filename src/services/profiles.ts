@@ -1,5 +1,5 @@
 import { profiles as profilesIpc } from '../ipc'
-import { launcherConfig } from './launcherConfig'
+import { launcherConfig, FALLBACK_MC_VERSION, FALLBACK_LOADER, FALLBACK_LOADER_VERSION } from './launcherConfig'
 
 export type ProfileStatus = 'live' | 'maintenance' | 'comingSoon' | 'disabled'
 
@@ -51,9 +51,9 @@ export async function fetchProfiles(): Promise<any[]> {
         launcherIcon: p.modey.launcherIcon || 'cube',
         tags: p.modey.tags,
         teaser: p.modey.teaser,
-        minecraftVersion: p.modey.minecraftVersion || p.version || '1.21.1',
-        loader: p.modey.loader || p.loaderVersion?.type || 'neoforge',
-        loaderVersion: p.modey.loaderVersion || p.loaderVersion?.version || '21.1.169',
+        minecraftVersion: p.modey.minecraftVersion || p.version || FALLBACK_MC_VERSION,
+        loader: p.modey.loader || p.loaderVersion?.type || FALLBACK_LOADER,
+        loaderVersion: p.modey.loaderVersion || p.loaderVersion?.version || FALLBACK_LOADER_VERSION,
         accessMode: p.modey.accessMode || 'normal',
         maintenanceEnabled: Boolean(p.modey.maintenanceEnabled),
         bypassRoles: Array.isArray(p.modey.bypassRoles) ? p.modey.bypassRoles : ['founder', 'super_admin', 'admin', 'moderator']
