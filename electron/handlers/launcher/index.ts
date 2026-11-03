@@ -7,6 +7,7 @@ import logger from 'electron-log/main'
 import { ADMINTOOL_URL, AUTH_SERVER_URL, getSystemJava21Path, DEFAULT_MC_VERSION, DEFAULT_LOADER, DEFAULT_LOADER_VERSION } from '../../const'
 import fs from 'node:fs'
 import { IPC } from '../../ipc-channels'
+import { getDynamicMemoryLimits } from '../../runtimeConfig'
 import { getAuthlibInjectorPath } from './authlib'
 import { killMinecraft, trackMinecraftPid, schedulePostLaunchAction } from './process'
 
@@ -117,11 +118,12 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
       // Résolution de la RAM (dédiée par serveur si définie, sinon RAM globale)
       const serverMemory = settings.serverSettings?.[profileSlug]?.memory
+      const defaultMemory = getDynamicMemoryLimits()
       const effectiveMemory = serverMemory && typeof serverMemory.max === 'number'
         ? serverMemory
-        : (settings.memory || { min: 1, max: 4 })
-      const ramMinMb = Math.max(512, Math.round((effectiveMemory.min || 1) * 1024))
-      const ramMaxMb = Math.max(ramMinMb + 512, Math.round((effectiveMemory.max || 4) * 1024))
+        : (settings.memory || { min: defaultMemory.minGb, max: defaultMemory.maxGb })
+      const ramMinMb = Math.max(512, Math.round((effectiveMemory.min || defaultMemory.minGb) * 1024))
+      const ramMaxMb = Math.max(ramMinMb + 512, Math.round((effectiveMemory.max || defaultMemory.maxGb) * 1024))
 
       // Sauvegarder la configuration effective dans server-settings.json pour ce serveur
       writeLocalServerConfig(profileSlug, {

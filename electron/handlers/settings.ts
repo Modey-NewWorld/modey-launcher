@@ -5,7 +5,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { IPC } from '../ipc-channels'
 import { currentRoot } from './files'
-import { getRuntimeConfig } from '../runtimeConfig'
+import { getRuntimeConfig, getDynamicMemoryLimits } from '../runtimeConfig'
 
 const settingsPath = path.join(app.getPath('userData'), 'settings.json')
 
@@ -47,11 +47,13 @@ export interface IGameSettings {
   uiScale: number
 }
 
+const defaultMemoryLimits = getDynamicMemoryLimits()
+
 export const DEFAULT_SETTINGS: IGameSettings = {
   java: 'bundled',
   memory: {
-    min: 1,
-    max: 4
+    min: defaultMemoryLimits.minGb,
+    max: defaultMemoryLimits.maxGb
   },
   serverSettings: {},
   resolution: {

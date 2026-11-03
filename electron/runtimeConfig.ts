@@ -9,17 +9,33 @@ export interface RuntimeConfig {
   totalSystemRamMb: number
 }
 
+export interface DynamicMemoryLimits {
+  minGb: number
+  maxGb: number
+  totalGb: number
+}
+
+export function getDynamicMemoryLimits(): DynamicMemoryLimits {
+  const totalGb = Math.floor(os.totalmem() / (1024 * 1024 * 1024))
+  const minGb = totalGb <= 4 ? 1 : 2
+  // Max par défaut : 75% de la RAM machine
+  const maxGb = Math.max(minGb + 1, Math.floor(totalGb * 0.75))
+  return {
+    minGb,
+    maxGb,
+    totalGb
+  }
+}
+
 export function getRuntimeConfig(): RuntimeConfig {
   const apiBase = (process.env.MODEY_API_URL || 'https://api.modey.flowcrea.fr').replace(/\/+$/, '')
   const authUrl = (process.env.MODEY_AUTH_URL || `${apiBase}/api/yggdrasil`).replace(/\/+$/, '')
   const admintoolUrl = (process.env.MODEY_ADMINTOOL_URL || apiBase).replace(/\/+$/, '')
 
   const totalSystemRamMb = Math.floor(os.totalmem() / (1024 * 1024))
-  // RAM Min : 1024 Mo (1 Go)
-  const ramMin = 1024
-  // RAM Max : 75% de la mémoire totale ou total - 2048 Mo, minimum 2048 Mo
-  const calculatedMax = Math.min(Math.floor(totalSystemRamMb * 0.75), Math.max(2048, totalSystemRamMb - 2048))
-  const ramMax = Math.max(ramMin, calculatedMax)
+  const limits = getDynamicMemoryLimits()
+  const ramMin = limits.minGb * 1024
+  const ramMax = limits.maxGb * 1024
 
   return {
     apiBase,
