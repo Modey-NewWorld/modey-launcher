@@ -3,6 +3,7 @@ import { IPC } from './ipc-channels'
 import type { IGameSettings, ISystemInfo } from './handlers/settings'
 import type { IFilesInfo, IInstanceInfo } from './handlers/files'
 import type { IAuthResponse } from './handlers/auth'
+import type { RuntimeConfig } from './runtimeConfig'
 import type { Account, BootstrapsEvents, DownloaderEvents, IAvatar, IBackground, IBootstraps, ICape, IMaintenance, INews, IServerStatus, ISkin, LauncherEvents } from 'eml-lib'
 
 console.log('Preload script loaded')
@@ -111,6 +112,7 @@ contextBridge.exposeInMainWorld('api', {
   },
   system: {
     getInfo: (): Promise<ISystemInfo> => ipcRenderer.invoke(IPC.system.info),
+    getRuntimeConfig: (): Promise<RuntimeConfig> => ipcRenderer.invoke(IPC.system.getRuntimeConfig),
     onSleep: (callback: (asleep: boolean) => void) =>
       ipcRenderer.on(IPC.system.sleep, (_event, asleep: boolean) => callback(asleep))
   },

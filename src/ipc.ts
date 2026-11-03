@@ -1,4 +1,5 @@
 import type { IGameSettings, ISystemInfo } from '../electron/handlers/settings'
+import type { RuntimeConfig } from '../electron/runtimeConfig'
 import type { IFilesInfo, IInstanceInfo } from '../electron/handlers/files'
 import type { IOptionalModItem } from '../electron/handlers/optionalMods'
 import type { IAuthResponse } from '../electron/handlers/auth'
@@ -96,6 +97,7 @@ declare global {
       }
       system: {
         getInfo: () => Promise<ISystemInfo>
+        getRuntimeConfig: () => Promise<RuntimeConfig>
         onSleep: (callback: (asleep: boolean) => void) => void
       }
       files: {
@@ -205,6 +207,7 @@ export const settings = {
 
 export const system = {
   getInfo: () => window.api.system.getInfo(),
+  getRuntimeConfig: () => window.api.system.getRuntimeConfig(),
   onSleep: (callback: (asleep: boolean) => void) => window.api.system.onSleep(callback)
 }
 

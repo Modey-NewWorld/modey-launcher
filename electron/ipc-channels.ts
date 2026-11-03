@@ -56,7 +56,8 @@ export const IPC = {
     info: 'system:info',
     sleep: 'system:sleep',
     getLoginItem: 'system:get_login_item',
-    setLoginItem: 'system:set_login_item'
+    setLoginItem: 'system:set_login_item',
+    getRuntimeConfig: 'app:get-runtime-config'
   },
   files: {
     info: 'files:info',

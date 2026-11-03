@@ -5,6 +5,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { IPC } from '../ipc-channels'
 import { currentRoot } from './files'
+import { getRuntimeConfig } from '../runtimeConfig'
 
 const settingsPath = path.join(app.getPath('userData'), 'settings.json')
 
@@ -228,5 +229,9 @@ export function registerSettingsHandlers() {
       resolution: { width, height },
       version: app.getVersion()
     }
+  })
+
+  ipcMain.handle(IPC.system.getRuntimeConfig, async () => {
+    return getRuntimeConfig()
   })
 }
