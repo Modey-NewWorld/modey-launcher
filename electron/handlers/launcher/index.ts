@@ -4,7 +4,7 @@ import type { Account } from 'eml-lib'
 import type { IGameSettings } from '../settings'
 import { readLocalServerConfig, writeLocalServerConfig } from '../settings'
 import logger from 'electron-log/main'
-import { ADMINTOOL_URL, AUTH_SERVER_URL, SYSTEM_JAVA_21_PATH, DEFAULT_MC_VERSION, DEFAULT_LOADER, DEFAULT_LOADER_VERSION } from '../../const'
+import { ADMINTOOL_URL, AUTH_SERVER_URL, getSystemJava21Path, DEFAULT_MC_VERSION, DEFAULT_LOADER, DEFAULT_LOADER_VERSION } from '../../const'
 import fs from 'node:fs'
 import { IPC } from '../../ipc-channels'
 import { getAuthlibInjectorPath } from './authlib'
@@ -91,8 +91,8 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
 
       let java: { install: 'auto' } | { install: 'manual'; absolutePath: string } = { install: 'auto' }
-      if (settings.java === 'system') {
-        const javaExe = fs.existsSync(SYSTEM_JAVA_21_PATH) ? SYSTEM_JAVA_21_PATH : 'java'
+      if (settings.java === 'system' || (settings.java && settings.java !== 'bundled')) {
+        const javaExe = getSystemJava21Path(settings.java === 'system' ? undefined : settings.java)
         java = { install: 'manual', absolutePath: javaExe }
       }
 
