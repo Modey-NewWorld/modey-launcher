@@ -167,10 +167,81 @@
 
 .locker-actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 
+  .locker-btn-import,
   .srv-select {
     flex: 1;
+    height: 40px;
+    padding: 0 16px;
+    background: #3B82F6;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-ui, inherit);
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.18s ease;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      background: #2563EB;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .locker-btn-download,
+  .srv-discover {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    flex-shrink: 0;
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s ease;
+
+    svg {
+      width: 18px;
+      height: 18px;
+      color: var(--text-muted);
+      transition: color 0.18s ease;
+    }
+
+    &:hover {
+      background: var(--bg-sunken);
+      border-color: #3B82F6;
+
+      svg {
+        color: #3B82F6;
+      }
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
   }
 }
 

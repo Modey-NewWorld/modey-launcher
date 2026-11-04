@@ -120,14 +120,13 @@ export function bindStudio(hooks: { onSkinChanged: () => void }) {
     const file = fileInput.files?.[0]
     if (!file) return
     try {
-      // 1. Vérification des permissions du rôle
+      // 1. Vérification des restrictions de compte
       const user = getUser()
       const userPermissions = (user as any)?.permissions || []
-      const isFounder = (user as any)?.role === 'founder'
-      const canCustom = isFounder || userPermissions.includes('*') || userPermissions.includes('launcher:custom_skin')
-      if (!canCustom) {
+      const isSkinBlocked = userPermissions.includes('launcher:no_custom_skin') || (user as any)?.skin_disabled === true
+      if (isSkinBlocked) {
         await Dialog.show(
-          "Votre rôle actuel ne vous autorise pas à importer de skins personnalisés sur le réseau Modey.",
+          "Votre compte ne vous autorise pas à importer de skins personnalisés sur le réseau Modey.",
           [{ text: 'Fermer', type: 'ok' }],
           'Importation restreinte'
         )
@@ -239,11 +238,20 @@ export function bindStudio(hooks: { onSkinChanged: () => void }) {
   })
 
   el('btn-download-skin')?.addEventListener('click', () => {
+    const activeSkin = shared.skins?.find((s) => s.state === 'active')
+    const username = getUser()?.name ?? 'skin'
+    if (activeSkin?.url) {
+      const a = document.createElement('a')
+      a.href = activeSkin.url
+      a.download = `${username}-skin.png`
+      a.click()
+      return
+    }
     const v = viewer()
     if (!v) return
     const a = document.createElement('a')
     a.href = v.canvas.toDataURL('image/png')
-    a.download = `${getUser()?.name ?? 'skin'}.png`
+    a.download = `${username}-skin.png`
     a.click()
   })
 
