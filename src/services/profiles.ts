@@ -16,7 +16,8 @@ export const isComingSoonProfile = (profile: any) => getProfileModeyStatus(profi
 export const isMaintenanceProfile = (profile: any) => getProfileModeyStatus(profile) === 'maintenance'
 export const isDisabledProfile = (profile: any) => getProfileModeyStatus(profile) === 'disabled' || profile.modey?.enabled === false
 
-export const isAthenaProfile = (profile: any) => !profile || profile.slug === 'athena'
+export const isDefaultProfile = (profile: any, defaultSlug = 'athena') => !profile || profile.slug === defaultSlug
+export const isAthenaProfile = isDefaultProfile
 
 export { DEFAULT_BYPASS_ROLES, STAFF_ROLES, checkCanBypass } from './roles'
 
@@ -38,6 +39,7 @@ export async function fetchProfiles(): Promise<any[]> {
         iconUrl: p.modey.iconUrl,
         launcherIcon: p.modey.launcherIcon || 'cube',
         tags: p.modey.tags,
+        gallery: p.modey.gallery || [],
         teaser: p.modey.teaser,
         minecraftVersion: p.modey.minecraftVersion || p.version || FALLBACK_MC_VERSION,
         loader: p.modey.loader || p.loaderVersion?.type || FALLBACK_LOADER,

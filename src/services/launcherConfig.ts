@@ -127,8 +127,12 @@ class LauncherConfigService {
     this.saveToStorage()
   }
 
-  public getAthena(): ServerMeta {
+  public getDefaultServer(): ServerMeta {
     return this.cache['athena'] || this.cache['modey-athena'] || (this.cache[Object.keys(this.cache)[0]] as ServerMeta)
+  }
+
+  public getAthena(): ServerMeta {
+    return this.getDefaultServer()
   }
 
   public getFreeBuild(): ServerMeta {

@@ -24,18 +24,21 @@ export async function pingServer(host: string, port?: number): Promise<ServerPro
 }
 
 export const targetFor = (profile: any) => {
-  const athena = launcherConfig.getAthena()
+  const defaultMeta = launcherConfig.getDefaultServer()
   return {
-    host: profile?.ip || athena?.ip || '127.0.0.1',
-    port: profile?.port || athena?.port || 25565
+    host: profile?.ip || defaultMeta?.ip || '127.0.0.1',
+    port: profile?.port || defaultMeta?.port || 25565
   }
 }
 
-export const athenaTarget = (profiles: any[]) => {
-  const athena = profiles.find((p) => p.slug === 'athena')
-  const athenaMeta = launcherConfig.getAthena()
+export const getServerTarget = (profiles: any[], slug?: string) => {
+  const targetSlug = slug || 'athena'
+  const found = profiles.find((p) => p.slug === targetSlug || p.name?.toLowerCase() === targetSlug.toLowerCase()) || profiles[0]
+  const defaultMeta = launcherConfig.getDefaultServer()
   return {
-    host: athena?.ip || athenaMeta?.ip || '127.0.0.1',
-    port: athena?.port || athenaMeta?.port || 25565
+    host: found?.ip || defaultMeta?.ip || '127.0.0.1',
+    port: found?.port || defaultMeta?.port || 25565
   }
 }
+
+export const athenaTarget = getServerTarget

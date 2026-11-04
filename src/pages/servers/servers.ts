@@ -1,6 +1,6 @@
 import { Dialog } from '../../components/dialog'
 import { showAccueil } from '../../router'
-import { pingServer, athenaTarget } from '../../services/serverStatus'
+import { pingServer, getServerTarget } from '../../services/serverStatus'
 import { homeState } from '../home/state'
 import { launcherConfig } from '../../services/launcherConfig'
 import { openDiscordInvite } from '../../services/discord'
@@ -76,7 +76,6 @@ function buildServersList(): ServerItem[] {
     processedSlugs.add(slug)
 
     const meta = launcherConfig.getServer(slug)
-    const isAthena = slug === 'athena' || p.id === 'modey-athena' || p.name === 'Athéna'
     const isComingSoon = isComingSoonProfile(p) || meta?.status === 'comingSoon'
 
     const tags: string[] = Array.isArray(p.tags) && p.tags.length > 0
@@ -86,18 +85,15 @@ function buildServersList(): ServerItem[] {
         : (meta?.tags || []))
 
     const version = p.minecraftVersion || p.modey?.minecraftVersion || meta?.minecraftVersion || '1.21.1'
-    const name = p.name || meta?.name || (isAthena ? 'Athéna' : slug)
+    const name = p.name || meta?.name || slug
     const subtitle = p.subtitle || meta?.subtitle || `Europe (FR) • ${version}`
     const location = p.location || p.modey?.location || meta?.location || 'Europe (France)'
     const description = p.description || p.modey?.description || meta?.teaser?.description || p.teaser?.description || p.subtitle || ''
     const banner = p.bannerUrl || p.modey?.bannerUrl || meta?.bannerUrl || bgAthena
 
-    let iconSvg = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>`
-    if (isAthena) {
-      iconSvg = `<svg class="solar-icon solar-bold server-icon-gold" aria-hidden="true"><use href="#solar-crown-bold"></use></svg>`
-    } else if (slug === 'free-build' || isComingSoon) {
-      iconSvg = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-box-bold"></use></svg>`
-    }
+    const iconName = p.modey?.launcherIcon || (meta ? meta.launcherIcon : undefined) || p.launcherIcon || (isComingSoon ? 'box' : 'crown')
+    const solarIconRef = iconName === 'crown' ? '#solar-crown-bold' : (iconName === 'shield' ? '#solar-shield-bold' : (iconName === 'box' ? '#solar-box-bold' : '#solar-server-bold'))
+    const iconSvg = `<svg class="solar-icon solar-bold ${iconName === 'crown' ? 'server-icon-gold' : ''}" aria-hidden="true"><use href="${solarIconRef}"></use></svg>`
 
     const cachedPing = pingLiveCache[slug]
 
@@ -129,18 +125,14 @@ function buildServersList(): ServerItem[] {
     if (processedSlugs.has(slug)) continue
     processedSlugs.add(slug)
 
-    const isAthena = slug === 'athena'
     const isComingSoon = meta.status === 'comingSoon'
     const version = meta.minecraftVersion || '1.21.1'
     const tags = meta.tags || []
     const banner = meta.bannerUrl || bgAthena
 
-    let iconSvg = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>`
-    if (isAthena) {
-      iconSvg = `<svg class="solar-icon solar-bold server-icon-gold" aria-hidden="true"><use href="#solar-crown-bold"></use></svg>`
-    } else if (slug === 'free-build' || isComingSoon) {
-      iconSvg = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-box-bold"></use></svg>`
-    }
+    const iconName = meta.launcherIcon || (isComingSoon ? 'box' : 'crown')
+    const solarIconRef = iconName === 'crown' ? '#solar-crown-bold' : (iconName === 'shield' ? '#solar-shield-bold' : (iconName === 'box' ? '#solar-box-bold' : '#solar-server-bold'))
+    const iconSvg = `<svg class="solar-icon solar-bold ${iconName === 'crown' ? 'server-icon-gold' : ''}" aria-hidden="true"><use href="${solarIconRef}"></use></svg>`
 
     const cachedPing = pingLiveCache[slug]
 
@@ -178,10 +170,13 @@ async function probeLiveServers() {
   for (const s of servers) {
     if (s.isComingSoon) continue
 
-    if (s.slug === 'athena') {
-      const t = athenaTarget(homeState.allProfiles)
+    const t = getServerTarget(homeState.allProfiles, s.slug)
+    const host = s.profileRef?.server?.host || s.profileRef?.ip || t.host
+    const port = s.profileRef?.server?.port || s.profileRef?.port || t.port || 25565
+
+    if (host) {
       try {
-        const probe = await pingServer(t.host, t.port)
+        const probe = await pingServer(host, port)
         if (probe.online && probe.status) {
           pingLiveCache[s.id] = {
             online: true,
@@ -194,26 +189,6 @@ async function probeLiveServers() {
         }
       } catch {
         pingLiveCache[s.id] = { online: false, pingMs: 0, playersOnline: 0, playersMax: 0 }
-      }
-    } else {
-      const host = s.profileRef?.server?.host || s.profileRef?.ip
-      const port = s.profileRef?.server?.port || s.profileRef?.port || 25565
-      if (host) {
-        try {
-          const probe = await pingServer(host, port)
-          if (probe.online && probe.status) {
-            pingLiveCache[s.id] = {
-              online: true,
-              pingMs: probe.pingMs,
-              playersOnline: probe.status.players.online,
-              playersMax: probe.status.players.max
-            }
-          } else {
-            pingLiveCache[s.id] = { online: false, pingMs: 0, playersOnline: 0, playersMax: 0 }
-          }
-        } catch {
-          pingLiveCache[s.id] = { online: false, pingMs: 0, playersOnline: 0, playersMax: 0 }
-        }
       }
     }
   }
@@ -533,7 +508,7 @@ function updateDisplay() {
 /**
  * Fonction publique appelée pour rafraîchir l'affichage dès que les profils sont disponibles
  */
-export async function refreshAthenaCard() {
+export async function refreshServerCard(_slug?: string) {
   await probeLiveServers()
 }
 

@@ -8,7 +8,7 @@ import { fetchProfiles, isComingSoonProfile } from '../../services/profiles'
 import { targetFor } from '../../services/serverStatus'
 import { startLaunch, bindLaunch } from '../../services/launch'
 import { refreshProfileServer } from '../profile/profile'
-import { refreshAthenaCard } from '../servers/servers'
+import { refreshServerCard } from '../servers/servers'
 import { homeState } from './state'
 import { renderHero, updateServerStatus, checkIsAdmin, initHeroGallery } from './components/hero'
 import { loadNews } from './components/newsList'
@@ -64,7 +64,7 @@ async function loadProfiles() {
   if (homeState.allProfiles.length > 0) {
     selectProfile(homeState.allProfiles[0])
   }
-  refreshAthenaCard()
+  refreshServerCard()
 }
 
 async function loadHeader() {
@@ -82,7 +82,7 @@ async function loadHeader() {
 export async function showServerDetails() {
   const profile = homeState.selectedProfile
   const serverSlug = profile?.slug || 'athena'
-  const meta = launcherConfig.getServer(serverSlug) || (isComingSoonProfile(profile) ? launcherConfig.getFreeBuild() : launcherConfig.getAthena())
+  const meta = launcherConfig.getServer(serverSlug) || (isComingSoonProfile(profile) ? launcherConfig.getFreeBuild() : launcherConfig.getDefaultServer())
 
   if (isComingSoonProfile(profile)) {
     const features = meta?.teaser?.features || [
@@ -115,11 +115,11 @@ export function initHome() {
   renderFriendsList()
   renderNotificationsList()
   initRailTabs()
-  refreshAthenaCard()
+  refreshServerCard()
   bindSidebar()
   checkAndShowUpdateToast()
 
-  setRouterHooks({ onShowServers: refreshAthenaCard })
+  setRouterHooks({ onShowServers: refreshServerCard })
 
   el('btn-details')?.addEventListener('click', showServerDetails)
   el('btn-server-settings')?.addEventListener('click', () => {

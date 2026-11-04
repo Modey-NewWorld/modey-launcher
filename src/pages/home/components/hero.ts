@@ -26,7 +26,7 @@ export function renderHero(profile: any) {
   const isAdmin = checkIsAdmin()
 
   const serverSlug = profile?.slug || 'athena'
-  const serverMeta = launcherConfig.getServer(serverSlug) || (isSoon ? launcherConfig.getFreeBuild() : launcherConfig.getAthena())
+  const serverMeta = launcherConfig.getServer(serverSlug) || (isSoon ? launcherConfig.getFreeBuild() : launcherConfig.getDefaultServer())
 
   const profileKey = profile?.id ?? 'default'
   const cachedStatus = serverStatusCache[profileKey]
