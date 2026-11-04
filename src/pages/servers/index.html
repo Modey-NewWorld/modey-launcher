@@ -1,83 +1,180 @@
-        <main class="servers-page" id="servers-page" style="display:none">
-          <div class="servers-scroll" id="servers-scroll">
-            <section class="page-header">
-              <h1>Serveurs</h1>
-              <p>Choisis et gere tes mondes Modey.</p>
-            </section>
-            <div class="servers-grid">
-              <article class="server-card" id="server-card-athena">
-                <div class="server-banner">
-                  <span class="hero-badge server-avail" id="srv-status-badge"><span class="status-dot pinging"></span>&nbsp;Vérification...</span>
-                  <span class="hero-badge server-official-tag">Serveur Officiel</span>
-                  <div class="server-banner-bottom">
-                    <div class="server-banner-title">
-                      <span class="server-kicker">Monde principal</span>
-                      <h2>Athéna</h2>
-                    </div>
-                    <div class="server-live">
-                      <span id="srv-ping"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-signal-bold"></use></svg>&nbsp;—</span>
-                      <span id="srv-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;—</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="server-body">
-                  <p class="server-desc">Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.</p>
-                  <div class="server-specs">
-                    <div class="server-spec"><span>Version</span><strong>1.21.1</strong></div>
-                    <div class="server-spec"><span>Modloader</span><strong>NeoForge 21.1.169</strong></div>
-                    <div class="server-spec"><span>Localisation</span><strong>Europe (FR)</strong></div>
-                    <div class="server-spec"><span>Rendu</span><strong>Shaders intégrés</strong></div>
-                  </div>
-                  <div class="server-tags">
-                    <span>Survie</span><span>Villes</span><span>Aventure</span><span>Communauté</span><span><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-bolt-bold"></use></svg>&nbsp;Économie dynamique</span>
-                  </div>
-                  <div class="server-foot">
-                    <span class="server-opt"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Optimisé pour Modey Engine</span>
-                    <div class="server-actions">
-                      <button class="srv-btn srv-discover" id="btn-srv-discover"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg>&nbsp;Découvrir</button>
-                      <button class="srv-btn srv-select" id="btn-srv-select"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Sélectionner</button>
-                    </div>
-                  </div>
-                </div>
-              </article>
+<main class="servers-page" id="servers-page" style="display:none">
+  <div class="servers-scroll-container" id="servers-scroll-container">
+    <!-- Header -->
+    <header class="servers-header">
+      <div class="servers-header-info">
+        <h1>Serveurs</h1>
+        <p>Rejoins l'un des mondes Modey et vis une expérience unique !</p>
+      </div>
+      <div class="servers-online-pill" id="servers-online-pill">
+        <span class="online-dot"></span>
+        <span id="servers-online-counter">1 serveur en ligne</span>
+      </div>
+    </header>
 
-              <aside class="server-soon" id="server-card-freebuild">
-                <div class="soon-top">
-                  <span class="soon-pill">Arrive bientôt</span>
-                  <svg class="solar-icon solar-bold soon-rocket" aria-hidden="true"><use href="#solar-rocket-bold"></use></svg>
-                </div>
-                <div class="soon-visual">
-                  <span class="soon-visual-icon"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-box-bold"></use></svg></span>
-                  <strong>Free Build</strong>
-                  <span class="soon-visual-sub">Créatif • En développement</span>
-                </div>
-                <div class="soon-specs">
-                  <div class="server-spec"><span>Version</span><strong>1.21.1</strong></div>
-                  <div class="server-spec"><span>Mode</span><strong>Créatif libre</strong></div>
-                </div>
-                <p>Le bac à sable créatif de Modey n'est pas encore actif. Sélectionne-le pour être prêt le jour J.</p>
-                <ul class="soon-checks">
-                  <li><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-box-bold"></use></svg>&nbsp;Monde créatif libre, sans limites</li>
-                  <li><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;Ouvert à tous les joueurs Modey</li>
-                </ul>
-                <button class="srv-btn srv-select soon-select" id="btn-select-freebuild"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Sélectionner</button>
-                <button class="discovery-notify soon-notify" id="btn-notify-servers"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-bell-bold"></use></svg>&nbsp;Être notifié des sorties</button>
-              </aside>
+    <!-- Two-column main layout -->
+    <div class="servers-main-layout">
+      <!-- Left column: Filters + Section header + Cards Grid -->
+      <section class="servers-catalog-col">
+        <!-- Controls row: Search + Filter Pills + Filter Settings + Sort -->
+        <div class="servers-filter-bar">
+          <div class="servers-search-wrapper">
+            <svg class="solar-icon solar-linear search-icon" aria-hidden="true"><use href="#solar-magnifier-linear"></use></svg>
+            <input type="text" id="servers-search-input" placeholder="Rechercher un serveur..." autocomplete="off" />
+          </div>
+          <div class="servers-filter-tags" id="servers-filter-tags">
+            <button class="filter-pill active" data-tag="all">Tous</button>
+            <button class="filter-pill" data-tag="survie">Survie</button>
+            <button class="filter-pill" data-tag="aventure">Aventure</button>
+            <button class="filter-pill" data-tag="communaute">Communauté</button>
+            <button class="filter-pill" data-tag="economie">Économie</button>
+          </div>
+          <button class="btn-filter-settings" id="btn-servers-filter-settings" title="Filtres avancés">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>
+          </button>
+          <div class="servers-sort-box">
+            <label for="servers-sort-select">Trier par :</label>
+            <select id="servers-sort-select">
+              <option value="popularity">Popularité</option>
+              <option value="players">Joueurs</option>
+              <option value="name">Nom</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section Title: Serveurs officiels Modey -->
+        <div class="servers-section-heading">
+          <div class="heading-icon-badge">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>
+          </div>
+          <div class="heading-text">
+            <h2>Serveurs officiels Modey</h2>
+            <p>Des mondes uniques, créés et gérés par l'équipe Modey.</p>
+          </div>
+        </div>
+
+        <!-- Cards Grid (2 columns) -->
+        <div class="servers-cards-grid" id="servers-cards-grid">
+          <!-- Dynamically rendered server cards -->
+        </div>
+      </section>
+
+      <!-- Right column: Inspector Details Panel -->
+      <aside class="servers-inspector-col">
+        <div class="server-inspector-panel" id="server-inspector-panel">
+          <!-- Top 16:9 Banner -->
+          <div class="inspector-banner" id="inspector-banner">
+            <div class="inspector-banner-top">
+              <span class="inspector-badge-status" id="inspector-badge-status">
+                <span class="status-dot online"></span>&nbsp;En ligne
+              </span>
+              <span class="inspector-badge-players" id="inspector-badge-players">
+                <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;<span id="inspector-players-count">0/40</span>
+              </span>
             </div>
-
-            <div class="servers-perks">
-              <div class="perk-card">
-                <span class="perk-icon"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cpu-bold"></use></svg></span>
-                <div><strong>Allocation Mémoire</strong><span id="perk-ram">Optimisation auto (8 Go recommandés)</span></div>
-              </div>
-              <div class="perk-card">
-                <span class="perk-icon"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-broadcast-bold"></use></svg></span>
-                <div><strong>Hébergement Dédié</strong><span>Serveurs européens haute fréquence</span></div>
-              </div>
-              <div class="perk-card">
-                <span class="perk-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/></svg></span>
-                <div><strong>Communauté Discord</strong><span id="perk-players">Rejoins les aventuriers en ligne</span></div>
+            <div class="inspector-banner-bottom">
+              <div class="inspector-title-row">
+                <span class="inspector-server-icon" id="inspector-server-icon"></span>
+                <div class="inspector-title-text">
+                  <h3 id="inspector-server-name">Athéna</h3>
+                  <span class="inspector-server-sub" id="inspector-server-sub">Europe (FR) • 1.21.1</span>
+                </div>
               </div>
             </div>
           </div>
-        </main>
+
+          <!-- Inspector Body -->
+          <div class="inspector-body">
+            <!-- Tags pills row -->
+            <div class="inspector-tags" id="inspector-tags">
+              <!-- Dynamically rendered pills -->
+            </div>
+
+            <!-- 3 Metrics boxes -->
+            <div class="inspector-metrics-grid">
+              <div class="metric-box">
+                <div class="metric-val text-green" id="inspector-metric-latency">
+                  <svg class="latency-signal" viewBox="0 0 16 12" width="13" height="11" fill="currentColor"><rect x="0" y="9" width="3" height="3" rx="1"/><rect x="4.5" y="6" width="3" height="6" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+                  <span id="inspector-latency-text">5 ms</span>
+                </div>
+                <div class="metric-label">Latence</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-val" id="inspector-metric-players">
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>
+                  <span id="inspector-players-text">0 / 40</span>
+                </div>
+                <div class="metric-label">Joueurs</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-val" id="inspector-metric-version">
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-box-bold"></use></svg>
+                  <span id="inspector-version-text">1.21.1</span>
+                </div>
+                <div class="metric-label">Version</div>
+              </div>
+            </div>
+
+            <!-- Main CTA Join button -->
+            <button class="btn-inspector-join" id="btn-inspector-join">
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>
+              <span>Rejoindre ce serveur</span>
+            </button>
+
+            <!-- Description -->
+            <div class="inspector-section">
+              <h4>Description</h4>
+              <p id="inspector-description">
+                Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.
+              </p>
+            </div>
+
+            <!-- Informations -->
+            <div class="inspector-section">
+              <h4>Informations</h4>
+              <dl class="inspector-info-list">
+                <div class="info-row">
+                  <dt><span class="info-icon">📍</span> Localisation</dt>
+                  <dd id="inspector-info-location">Europe (France)</dd>
+                </div>
+                <div class="info-row">
+                  <dt><svg class="solar-icon solar-bold info-icon" aria-hidden="true"><use href="#solar-box-bold"></use></svg> Version</dt>
+                  <dd id="inspector-info-version">1.21.1</dd>
+                </div>
+                <div class="info-row">
+                  <dt><svg class="solar-icon solar-bold info-icon" aria-hidden="true"><use href="#solar-user-bold"></use></svg> Joueurs</dt>
+                  <dd id="inspector-info-players">0 / 40</dd>
+                </div>
+                <div class="info-row">
+                  <dt><svg class="latency-signal info-icon text-green" viewBox="0 0 16 12" width="13" height="11" fill="currentColor"><rect x="0" y="9" width="3" height="3" rx="1"/><rect x="4.5" y="6" width="3" height="6" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg> Latence moyenne</dt>
+                  <dd id="inspector-info-latency">5 ms</dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- Raccourcis -->
+            <div class="inspector-section">
+              <h4>Raccourcis</h4>
+              <div class="inspector-shortcuts-grid">
+                <button class="btn-shortcut" id="btn-shortcut-discord">
+                  <svg class="shortcut-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+                  <span>Rejoindre Discord</span>
+                </button>
+                <button class="btn-shortcut" id="btn-shortcut-website">
+                  <svg class="solar-icon solar-bold shortcut-icon" aria-hidden="true"><use href="#solar-link-bold"></use></svg>
+                  <span>Voir le site du serveur</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Official Server callout -->
+            <div class="inspector-official-callout">
+              <svg class="solar-icon solar-bold callout-icon" aria-hidden="true"><use href="#solar-info-bold"></use></svg>
+              <p>Ce serveur est un serveur officiel Modey. Aucune installation supplémentaire n'est nécessaire.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
