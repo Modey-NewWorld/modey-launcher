@@ -1,3 +1,4 @@
+import { getUser } from '../../../state'
 import { Dialog } from '../../../components/dialog'
 import { openDiscordInvite } from '../../../services/discord'
 
@@ -151,13 +152,16 @@ export function renderPartyGroup() {
   const container = document.getElementById('party-group-container')
   if (!container) return
 
+  const user = getUser() as any
+  const currentUsername = user?.name || user?.username || 'Citoyen'
+
   container.innerHTML = `
     <div class="party-group-head">
       <span class="party-group-title">
         <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-crown-bold"></use></svg>
         Mon Groupe
       </span>
-      <span class="party-badge">Chef • 1/4</span>
+      <span class="party-badge">Aperçu • Bientôt disponible</span>
     </div>
     <div class="party-self-card" id="party-self-card" role="button" tabindex="0" title="Gérer mon profil de groupe">
       <div class="friend-avatar-wrap">
@@ -166,7 +170,7 @@ export function renderPartyGroup() {
       </div>
       <div class="friend-info">
         <div class="friend-name-row">
-          <span class="friend-name">Florian</span>
+          <span class="friend-name">${currentUsername}</span>
           <span class="party-role-tag">Chef</span>
         </div>
         <div class="friend-sub" id="party-self-sub">Athéna</div>
@@ -267,7 +271,7 @@ function openSelfPancarte() {
         </div>
         <div class="pancarte-profile-info">
           <div class="pancarte-name-row">
-            <span class="pancarte-name">Florian</span>
+            <span class="pancarte-name">${(getUser() as any)?.name || (getUser() as any)?.username || 'Citoyen'}</span>
             <span class="party-role-tag">Chef</span>
           </div>
           <div class="pancarte-status-badge">
