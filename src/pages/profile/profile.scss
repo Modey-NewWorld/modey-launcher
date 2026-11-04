@@ -655,13 +655,37 @@
   }
 }
 
-/* --- Section Synchronisation Discord --- */
+/* --- Section Synchronisation Discord intégrée dans la carte d'identité --- */
+.identity-discord-block,
 .discord-sync-card {
-  margin-top: 16px;
-  background: var(--bg-surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 18px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+
+  .identity-discord-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+
+    .discord-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      strong {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+    }
+  }
 
   .discord-status-badge {
     font-size: 11px;
@@ -680,10 +704,10 @@
   }
 
   .discord-desc {
-    font-size: 13px;
-    color: var(--ink-500);
+    font-size: 12.5px;
+    color: var(--text-muted);
     line-height: 1.5;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 
   .discord-actions-group {
@@ -696,11 +720,13 @@
       color: #FFFFFF;
       border: none;
       font-weight: 600;
-      padding: 10px 16px;
-      border-radius: 10px;
+      font-size: 12.5px;
+      padding: 9px 15px;
+      border-radius: 9px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
+      gap: 6px;
       transition: background 0.15s ease, transform 0.1s ease;
 
       &:hover {
@@ -710,16 +736,19 @@
     }
 
     .discord-btn-join {
-      background: var(--bg-hover);
-      color: var(--ink-700);
-      border: 1px solid var(--line-strong);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--line);
       font-weight: 600;
-      padding: 10px 16px;
-      border-radius: 10px;
+      font-size: 12.5px;
+      padding: 9px 15px;
+      border-radius: 9px;
       text-decoration: none;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      transition: background 0.15s ease;
+      gap: 6px;
+      transition: all 0.15s ease;
 
       &:hover {
         background: var(--bg-sunken);
@@ -733,15 +762,15 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 14px;
-    background: var(--bg-hover);
+    margin-bottom: 12px;
+    background: var(--bg-sunken);
     padding: 10px 14px;
     border-radius: 12px;
     border: 1px solid var(--line);
 
     .discord-avatar-img {
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       border: 2px solid #5865F2;
     }
@@ -751,12 +780,12 @@
       flex-direction: column;
 
       strong {
-        font-size: 14px;
-        color: var(--ink-900);
+        font-size: 13.5px;
+        color: var(--text-main);
       }
 
       .discord-sync-label {
-        font-size: 12px;
+        font-size: 11.5px;
         color: var(--success);
         font-weight: 600;
         display: flex;
@@ -770,14 +799,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
 
     .discord-unlink-btn {
       color: var(--danger);
       background: var(--danger-soft);
       border: 1px solid var(--danger);
-      padding: 8px 12px;
+      padding: 7px 12px;
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
