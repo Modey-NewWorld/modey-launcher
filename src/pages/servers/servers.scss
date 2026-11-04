@@ -859,6 +859,15 @@
   &.offline {
     background: #EF4444;
   }
+
+  &.coming-soon {
+    background: #F59E0B;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+  }
+
+  &.pinging {
+    background: #94A3B8;
+  }
 }
 
 /* Thème sombre */

@@ -2,10 +2,17 @@
   "id": "modey-free-build",
   "name": "Free Build",
   "slug": "free-build",
-  "subtitle": "Le bac à sable créatif de Modey",
+  "subtitle": "Europe (FR) • 1.21.1",
   "status": "coming-soon",
   "statusLabel": "Serveur non actif — Arrive bientôt",
   "minecraftVersion": "1.21.1",
+  "location": "Europe (France)",
+  "tags": [
+    "Créatif",
+    "Construction",
+    "Communauté"
+  ],
+  "description": "Un mode 100% construction, sans limite ! Laisse libre cours à ton imagination et bâtis ta ville de rêve avec la communauté.",
   "modLoader": {
     "type": "neoforge",
     "version": "21.1.169"
@@ -47,14 +54,8 @@
       {
         "icon": "fa-users",
         "title": "Ouvert à tous",
-          "text": "Accessible à tous les joueurs Modey, idéal pour tester avant de bâtir sur Athéna."
-      },
-      {
-        "icon": "fa-trophy",
-        "title": "Concours & events",
-        "text": "Concours de build et expositions communautaires une fois le serveur ouvert."
+        "text": "Accessible à tous les joueurs Modey, idéal pour tester avant de bâtir sur Athéna."
       }
-    ],
-    "cta": "Sélectionne Free Build pour être prêt le jour J — le bouton Jouer s'activera à l'ouverture."
+    ]
   }
 }

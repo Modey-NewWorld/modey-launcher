@@ -1,8 +1,17 @@
 {
   "id": "modey-athena",
   "name": "Athéna",
-  "subtitle": "Le monde vivant communautaire de Modey",
+  "subtitle": "Europe (FR) • 1.21.1",
   "minecraftVersion": "1.21.1",
+  "location": "Europe (France)",
+  "tags": [
+    "Survie",
+    "Villes",
+    "Aventure",
+    "Communauté",
+    "Économie"
+  ],
+  "description": "Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.",
   "modLoader": {
     "type": "neoforge",
     "version": "21.1.169"

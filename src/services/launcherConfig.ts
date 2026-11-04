@@ -7,6 +7,7 @@ export const FALLBACK_LOADER_VERSION = '21.1.169'
 
 export interface ServerMeta {
   name: string
+  subtitle?: string
   ip: string
   port: number
   mapUrl?: string
@@ -18,6 +19,7 @@ export interface ServerMeta {
   iconUrl?: string
   launcherIcon?: string
   tags?: string[]
+  location?: string
   teaser?: {
     description?: string
     features?: Array<{ title: string; text?: string; icon?: string }>
@@ -56,9 +58,10 @@ class LauncherConfigService {
         bannerUrl: '',
         iconUrl: '',
         launcherIcon: 'shield-halved',
-        tags: ['Survie RP', 'Économie', 'Villes & Métropoles', 'Create'],
+        tags: (athenaDefault as any).tags || ['Survie', 'Villes', 'Aventure', 'Communauté', 'Économie'],
+        location: (athenaDefault as any).location || 'Europe (France)',
         teaser: {
-          description: 'Un monde persistant et vivant. Fondez vos cités et développez une véritable société.'
+          description: (athenaDefault as any).description || 'Un monde vivant centré sur l\'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.'
         },
         minecraftVersion: athenaDefault.minecraftVersion || FALLBACK_MC_VERSION,
         loader: athenaDefault.modLoader?.type || FALLBACK_LOADER,
@@ -75,7 +78,8 @@ class LauncherConfigService {
         bannerUrl: '',
         iconUrl: '',
         launcherIcon: 'wand-magic-sparkles',
-        tags: ['Créatif', 'Plots', 'Schématiques', 'Concours'],
+        tags: (freeBuildDefault as any).tags || ['Créatif', 'Construction', 'Communauté'],
+        location: (freeBuildDefault as any).location || 'Europe (France)',
         teaser: freeBuildDefault.teaser,
         minecraftVersion: freeBuildDefault.minecraftVersion || FALLBACK_MC_VERSION,
         loader: freeBuildDefault.modLoader?.type || FALLBACK_LOADER,
