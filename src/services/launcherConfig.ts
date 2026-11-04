@@ -19,6 +19,7 @@ export interface ServerMeta {
   iconUrl?: string
   launcherIcon?: string
   tags?: string[]
+  gallery?: string[]
   location?: string
   teaser?: {
     description?: string

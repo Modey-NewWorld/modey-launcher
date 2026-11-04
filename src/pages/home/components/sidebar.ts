@@ -16,7 +16,7 @@ function getProfileIconHtml(profile: any, size: number = 18): string {
     return `<img src="${iconUrl}" style="width:${size}px; height:${size}px; object-fit:contain; border-radius:4px; margin-right:8px; vertical-align:middle;" />`
   }
 
-  const iconName = profile?.modey?.launcherIcon || meta?.launcherIcon || (slug === 'athena' ? 'shield' : (slug === 'free-build' ? 'sparkles' : 'box'))
+  const iconName = profile?.modey?.launcherIcon || meta?.launcherIcon || profile?.icon || 'box'
   return `<svg class="solar-icon solar-bold" style="width:${size}px; height:${size}px; margin-right:8px; color:var(--primary);" aria-hidden="true"><use href="#solar-${iconName}-bold"></use></svg>`
 }
 
@@ -26,7 +26,7 @@ export function updateCurrentProfileName(profile: any) {
   const slug = profile?.slug || 'athena'
   const meta = launcherConfig.getServer(slug)
   const iconHtml = getProfileIconHtml(profile, 16)
-  currentProfileName.innerHTML = `${iconHtml}${profile?.name || meta?.name || 'Athéna'}`
+  currentProfileName.innerHTML = `${iconHtml}${profile?.name || meta?.name || 'Modey'}`
 }
 
 export function renderDropdown(onSelectProfile: (profile: any) => void) {

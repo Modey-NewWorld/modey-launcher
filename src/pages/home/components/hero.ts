@@ -6,7 +6,7 @@ import { launcherConfig } from '../../../services/launcherConfig'
 import { bannerCache } from '../../../services/bannerCache'
 import bgImage from '../../../static/images/bg.webp'
 
-const ATHENA_TAGS = ['Europe (FR)', 'Survie', 'Villes', 'Aventure', 'Communauté']
+const DEFAULT_TAGS = ['Survie', 'Communauté', 'Aventure']
 const STAFF_ROLES = ['founder', 'admin', 'moderator', 'developer', 'dev']
 
 const el = (id: string) => document.getElementById(id)
@@ -81,7 +81,7 @@ export function renderHero(profile: any) {
   const heroTags = el('hero-tags')
   if (heroTags) {
     const modeyTags = profile?.modey?.tags || serverMeta?.tags
-    const tags = modeyTags && modeyTags.length > 0 ? modeyTags : isSoon ? ['Créatif', 'Plots', 'Schématiques', 'Concours'] : ATHENA_TAGS
+    const tags = modeyTags && modeyTags.length > 0 ? modeyTags : isSoon ? ['Créatif', 'Plots', 'Schématiques', 'Concours'] : DEFAULT_TAGS
     heroTags.innerHTML = tags.map((t: string) => `<span class="hero-tag">${t}</span>`).join('')
   }
 

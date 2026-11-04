@@ -468,6 +468,26 @@ function renderInspector(server: ServerItem) {
       joinBtn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg><span>Rejoindre ce serveur</span>`
     }
   }
+
+  // Galerie de captures d'écran
+  const gallerySection = el('inspector-gallery-section')
+  const galleryGrid = el('inspector-gallery-grid')
+  const serverMeta = launcherConfig.getServer(server.slug)
+  const gallery: string[] = server.profileRef?.gallery || server.profileRef?.modey?.gallery || serverMeta?.gallery || []
+
+  if (gallerySection && galleryGrid) {
+    if (Array.isArray(gallery) && gallery.length > 0) {
+      gallerySection.style.display = 'block'
+      galleryGrid.innerHTML = gallery.map((imgUrl, idx) => `
+        <div style="aspect-ratio:16/9; border-radius:6px; overflow:hidden; background:#000; cursor:pointer;" onclick="window.open('${imgUrl}', '_blank')">
+          <img src="${imgUrl}" alt="Capture ${idx + 1}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+        </div>
+      `).join('')
+    } else {
+      gallerySection.style.display = 'none'
+      galleryGrid.innerHTML = ''
+    }
+  }
 }
 
 async function handleJoinServer(server: ServerItem) {
