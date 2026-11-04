@@ -6,6 +6,7 @@ import { createProgressBar } from '../../components/progressBar'
 import { setRouterHooks, showServerSettings, showServers } from '../../router'
 import { fetchProfiles, isComingSoonProfile } from '../../services/profiles'
 import { targetFor } from '../../services/serverStatus'
+import { FALLBACK_MC_VERSION, FALLBACK_LOADER_VERSION } from '../../services/launcherConfig'
 import { startLaunch, bindLaunch } from '../../services/launch'
 import { refreshProfileServer } from '../profile/profile'
 import { refreshServerCard } from '../servers/servers'
@@ -91,13 +92,13 @@ export async function showServerDetails() {
       { title: 'Ouvert à tous', text: 'Accessible à tous les joueurs Modey.' }
     ]
     await Dialog.show(
-      `${meta?.name || 'Free Build'} — ${meta?.maintenanceMessage || 'Serveur non actif — Arrive bientôt'}.\n\n${meta?.teaser?.description || ''}\n\nCe qu'il proposera :\n${features.map((f: { title: string; text?: string }) => `• ${f.title}${f.text ? ` : ${f.text}` : ''}`).join('\n')}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} • NeoForge ${meta?.loaderVersion || '21.1.169'}`,
+      `${meta?.name || 'Free Build'} — ${meta?.maintenanceMessage || 'Serveur non actif — Arrive bientôt'}.\n\n${meta?.teaser?.description || ''}\n\nCe qu'il proposera :\n${features.map((f: { title: string; text?: string }) => `• ${f.title}${f.text ? ` : ${f.text}` : ''}`).join('\n')}\n\nMinecraft ${meta?.minecraftVersion || FALLBACK_MC_VERSION} • NeoForge ${meta?.loaderVersion || FALLBACK_LOADER_VERSION}`,
       [{ text: 'Compris', type: 'ok' }]
     )
     return
   }
   await Dialog.show(
-    `${profile?.name ?? meta?.name ?? 'Athéna'}.\n\n${meta?.teaser?.description || 'Un monde vivant. Des villes à construire. Une aventure à partager.'}\n\nMinecraft ${meta?.minecraftVersion || '1.21.1'} • NeoForge ${meta?.loaderVersion || '21.1.169'}\nConnexion : ${targetFor(profile).host}:${targetFor(profile).port}`,
+    `${profile?.name ?? meta?.name ?? 'Athéna'}.\n\n${meta?.teaser?.description || 'Un monde vivant. Des villes à construire. Une aventure à partager.'}\n\nMinecraft ${meta?.minecraftVersion || FALLBACK_MC_VERSION} • NeoForge ${meta?.loaderVersion || FALLBACK_LOADER_VERSION}\nConnexion : ${targetFor(profile).host}:${targetFor(profile).port}`,
     [{ text: 'Compris', type: 'ok' }]
   )
 }

@@ -2,7 +2,7 @@ import { solarIcon as solar } from '../../../components/icon'
 import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile } from '../../../services/profiles'
 import { pingServer, targetFor } from '../../../services/serverStatus'
 import { getUser } from '../../../state'
-import { launcherConfig } from '../../../services/launcherConfig'
+import { launcherConfig, FALLBACK_MC_VERSION } from '../../../services/launcherConfig'
 import { bannerCache } from '../../../services/bannerCache'
 import bgImage from '../../../static/images/bg.webp'
 
@@ -44,7 +44,7 @@ export function renderHero(profile: any) {
 
   const heroVersion = el('hero-version')
   if (heroVersion) {
-    const mc = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || '1.21.1'
+    const mc = profile?.modey?.minecraftVersion || serverMeta?.minecraftVersion || FALLBACK_MC_VERSION
     heroVersion.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-box-bold"></use></svg>&nbsp;${mc}`
   }
 
