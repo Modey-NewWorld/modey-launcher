@@ -80,9 +80,23 @@ export function renderHero(profile: any) {
 
   const heroTags = el('hero-tags')
   if (heroTags) {
-    const modeyTags = profile?.modey?.tags || serverMeta?.tags
-    const tags = modeyTags && modeyTags.length > 0 ? modeyTags : isSoon ? ['Créatif', 'Plots', 'Schématiques', 'Concours'] : DEFAULT_TAGS
-    heroTags.innerHTML = tags.map((t: string) => `<span class="hero-tag">${t}</span>`).join('')
+    const rawTags = profile?.modey?.tags !== undefined ? profile?.modey?.tags : serverMeta?.tags
+    let tags: string[] = []
+    if (Array.isArray(rawTags)) {
+      tags = rawTags
+    } else if (isSoon) {
+      tags = ['Créatif', 'Plots', 'Schématiques', 'Concours']
+    } else {
+      tags = DEFAULT_TAGS
+    }
+
+    if (tags.length === 0) {
+      heroTags.innerHTML = ''
+      heroTags.style.display = 'none'
+    } else {
+      heroTags.style.display = 'flex'
+      heroTags.innerHTML = tags.map((t: string) => `<span class="hero-tag">${t}</span>`).join('')
+    }
   }
 
   applyPlayButtonState(profile, { isSoon, isMaint, isDisabled, isOffline, isAdmin })

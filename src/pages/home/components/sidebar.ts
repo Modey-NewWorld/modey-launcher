@@ -7,17 +7,24 @@ import './userCard.scss'
 
 const el = (id: string) => document.getElementById(id)
 
+const KNOWN_SIDEBAR_SOLAR_ICONS = new Set([
+  'server', 'shield', 'crown', 'sparkles', 'rocket', 'box',
+  'compass', 'bolt', 'star', 'gamepad', 'cup'
+])
+
 function getProfileIconHtml(profile: any, size: number = 18): string {
   const slug = profile?.slug || 'athena'
   const meta = launcherConfig.getServer(slug)
-  const iconUrl = profile?.modey?.iconUrl || meta?.iconUrl
+  const iconUrl = profile?.iconUrl || profile?.modey?.iconUrl || meta?.iconUrl
 
   if (iconUrl) {
     return `<img src="${iconUrl}" style="width:${size}px; height:${size}px; object-fit:contain; border-radius:4px; margin-right:8px; vertical-align:middle;" />`
   }
 
-  const iconName = profile?.modey?.launcherIcon || meta?.launcherIcon || profile?.icon || 'box'
-  return `<svg class="solar-icon solar-bold" style="width:${size}px; height:${size}px; margin-right:8px; color:var(--primary);" aria-hidden="true"><use href="#solar-${iconName}-bold"></use></svg>`
+  const rawIcon = profile?.modey?.launcherIcon || meta?.launcherIcon || profile?.icon || 'server'
+  const cleanIcon = rawIcon.toLowerCase().trim()
+  const iconRef = KNOWN_SIDEBAR_SOLAR_ICONS.has(cleanIcon) ? `#solar-${cleanIcon}-bold` : '#solar-server-bold'
+  return `<svg class="solar-icon solar-bold" style="width:${size}px; height:${size}px; margin-right:8px; color:var(--primary);" aria-hidden="true"><use href="${iconRef}"></use></svg>`
 }
 
 export function updateCurrentProfileName(profile: any) {

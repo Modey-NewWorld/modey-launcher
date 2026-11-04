@@ -1,3 +1,17 @@
+const KNOWN_SOLAR_ICONS = new Set([
+  'server', 'shield', 'crown', 'sparkles', 'rocket', 'box',
+  'compass', 'bolt', 'star', 'gamepad', 'cup'
+])
+
+function resolveServerIconSvg(iconUrl?: string, iconName?: string, isCrown = false, size = 20): string {
+  if (iconUrl) {
+    return `<img src="${iconUrl}" style="width:${size}px; height:${size}px; object-fit:contain; border-radius:4px; vertical-align:middle;" />`
+  }
+  const cleanName = (iconName || 'server').toLowerCase().trim()
+  const resolvedRef = KNOWN_SOLAR_ICONS.has(cleanName) ? `#solar-${cleanName}-bold` : '#solar-server-bold'
+  return `<svg class="solar-icon solar-bold ${cleanName === 'crown' || isCrown ? 'server-icon-gold' : ''}" aria-hidden="true"><use href="${resolvedRef}"></use></svg>`
+}
+
 import { Dialog } from '../../components/dialog'
 import { showAccueil } from '../../router'
 import { pingServer, getServerTarget } from '../../services/serverStatus'
@@ -78,11 +92,11 @@ function buildServersList(): ServerItem[] {
     const meta = launcherConfig.getServer(slug)
     const isComingSoon = isComingSoonProfile(p) || meta?.status === 'comingSoon'
 
-    const tags: string[] = Array.isArray(p.tags) && p.tags.length > 0
+    const tags: string[] = Array.isArray(p.tags)
       ? p.tags
-      : (Array.isArray(p.modey?.tags) && p.modey.tags.length > 0
+      : (Array.isArray(p.modey?.tags)
         ? p.modey.tags
-        : (meta?.tags || []))
+        : (Array.isArray(meta?.tags) ? meta.tags : []))
 
     const version = p.minecraftVersion || p.modey?.minecraftVersion || meta?.minecraftVersion || '1.21.1'
     const name = p.name || meta?.name || slug
@@ -91,9 +105,9 @@ function buildServersList(): ServerItem[] {
     const description = p.description || p.modey?.description || meta?.teaser?.description || p.teaser?.description || p.subtitle || ''
     const banner = p.bannerUrl || p.modey?.bannerUrl || meta?.bannerUrl || bgAthena
 
-    const iconName = p.modey?.launcherIcon || (meta ? meta.launcherIcon : undefined) || p.launcherIcon || (isComingSoon ? 'box' : 'crown')
-    const solarIconRef = iconName === 'crown' ? '#solar-crown-bold' : (iconName === 'shield' ? '#solar-shield-bold' : (iconName === 'box' ? '#solar-box-bold' : '#solar-server-bold'))
-    const iconSvg = `<svg class="solar-icon solar-bold ${iconName === 'crown' ? 'server-icon-gold' : ''}" aria-hidden="true"><use href="${solarIconRef}"></use></svg>`
+    const iconUrl = p.iconUrl || p.modey?.iconUrl || meta?.iconUrl
+    const iconName = p.modey?.launcherIcon || (meta ? meta.launcherIcon : undefined) || p.launcherIcon || (isComingSoon ? 'box' : 'server')
+    const iconSvg = resolveServerIconSvg(iconUrl, iconName, iconName === 'crown')
 
     const cachedPing = pingLiveCache[slug]
 
@@ -130,9 +144,9 @@ function buildServersList(): ServerItem[] {
     const tags = meta.tags || []
     const banner = meta.bannerUrl || bgAthena
 
-    const iconName = meta.launcherIcon || (isComingSoon ? 'box' : 'crown')
-    const solarIconRef = iconName === 'crown' ? '#solar-crown-bold' : (iconName === 'shield' ? '#solar-shield-bold' : (iconName === 'box' ? '#solar-box-bold' : '#solar-server-bold'))
-    const iconSvg = `<svg class="solar-icon solar-bold ${iconName === 'crown' ? 'server-icon-gold' : ''}" aria-hidden="true"><use href="${solarIconRef}"></use></svg>`
+    const iconUrl = meta.iconUrl
+    const iconName = meta.launcherIcon || (isComingSoon ? 'box' : 'server')
+    const iconSvg = resolveServerIconSvg(iconUrl, iconName, iconName === 'crown')
 
     const cachedPing = pingLiveCache[slug]
 
@@ -351,9 +365,7 @@ function renderCards() {
               </div>
             </div>
             <p class="card-description">${s.description}</p>
-            <div class="card-tags-list">
-              ${tagsHtml}
-            </div>
+            ${s.tags && s.tags.length > 0 ? `<div class="card-tags-list">${tagsHtml}</div>` : ''}
             <div class="card-footer-row">
               ${joinBtnHtml}
               <button class="btn-card-details" data-action="details" data-server-id="${s.id}">
@@ -436,7 +448,13 @@ function renderInspector(server: ServerItem) {
   if (subEl) subEl.textContent = server.subtitle
 
   if (tagsEl) {
-    tagsEl.innerHTML = server.tags.map((t) => `<span class="inspector-tag-chip">${t}</span>`).join('')
+    if (server.tags && server.tags.length > 0) {
+      tagsEl.style.display = 'flex'
+      tagsEl.innerHTML = server.tags.map((t) => `<span class="inspector-tag-chip">${t}</span>`).join('')
+    } else {
+      tagsEl.style.display = 'none'
+      tagsEl.innerHTML = ''
+    }
   }
 
   if (latencyValEl) {
