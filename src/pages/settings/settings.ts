@@ -1,6 +1,6 @@
 import { getTheme, setTheme, onThemeChange, type ThemePreference } from "../../theme"
 import { settings, system, profiles, files, game } from '../../ipc'
-import type { IGameSettings } from '../../../electron/handlers/settings'
+import type { IGameSettings, IServerGameSettings } from '../../../electron/handlers/settings'
 import { Dialog } from '../../components/dialog'
 import { setRouterHooks } from '../../router'
 import { initUpdateCard } from './components/updateCard'
@@ -34,6 +34,7 @@ const resolutionList = [
 let currentSettings: IGameSettings
 let currentSelectedTarget: string = 'global' // 'global' ou '<slug>'
 let allKnownProfiles: any[] = []
+let serverMemoryTouched = false
 
 export async function initSettings() {
   const sysInfo = await system.getInfo()
@@ -223,6 +224,7 @@ export async function applyServerSelection(targetSlug: string) {
     }
 
     // Charger la RAM spécifique ou fallback sur la globale
+    serverMemoryTouched = false
     const srvMem = currentSettings.serverSettings?.[targetSlug]?.memory
     const ramMin = typeof srvMem?.min === 'number' ? srvMem.min : currentSettings.memory.min
     const ramMax = typeof srvMem?.max === 'number' ? srvMem.max : currentSettings.memory.max

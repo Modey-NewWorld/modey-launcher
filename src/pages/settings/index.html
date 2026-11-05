@@ -28,7 +28,6 @@
                 <div class="path-box" id="server-instance-path">Chargement...</div>
                 <div class="btn-row" style="margin-top:4px;">
                   <button type="button" class="settings-btn" id="server-open-folder-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir le dossier du serveur</button>
-                  <button type="button" class="settings-btn" id="server-reset-ram-btn" title="Réinitialiser la RAM de ce serveur sur les valeurs globales"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Aligner la RAM sur le profil général</button>
                 </div>
                 <p class="muted">Ce dossier contient l'ensemble des fichiers locaux isolés (mods, configurations, ressources et données de jeu) spécifiques à ce serveur.</p>
               </section>
@@ -48,6 +47,10 @@
                   <span id="server-ram-min-label">Min : 2 Go</span>
                   <span id="server-ram-max-label">Max : 8 Go</span>
                 </div>
+                <div class="btn-row" style="margin-top:8px;">
+                  <button type="button" class="settings-btn" id="server-reset-ram-btn" title="Réinitialiser la RAM de ce serveur sur les valeurs globales"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Hériter de la RAM générale</button>
+                </div>
+                <p class="muted">Sans réglage explicite, ce serveur utilise automatiquement la mémoire générale.</p>
               </section>
 
               <!-- Carte Résolution du Jeu propre au serveur -->

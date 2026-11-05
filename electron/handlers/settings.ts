@@ -161,6 +161,11 @@ export function readAllSettingsWithSync(): IGameSettings {
     } else {
       fs.writeFileSync(settingsPath, JSON.stringify(DEFAULT_SETTINGS, null, 2))
     }
+
+    // Migration douce des anciennes valeurs erronées
+    if (settings.java === 'path' || settings.java === 'custom') {
+      settings.java = 'system'
+    }
   } catch (err) {
     logger.error('Error reading settings:', err)
   }
