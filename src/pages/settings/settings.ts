@@ -306,7 +306,6 @@ async function initUIListeners() {
   const ramMax = el('ram-max') as HTMLInputElement
   const serverRamMin = el('server-ram-min') as HTMLInputElement
   const serverRamMax = el('server-ram-max') as HTMLInputElement
-  const resolutionSelect = el('resolution-select') as HTMLSelectElement
   const launcherActionSelect = el('launcher-action-select') as HTMLSelectElement
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
   const javaSelect = el('java-select') as HTMLSelectElement
@@ -315,10 +314,67 @@ async function initUIListeners() {
   ramMax?.addEventListener('input', saveSettingsDebounced)
   serverRamMin?.addEventListener('input', saveSettingsDebounced)
   serverRamMax?.addEventListener('input', saveSettingsDebounced)
-  resolutionSelect?.addEventListener('change', saveSettingsDebounced)
   launcherActionSelect?.addEventListener('change', saveSettingsDebounced)
   backgroundSleepSelect?.addEventListener('change', saveSettingsDebounced)
   javaSelect?.addEventListener('change', saveSettingsDebounced)
+
+  // Contrôles spécifiques au serveur sélectionné
+  const serverResSelect = el('server-resolution-select') as HTMLSelectElement | null
+  const serverJvmArgs = el('server-jvm-args') as HTMLInputElement | null
+  serverResSelect?.addEventListener('change', saveSettingsDebounced)
+  serverJvmArgs?.addEventListener('input', saveSettingsDebounced)
+
+  // Actions de Maintenance & Diagnostics
+  const serverRepairBtn = el('server-repair-btn') as HTMLButtonElement | null
+  serverRepairBtn?.addEventListener('click', async () => {
+    if (currentSelectedTarget === 'global') return
+    const originalContent = serverRepairBtn.innerHTML
+    serverRepairBtn.disabled = true
+    serverRepairBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Vérification en cours...'
+    try {
+      const res = await game.verifyIntegrity(currentSelectedTarget)
+      if (!res.success) {
+        await Dialog.show(res.error || 'Erreur lors de la vérification des fichiers.', [{ text: 'Fermer', type: 'danger' }], 'Diagnostic Serveur')
+      } else {
+        await Dialog.show(
+          `Vérification de l'installation terminée avec succès !\n\n• Fichiers totaux : ${res.total || 0}\n• Fichiers intègres : ${res.valid || 0}\n• Fichiers réparés/téléchargés : ${res.repaired || 0}`,
+          [{ text: 'Super !', type: 'ok' }],
+          'Vérification & Réparation'
+        )
+      }
+    } catch (err: any) {
+      logger.error('Repair failed:', err)
+      await Dialog.show(`Échec du diagnostic : ${err?.message || err}`, [{ text: 'Fermer', type: 'danger' }], 'Erreur')
+    } finally {
+      serverRepairBtn.disabled = false
+      serverRepairBtn.innerHTML = originalContent
+    }
+  })
+
+  const serverOpenLogsBtn = el('server-open-logs-btn') as HTMLButtonElement | null
+  serverOpenLogsBtn?.addEventListener('click', async () => {
+    if (currentSelectedTarget === 'global') return
+    const res = await files.openServerLogs(currentSelectedTarget)
+    if (!res.success) {
+      await Dialog.show(res.error || 'Impossible d’ouvrir le dossier des logs du serveur.', [{ text: 'OK', type: 'ok' }])
+    }
+  })
+
+  // Notices licences tierces
+  const noticesBtn = el('btn-view-third-party-notices') as HTMLButtonElement | null
+  noticesBtn?.addEventListener('click', async () => {
+    await Dialog.show(
+      `NOTICES ET LICENCES TIERCES DU MODEY LAUNCHER\n\n` +
+      `1. EML Template & Lib (MIT) © 2026 GoldFrite\n` +
+      `2. skinview3d (MIT) © 2020-2023 invis_ghost\n` +
+      `3. Solar Icons (CC BY 4.0) © 480 Design\n` +
+      `4. Fond d'écran bg.png (CC BY-ND 3.0)\n` +
+      `5. authlib-injector (AGPL-3.0 avec Exception explicite d'exécution autorisée)\n\n` +
+      `Pour consulter les textes intégraux de chaque licence, consultez le fichier THIRD-PARTY-NOTICES.md packagé avec le launcher.`,
+      [{ text: 'Fermer', type: 'ok' }],
+      'Licences Tierces'
+    )
+  })
 
   // Sélecteur de Thème Clair / Sombre / Système
   const themeSelect = el('theme-select') as HTMLSelectElement | null
@@ -346,7 +402,6 @@ async function saveSettings() {
   const serverMaxInput = el('server-ram-max') as HTMLInputElement
   const launcherActionSelect = el('launcher-action-select') as HTMLSelectElement
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
-  const resolutionSelect = el('resolution-select') as HTMLSelectElement
   const javaSelect = el('java-select') as HTMLSelectElement
 
   const minRam = parseFloat(minInput?.value || '2')
@@ -360,10 +415,10 @@ async function saveSettings() {
     serverSettings: {
       ...(currentSettings.serverSettings || {})
     },
-    resolution: {
-      height: resolutionList.find((r) => r.value === resolutionSelect.value)?.height ?? 854,
-      width: resolutionList.find((r) => r.value === resolutionSelect.value)?.width ?? 480,
-      fullscreen: resolutionSelect.value === 'fullscreen'
+    resolution: currentSettings.resolution || {
+      width: 1280,
+      height: 720,
+      fullscreen: false
     },
     java: javaSelect.value === 'bundled' ? 'bundled' : 'path',
     launcherAction: launcherActionSelect.value as 'close' | 'keep' | 'hide',
@@ -374,12 +429,31 @@ async function saveSettings() {
   if (currentSelectedTarget !== 'global') {
     const srvMin = parseFloat(serverMinInput?.value || String(minRam))
     const srvMax = parseFloat(serverMaxInput?.value || String(maxRam))
+    const serverResSelect = el('server-resolution-select') as HTMLSelectElement | null
+    const jvmInput = el('server-jvm-args') as HTMLInputElement | null
+
+    let parsedResolution: { width: number; height: number; fullscreen: boolean } | undefined
+    if (serverResSelect && serverResSelect.value !== 'default') {
+      const isFullscreen = serverResSelect.value === 'fullscreen'
+      const matchRes = resolutionList.find((r) => r.value === serverResSelect.value)
+      parsedResolution = {
+        fullscreen: isFullscreen,
+        width: matchRes?.width ?? 1280,
+        height: matchRes?.height ?? 720
+      }
+    }
+
+    const jvmArgsVal = jvmInput?.value?.trim() || ''
+
     newSettings.serverSettings![currentSelectedTarget] = {
       ...(newSettings.serverSettings![currentSelectedTarget] || {}),
       memory: {
         min: srvMin,
         max: srvMax
-      }
+      },
+      resolution: parsedResolution,
+      jvmArgs: jvmArgsVal,
+      useDefaultJvmArgs: true
     }
     updateServerBadgeRam(currentSelectedTarget, srvMax)
   }
@@ -511,30 +585,17 @@ function initUiScale() {
   plus?.addEventListener('click', () => stepUiScale(UI_SCALE_STEP_PCT))
 }
 
-function initFormValues(resolution: { width: number; height: number }) {
+function initFormValues(_sysResolution: { width: number; height: number }) {
   if (!currentSettings) return
 
   const minInput = el('ram-min') as HTMLInputElement
   const maxInput = el('ram-max') as HTMLInputElement
-  const resolutionSelect = el('resolution-select') as HTMLSelectElement
   const launcherActionSelect = el('launcher-action-select') as HTMLSelectElement
   const javaSelect = el('java-select') as HTMLSelectElement
 
   if (minInput) minInput.value = String(currentSettings.memory.min)
   if (maxInput) maxInput.value = String(currentSettings.memory.max)
 
-  if (resolutionSelect) {
-    const availableResolutions = getAvailableResolutions(resolution)
-    resolutionSelect.innerHTML = ''
-    availableResolutions.forEach((res) => {
-      const option = document.createElement('option')
-      option.value = res.value
-      option.innerText = res.label
-      resolutionSelect.appendChild(option)
-    })
-
-    resolutionSelect.value = currentSettings.resolution.fullscreen ? 'fullscreen' : `${currentSettings.resolution.width}x${currentSettings.resolution.height}`
-  }
   if (launcherActionSelect) launcherActionSelect.value = currentSettings.launcherAction
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
   if (backgroundSleepSelect) backgroundSleepSelect.value = String(currentSettings.backgroundSleep ?? 0)
@@ -545,8 +606,4 @@ function initFormValues(resolution: { width: number; height: number }) {
   updateUiScaleUI()
 
   minInput?.dispatchEvent(new Event('input'))
-}
-
-function getAvailableResolutions(systemResolution: { width: number; height: number }) {
-  return resolutionList.filter((res) => res.width <= systemResolution.width && res.height <= systemResolution.height)
 }
