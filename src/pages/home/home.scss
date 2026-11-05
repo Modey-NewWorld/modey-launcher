@@ -447,39 +447,59 @@
 }
 
 /* Bloc Reprends là où tu t'es arrêté */
-.resume-card-box {
+.resume-card {
+  .home-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+  }
+}
+
+#resume-container {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.resume-card-box {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
   height: 100%;
   flex: 1;
-  gap: 12px;
+  min-height: 0;
+  gap: 14px;
 
-  .resume-card-content {
+  .resume-card-thumb {
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    min-height: 80px;
+    align-self: stretch;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--line);
+  }
+
+  .resume-card-info {
     display: flex;
-    align-items: center;
-    gap: 14px;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
     flex: 1;
+    height: 100%;
 
-    .resume-card-thumb {
-      width: 82px;
-      height: 82px;
-      aspect-ratio: 1 / 1;
-      border-radius: 12px;
-      background-size: cover;
-      background-position: center;
-      flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-      border: 1px solid var(--line);
-    }
-
-    .resume-card-info {
+    .resume-card-details {
       display: flex;
       flex-direction: column;
-      justify-content: center;
       gap: 5px;
       min-width: 0;
-      flex: 1;
 
       .resume-card-title {
         font-size: 16px;
@@ -489,6 +509,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         letter-spacing: -0.2px;
+        line-height: 1.25;
       }
 
       .resume-card-status {
@@ -537,15 +558,10 @@
           width: 13px;
           height: 13px;
           color: var(--ink-400);
+          flex-shrink: 0;
         }
       }
     }
-  }
-
-  .resume-card-actions {
-    display: flex;
-    flex-direction: column;
-    margin-top: auto;
 
     .btn-resume-play {
       width: 100%;
@@ -554,10 +570,10 @@
       color: #FFFFFF;
       border: none;
       font-family: var(--font-ui);
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 700;
-      padding: 10px 16px;
-      height: 38px;
+      padding: 0 12px;
+      height: 36px;
       border-radius: var(--r-sm);
       cursor: pointer;
       display: inline-flex;
@@ -566,6 +582,12 @@
       gap: 6px;
       box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
       transition: all var(--dur-1) var(--ease-out);
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
       &:hover:not(:disabled) {
         filter: brightness(1.1);

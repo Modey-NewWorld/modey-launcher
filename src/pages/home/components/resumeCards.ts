@@ -94,9 +94,9 @@ function renderResume(onSelectProfile: (profile: any) => void) {
 
   container.innerHTML = `
     <div class="resume-card-box">
-      <div class="resume-card-content">
-        <div class="resume-card-thumb" style="background-image: url('${banner}')"></div>
-        <div class="resume-card-info">
+      <div class="resume-card-thumb" style="background-image: url('${banner}')"></div>
+      <div class="resume-card-info">
+        <div class="resume-card-details">
           <div class="resume-card-title">${serverName}</div>
           <div class="resume-card-status">
             <span class="status-dot ${dotClass}"></span>
@@ -107,8 +107,6 @@ function renderResume(onSelectProfile: (profile: any) => void) {
             <span>${timeText}</span>
           </div>
         </div>
-      </div>
-      <div class="resume-card-actions">
         <button class="btn-resume-play ${disabled ? 'btn-disabled' : ''} ${isAdmin && (isSoon || isMaint || isDisabled) ? 'btn-admin-bypass' : ''}" id="btn-resume-play" ${disabled ? 'disabled' : ''}>
           ${solar(playIcon, 'bold')} <span>${playLabel}</span>
         </button>
