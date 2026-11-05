@@ -1,5 +1,5 @@
 import { getTheme, setTheme, onThemeChange, type ThemePreference } from "../../theme"
-import { settings, system, profiles, files } from '../../ipc'
+import { settings, system, profiles, files, game } from '../../ipc'
 import type { IGameSettings } from '../../../electron/handlers/settings'
 import { Dialog } from '../../components/dialog'
 import { setRouterHooks } from '../../router'
@@ -227,6 +227,25 @@ export async function applyServerSelection(targetSlug: string) {
     const ramMin = typeof srvMem?.min === 'number' ? srvMem.min : currentSettings.memory.min
     const ramMax = typeof srvMem?.max === 'number' ? srvMem.max : currentSettings.memory.max
     syncServerRamSliders(ramMin, ramMax)
+
+    // Hydrater la résolution propre au serveur
+    const srvRes = currentSettings.serverSettings?.[targetSlug]?.resolution
+    const serverResSelect = el('server-resolution-select') as HTMLSelectElement | null
+    if (serverResSelect) {
+      if (!srvRes) {
+        serverResSelect.value = 'default'
+      } else if (srvRes.fullscreen) {
+        serverResSelect.value = 'fullscreen'
+      } else {
+        serverResSelect.value = `${srvRes.width}x${srvRes.height}`
+      }
+    }
+
+    // Hydrater les arguments JVM du serveur
+    const jvmInput = el('server-jvm-args') as HTMLInputElement | null
+    if (jvmInput) {
+      jvmInput.value = currentSettings.serverSettings?.[targetSlug]?.jvmArgs || ''
+    }
   }
 }
 
