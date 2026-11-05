@@ -70,7 +70,8 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.on(IPC.game.launchLaunch, (_event, value) => callback(value)),
     launched: (callback: () => void) => ipcRenderer.on(IPC.game.launched, (_event) => callback()),
 
-    launchClose: (callback: (value: number | null) => void) => ipcRenderer.on(IPC.game.launchClose, (_event, value) => callback(value))
+    launchClose: (callback: (value: number | null) => void) => ipcRenderer.on(IPC.game.launchClose, (_event, value) => callback(value)),
+    verifyIntegrity: (slug: string) => ipcRenderer.invoke(IPC.game.verifyIntegrity, slug)
   },
   skin: {
     reload: (account: Account): Promise<void | null> => ipcRenderer.invoke(IPC.skin.reload, account),
@@ -127,7 +128,11 @@ contextBridge.exposeInMainWorld('api', {
     deleteInstance: (slug: string): Promise<{ success: boolean; error?: string }> =>
       ipcRenderer.invoke(IPC.files.deleteInstance, slug),
     openInstance: (slug: string): Promise<{ success: boolean; error?: string }> =>
-      ipcRenderer.invoke(IPC.files.openInstance, slug)
+      ipcRenderer.invoke(IPC.files.openInstance, slug),
+    openServerLogs: (slug: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke(IPC.files.openServerLogs, slug),
+    openServerCrashReports: (slug: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke(IPC.files.openServerCrashReports, slug)
   },
   optionalMods: {
     list: (slug: string) => ipcRenderer.invoke(IPC.optionalMods.list, slug),

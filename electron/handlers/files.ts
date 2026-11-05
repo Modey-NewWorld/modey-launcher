@@ -321,13 +321,40 @@ export function registerFilesHandlers() {
   ipcMain.handle(IPC.files.openInstance, async (_event, slug: string): Promise<OpResult> => {
     try {
       const full = instancePathFor(slug)
-      const errStr = await shell.openPath(full)
       if (!fs.existsSync(full)) {
         fs.mkdirSync(full, { recursive: true })
       }
+      const errStr = await shell.openPath(full)
       return errStr ? { success: false, error: errStr } : { success: true }
     } catch (err: any) {
       return fail(`Impossible d’ouvrir le dossier : ${err?.message ?? err}`)
+    }
+  })
+
+  ipcMain.handle(IPC.files.openServerLogs, async (_event, slug: string): Promise<OpResult> => {
+    try {
+      const full = path.join(instancePathFor(slug), 'logs')
+      if (!fs.existsSync(full)) {
+        fs.mkdirSync(full, { recursive: true })
+      }
+      const errStr = await shell.openPath(full)
+      return errStr ? { success: false, error: errStr } : { success: true }
+    } catch (err: any) {
+      return fail(`Impossible d’ouvrir le dossier logs : ${err?.message ?? err}`)
+    }
+  })
+
+  ipcMain.handle(IPC.files.openServerCrashReports, async (_event, slug: string): Promise<OpResult> => {
+    try {
+      const crashDir = path.join(instancePathFor(slug), 'crash-reports')
+      const targetDir = fs.existsSync(crashDir) ? crashDir : path.join(instancePathFor(slug), 'logs')
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true })
+      }
+      const errStr = await shell.openPath(targetDir)
+      return errStr ? { success: false, error: errStr } : { success: true }
+    } catch (err: any) {
+      return fail(`Impossible d’ouvrir les rapports de crash : ${err?.message ?? err}`)
     }
   })
 }

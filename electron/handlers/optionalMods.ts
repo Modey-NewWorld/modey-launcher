@@ -46,9 +46,14 @@ export function registerOptionalModsHandlers() {
       if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
       // Récupérer le manifest distant
-      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`)
-      if (!resp.ok) return []
-      const data = await resp.json()
+      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`).catch(() => null)
+      if (!resp || !resp.ok) return []
+      let data: any = {}
+      try {
+        data = await resp.json()
+      } catch {
+        return []
+      }
       const remoteOptionalMods: any[] = Array.isArray(data.optionalMods) ? data.optionalMods : []
 
       // Lire la configuration locale pour savoir quels mods sont activés
@@ -58,18 +63,18 @@ export function registerOptionalModsHandlers() {
       const localOptFiles = fs.existsSync(optDir) ? fs.readdirSync(optDir) : []
       const localActiveMods = fs.existsSync(modsDir) ? fs.readdirSync(modsDir) : []
 
-      const result: IOptionalModItem[] = remoteOptionalMods.map((rem) => {
-        const fileName = rem.name
-        const isPresentInOpt = localOptFiles.includes(fileName)
-        const isPresentInActive = localActiveMods.includes(fileName)
-        const isInstalled = isPresentInOpt || isPresentInActive
+      const result: IOptionalModItem[] = remoteOptionalMods
+        .filter((rem) => rem && (rem.name || rem.path || rem.id))
+        .map((rem) => {
+          const fileName = rem.name || rem.path || `${rem.id}.jar`
+          const modId = rem.id || fileName
+          const isPresentInOpt = localOptFiles.includes(fileName)
+          const isPresentInActive = localActiveMods.includes(fileName)
+          const isInstalled = isPresentInOpt || isPresentInActive
 
-        // Déterminer l'état actif :
-        // 1. Si expressément configuré true -> activé
-        // 2. Si expressément configuré false -> désactivé
-        // 3. Si non défini -> activé si le fichier est déjà présent dans mods/
-        const explicitState = optionalModsStates[rem.id] !== undefined ? optionalModsStates[rem.id] : optionalModsStates[fileName]
-        const isEnabled = explicitState !== undefined ? explicitState === true : isPresentInActive
+          // Déterminer l'état actif :
+          const explicitState = optionalModsStates[modId] !== undefined ? optionalModsStates[modId] : optionalModsStates[fileName]
+          const isEnabled = explicitState !== undefined ? explicitState === true : isPresentInActive
 
         // Si le mod est installé et activé mais pas encore copié dans mods/, on le copie
         if (isEnabled && isPresentInOpt && !isPresentInActive) {
@@ -117,18 +122,23 @@ export function registerOptionalModsHandlers() {
         if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
         // Chercher l'URL de téléchargement
-        const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`)
-        if (!resp.ok) return { success: false, error: 'Impossible de joindre le serveur de distribution.' }
-        const data = await resp.json()
+        const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`).catch(() => null)
+        if (!resp || !resp.ok) return { success: false, error: 'Impossible de joindre le serveur de distribution.' }
+        let data: any = {}
+        try {
+          data = await resp.json()
+        } catch {
+          return { success: false, error: 'Réponse invalide du serveur de distribution.' }
+        }
         const mod = (data.optionalMods || []).find((m: any) => m.id === modId || m.name === modId)
         if (!mod || !mod.url) return { success: false, error: 'Mod optionnel introuvable dans le catalogue.' }
 
-        const cleanName = sanitizeFileName(mod.name)
+        const cleanName = sanitizeFileName(mod.name || `${modId}.jar`)
         const targetOptPath = path.join(optDir, cleanName)
 
         // Télécharger le fichier
-        const fileResp = await fetch(mod.url)
-        if (!fileResp.ok) return { success: false, error: `Erreur téléchargement HTTP ${fileResp.status}` }
+        const fileResp = await fetch(mod.url).catch(() => null)
+        if (!fileResp || !fileResp.ok) return { success: false, error: `Erreur téléchargement (${fileResp ? fileResp.status : 'réseau'})` }
         const arrayBuf = await fileResp.arrayBuffer()
         await fsp.writeFile(targetOptPath, Buffer.from(arrayBuf))
 

@@ -28,7 +28,8 @@ function formatBytes(bytes: number): string {
   return `${(num / Math.pow(k, idx)).toFixed(1)} ${sizes[idx]}`
 }
 
-function cleanModDisplayName(rawName: string): string {
+function cleanModDisplayName(rawName?: string): string {
+  if (!rawName) return 'Mod Optionnel'
   return rawName
     .replace(/\.jar$/i, '')
     .replace(/[-_]neoforge[-_].*$/i, '')

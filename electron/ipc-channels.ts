@@ -67,7 +67,9 @@ export const IPC = {
     resetRoot: 'files:reset_root',
     listInstances: 'files:list_instances',
     deleteInstance: 'files:delete_instance',
-    openInstance: 'files:open_instance'
+    openInstance: 'files:open_instance',
+    openServerLogs: 'files:open_server_logs',
+    openServerCrashReports: 'files:open_server_crash_reports'
   },
   optionalMods: {
     list: 'optional_mods:list',
@@ -88,6 +90,7 @@ export const IPC = {
   },
   game: {
     launch: 'game:launch',
+    verifyIntegrity: 'game:verify_integrity',
     checkExtraMods: 'game:check_extra_mods',
     kill: 'game:kill',
     launchComputeDownload: 'game:launch_compute_download',

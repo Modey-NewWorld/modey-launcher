@@ -90,6 +90,7 @@ declare global {
         launched: (callback: () => void) => void
 
         launchClose: (callback: (code: number | null) => void) => void
+        verifyIntegrity: (slug: string) => Promise<{ success: boolean; total?: number; valid?: number; repaired?: number; error?: string }>
       }
       settings: {
         get: () => Promise<IGameSettings>
@@ -109,6 +110,8 @@ declare global {
         listInstances: () => Promise<IInstanceInfo[]>
         deleteInstance: (slug: string) => Promise<{ success: boolean; error?: string }>
         openInstance: (slug: string) => Promise<{ success: boolean; error?: string }>
+        openServerLogs: (slug: string) => Promise<{ success: boolean; error?: string }>
+        openServerCrashReports: (slug: string) => Promise<{ success: boolean; error?: string }>
       }
       optionalMods: {
         list: (slug: string) => Promise<IOptionalModItem[]>
@@ -197,7 +200,8 @@ export const game = {
   launchClean: (callback: () => void) => window.api.game.launchClean(callback),
   launchLaunch: (callback: (value: LauncherEvents['launch_launch'][0]) => void) => window.api.game.launchLaunch(callback),
   launched: (callback: () => void) => window.api.game.launched(callback),
-  launchClose: (callback: (code: number | null) => void) => window.api.game.launchClose(callback)
+  launchClose: (callback: (code: number | null) => void) => window.api.game.launchClose(callback),
+  verifyIntegrity: async (slug: string) => await window.api.game.verifyIntegrity(slug)
 }
 
 export const settings = {
@@ -219,7 +223,9 @@ export const files = {
   resetRoot: async () => await window.api.files.resetRoot(),
   listInstances: async () => await window.api.files.listInstances(),
   deleteInstance: async (slug: string) => await window.api.files.deleteInstance(slug),
-  openInstance: async (slug: string) => await window.api.files.openInstance(slug)
+  openInstance: async (slug: string) => await window.api.files.openInstance(slug),
+  openServerLogs: async (slug: string) => await window.api.files.openServerLogs(slug),
+  openServerCrashReports: async (slug: string) => await window.api.files.openServerCrashReports(slug)
 }
 
 export const optionalMods = {

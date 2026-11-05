@@ -7,6 +7,8 @@ import { instancePathFor } from '../files'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL, AUTH_SERVER_URL, getSystemJava21Path, DEFAULT_MC_VERSION, DEFAULT_LOADER, DEFAULT_LOADER_VERSION } from '../../const'
 import fs from 'node:fs'
+import path from 'node:path'
+import crypto from 'node:crypto'
 import { IPC } from '../../ipc-channels'
 import { getDynamicMemoryLimits } from '../../runtimeConfig'
 import { getAuthlibInjectorPath } from './authlib'
@@ -101,24 +103,42 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         java = { install: 'manual', absolutePath: javaExe }
       }
 
-      const host = serverIp || '127.0.0.1'
-      const port = serverPort || 25565
-      const gameArgs = ['--quickPlayMultiplayer', `${host}:${port}`, '--quickPlayPath', 'quickPlay.json']
-      let actionTimer: ReturnType<typeof setTimeout> | null = null
-
-      const targetMcVersion = minecraftVersion || DEFAULT_MC_VERSION
-      const targetLoaderType = loaderType || DEFAULT_LOADER
-      const targetLoaderVersion = loaderVersion || DEFAULT_LOADER_VERSION
-
       // Synchroniser avec server-settings.json s'il a été édité sur disque
       const localDiskCfg = readLocalServerConfig(profileSlug)
-      if (localDiskCfg && localDiskCfg.memory) {
+      if (localDiskCfg) {
         if (!settings.serverSettings) settings.serverSettings = {}
         settings.serverSettings[profileSlug] = {
           ...(settings.serverSettings[profileSlug] || {}),
           ...localDiskCfg
         }
       }
+
+      // Résolution d'écran dédiée par serveur (avec repli sur la valeur par défaut ou globale)
+      const serverRes = settings.serverSettings?.[profileSlug]?.resolution
+      const localRes = localDiskCfg?.resolution
+      const globalRes = settings.resolution
+      const effectiveRes = serverRes || localRes || globalRes || { width: 1280, height: 720, fullscreen: false }
+
+      const host = serverIp || '127.0.0.1'
+      const port = serverPort || 25565
+      const gameArgs = ['--quickPlayMultiplayer', `${host}:${port}`, '--quickPlayPath', 'quickPlay.json']
+      if (effectiveRes.fullscreen) {
+        gameArgs.push('--fullscreen')
+      } else {
+        const w = effectiveRes.width || 1280
+        const h = effectiveRes.height || 720
+        gameArgs.push('--width', String(w), '--height', String(h))
+      }
+
+      let actionTimer: ReturnType<typeof setTimeout> | null = null
+
+      const targetMcVersion = minecraftVersion || DEFAULT_MC_VERSION
+      const targetLoaderType = loaderType || DEFAULT_LOADER
+      const targetLoaderVersion = loaderVersion || DEFAULT_LOADER_VERSION
+
+      // Arguments JVM personnalisés par serveur
+      const serverJvmArgs = settings.serverSettings?.[profileSlug]?.jvmArgs ?? localDiskCfg?.jvmArgs
+      const useDefaultJvmArgs = settings.serverSettings?.[profileSlug]?.useDefaultJvmArgs ?? localDiskCfg?.useDefaultJvmArgs ?? true
 
       // Résolution de la RAM (dédiée par serveur si définie, sinon RAM globale)
       const serverMemory = settings.serverSettings?.[profileSlug]?.memory
@@ -132,10 +152,13 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       // Sauvegarder la configuration effective dans server-settings.json pour ce serveur
       writeLocalServerConfig(profileSlug, {
         memory: effectiveMemory,
-        optionalMods: settings.serverSettings?.[profileSlug]?.optionalMods || {}
+        optionalMods: settings.serverSettings?.[profileSlug]?.optionalMods || localDiskCfg?.optionalMods || {},
+        resolution: effectiveRes,
+        jvmArgs: serverJvmArgs,
+        useDefaultJvmArgs: useDefaultJvmArgs
       })
 
-      logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M]`)
+      logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M, Res: ${effectiveRes.fullscreen ? 'fullscreen' : `${effectiveRes.width}x${effectiveRes.height}`}]`)
 
       // 1. Synchroniser les mods optionnels pour ce profil avant lancement
       try {
@@ -272,6 +295,15 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
             if (!args.some((arg) => arg.includes('authlib-injector'))) {
               args.unshift(jvmArg)
               logger.info(`[Modey Launcher] 🔒 authlib-injector injecté dans les JVM args → ${customAuthUrl}`)
+            }
+          }
+
+          // Injection des arguments JVM personnalisés par serveur
+          if (serverJvmArgs && typeof serverJvmArgs === 'string' && serverJvmArgs.trim().length > 0) {
+            const customTokens = serverJvmArgs.trim().split(/\s+/).filter(Boolean)
+            if (customTokens.length > 0) {
+              args.unshift(...customTokens)
+              logger.info(`[Modey Launcher] ⚡ Arguments JVM personnalisés injectés pour ${profileSlug} : ${customTokens.join(' ')}`)
             }
           }
 
@@ -418,4 +450,71 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       }
     }
   )
+
+  // Vérification & Réparation de l'intégrité des fichiers du serveur
+  ipcMain.handle(IPC.game.verifyIntegrity, async (_event, slug: string) => {
+    try {
+      const cleanSlug = (slug || 'athena').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+      const instDir = instancePathFor(cleanSlug)
+      logger.info(`[Integrity] Début de la vérification des fichiers pour : ${cleanSlug}`)
+
+      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`).catch(() => null)
+      if (!resp || !resp.ok) {
+        return { success: false, error: 'Impossible de joindre le serveur de distribution pour vérifier les fichiers.' }
+      }
+      const manifest = await resp.json()
+      const filesList: any[] = Array.isArray(manifest.files) ? manifest.files : []
+      let repairedCount = 0
+      let validCount = 0
+
+      for (const item of filesList) {
+        if (!item.path || !item.url) continue
+        const targetFile = path.join(instDir, item.path)
+        let needsDownload = false
+
+        if (!fs.existsSync(targetFile)) {
+          needsDownload = true
+        } else if (item.sha1) {
+          try {
+            const buf = fs.readFileSync(targetFile)
+            const sha1 = crypto.createHash('sha1').update(buf).digest('hex')
+            if (sha1.toLowerCase() !== item.sha1.toLowerCase()) {
+              needsDownload = true
+            } else {
+              validCount++
+            }
+          } catch {
+            needsDownload = true
+          }
+        } else {
+          validCount++
+        }
+
+        if (needsDownload) {
+          const dir = path.dirname(targetFile)
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+          const fileResp = await fetch(item.url).catch(() => null)
+          if (fileResp && fileResp.ok) {
+            const arrayBuf = await fileResp.arrayBuffer()
+            fs.writeFileSync(targetFile, Buffer.from(arrayBuf))
+            repairedCount++
+            logger.info(`[Integrity Repair] Fichier réparé/mis à jour : ${item.path}`)
+          } else {
+            logger.warn(`[Integrity Repair] Échec de téléchargement pour : ${item.path}`)
+          }
+        }
+      }
+
+      logger.info(`[Integrity] Terminé pour ${cleanSlug}: ${validCount} valides, ${repairedCount} réparés sur ${filesList.length} fichiers`)
+      return {
+        success: true,
+        total: filesList.length,
+        valid: validCount,
+        repaired: repairedCount
+      }
+    } catch (err: any) {
+      logger.error('[Integrity Repair] Erreur lors de la vérification :', err)
+      return { success: false, error: err?.message || 'Erreur inconnue lors de la vérification.' }
+    }
+  })
 }

@@ -110,7 +110,7 @@ function applyPlayButtonState(
 
   const srvName = profile?.name ?? 'Athéna'
 
-  let heroLabel = 'Rejoindre'
+  let heroLabel = `Jouer à ${srvName}`
   let heroIcon = 'play'
   let heroDisabled = false
   let heroBypass = false
@@ -199,7 +199,7 @@ function applyPlayButtonState(
 
   const playHeroBtn = el('btn-play-hero') as HTMLButtonElement | null
   if (playHeroBtn) {
-    playHeroBtn.innerHTML = `${solar(heroIcon, 'bold')}&nbsp;&nbsp;${heroLabel}`
+    playHeroBtn.innerHTML = `${solar(heroIcon, 'bold')}&nbsp;&nbsp;<span>${heroLabel}</span>`
     if (heroDisabled) {
       playHeroBtn.setAttribute('disabled', 'true')
       playHeroBtn.classList.add('btn-disabled')
@@ -227,21 +227,7 @@ function applyPlayButtonState(
     }
   }
 
-  const resumeBtn = el('btn-resume-play') as HTMLButtonElement | null
-  if (resumeBtn) {
-    const resumeText = heroLabel === `Jouer à ${srvName}` ? 'Rejoindre' : heroLabel
-    resumeBtn.innerHTML = `${solar(heroIcon, 'bold')} ${resumeText}`
-    if (heroDisabled) {
-      resumeBtn.setAttribute('disabled', 'true')
-      resumeBtn.classList.add('btn-disabled')
-      resumeBtn.classList.remove('btn-admin-bypass')
-    } else {
-      resumeBtn.removeAttribute('disabled')
-      resumeBtn.classList.remove('btn-disabled')
-      if (heroBypass) resumeBtn.classList.add('btn-admin-bypass')
-      else resumeBtn.classList.remove('btn-admin-bypass')
-    }
-  }
+
 }
 
 export async function updateServerStatus(profile: any) {

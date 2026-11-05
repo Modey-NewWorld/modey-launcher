@@ -24,6 +24,13 @@ export interface IServerGameSettings {
     max: number
   }
   optionalMods?: Record<string, boolean>
+  resolution?: {
+    width: number
+    height: number
+    fullscreen: boolean
+  }
+  jvmArgs?: string
+  useDefaultJvmArgs?: boolean
 }
 
 export interface IGameSettings {
