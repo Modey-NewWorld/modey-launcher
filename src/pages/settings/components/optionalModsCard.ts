@@ -19,11 +19,13 @@ export function initOptionalModsCard() {
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
+  const num = Number(bytes)
+  if (!num || isNaN(num) || num <= 0) return '0 B'
   const k = 1024
   const sizes = ['B', 'Ko', 'Mo', 'Go']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
+  const i = Math.floor(Math.log(num) / Math.log(k))
+  const idx = Math.min(sizes.length - 1, Math.max(0, i))
+  return `${(num / Math.pow(k, idx)).toFixed(1)} ${sizes[idx]}`
 }
 
 function cleanModDisplayName(rawName: string): string {
@@ -79,7 +81,7 @@ export async function refreshOptionalMods(slug: string) {
     for (const mod of list) {
       const card = document.createElement('div')
       card.className = `optional-mod-card ${mod.isEnabled ? 'is-active' : ''}`
-      card.id = `opt-mod-card-${mod.id}`
+      card.dataset.modId = mod.id
 
       const displayName = cleanModDisplayName(mod.name)
       const sizeStr = formatBytes(mod.size)
@@ -87,7 +89,7 @@ export async function refreshOptionalMods(slug: string) {
       let actionHtml = ''
       if (!mod.isInstalled) {
         actionHtml = `
-          <button type="button" class="opt-btn opt-btn--install" id="btn-install-${mod.id}" title="Télécharger et installer ce mod">
+          <button type="button" class="opt-btn opt-btn--install" title="Télécharger et installer ce mod">
             <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg>&nbsp;Télécharger
           </button>
         `
@@ -97,10 +99,10 @@ export async function refreshOptionalMods(slug: string) {
         const toggleIcon = mod.isEnabled ? '#solar-check-bold' : '#solar-close-circle-bold'
 
         actionHtml = `
-          <button type="button" class="opt-btn ${toggleClass}" id="btn-toggle-${mod.id}" title="${mod.isEnabled ? 'Désactiver ce mod en jeu' : 'Activer ce mod en jeu'}">
+          <button type="button" class="opt-btn opt-btn--toggle ${toggleClass}" title="${mod.isEnabled ? 'Désactiver ce mod en jeu' : 'Activer ce mod en jeu'}">
             <svg class="solar-icon solar-bold" aria-hidden="true"><use href="${toggleIcon}"></use></svg> <span>${toggleText}</span>
           </button>
-          <button type="button" class="opt-btn opt-btn--delete" id="btn-del-${mod.id}" title="Désinstaller complètement ce mod">
+          <button type="button" class="opt-btn opt-btn--delete" title="Désinstaller complètement ce mod">
             <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-trash-bold"></use></svg>
           </button>
         `
@@ -142,8 +144,8 @@ export async function refreshOptionalMods(slug: string) {
 
       container.appendChild(card)
 
-      // Brancher les interactions
-      const installBtn = card.querySelector(`#btn-install-${mod.id}`)
+      // Brancher les interactions via les sélecteurs de classe relatifs (évite tout crash DOM querySelector sur les points '.' des noms de mods)
+      const installBtn = card.querySelector<HTMLButtonElement>('.opt-btn--install')
       installBtn?.addEventListener('click', async () => {
         installBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> Installation...'
         installBtn.setAttribute('disabled', 'true')
@@ -158,7 +160,7 @@ export async function refreshOptionalMods(slug: string) {
         await refreshOptionalMods(slug)
       })
 
-      const toggleBtn = card.querySelector(`#btn-toggle-${mod.id}`)
+      const toggleBtn = card.querySelector<HTMLButtonElement>('.opt-btn--toggle')
       toggleBtn?.addEventListener('click', async () => {
         const nextState = !mod.isEnabled
         toggleBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>'
@@ -173,7 +175,7 @@ export async function refreshOptionalMods(slug: string) {
         await refreshOptionalMods(slug)
       })
 
-      const delBtn = card.querySelector(`#btn-del-${mod.id}`)
+      const delBtn = card.querySelector<HTMLButtonElement>('.opt-btn--delete')
       delBtn?.addEventListener('click', async () => {
         const confirm = await Dialog.show(
           `Voulez-vous vraiment désinstaller le mod optionnel "${displayName}" ?\nIl sera supprimé du dossier de jeu.`,
