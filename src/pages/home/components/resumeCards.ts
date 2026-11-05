@@ -7,6 +7,8 @@ import { homeState } from '../state'
 import { getLastPlayedServer, getServerHistory } from './serverHistory'
 import { checkIsAdmin } from './hero'
 import bgImage from '../../../static/images/bg-thumb.webp'
+import { BRAND } from '../../../config/brand'
+import { launcherConfig } from '../../../services/launcherConfig'
 
 export function renderResumeAndHistory(onSelectProfile: (profile: any) => void) {
   renderResume(onSelectProfile)
@@ -24,6 +26,18 @@ function formatRelativeTime(timestamp: number): string {
   return `Il y a ${diffDays}j`
 }
 
+function getTargetServerIconUrl(profile: any, slug: string): string {
+  const meta = launcherConfig.getServer(slug)
+  const rawUrl = profile?.iconUrl || profile?.modey?.iconUrl || meta?.iconUrl
+  if (rawUrl && (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('data:'))) {
+    return rawUrl
+  }
+  if (rawUrl && rawUrl.startsWith('/')) {
+    return `${BRAND.apiUrl}${rawUrl}`
+  }
+  return `${BRAND.apiUrl}/api/servers/${slug}/icon`
+}
+
 function renderResume(onSelectProfile: (profile: any) => void) {
   const container = document.getElementById('resume-container')
   if (!container) return
@@ -36,7 +50,8 @@ function renderResume(onSelectProfile: (profile: any) => void) {
 
   const serverName = targetProfile?.name || last?.name || 'Athéna'
   const timeText = last ? formatRelativeTime(last.playedAt) : 'Prêt à jouer'
-  const banner = (targetProfile?.slug && bannerCache.getBanner(targetProfile.slug)) || bgImage
+  const targetSlug = targetProfile?.slug || last?.slug || 'athena'
+  const iconUrl = getTargetServerIconUrl(targetProfile, targetSlug)
 
   const isSoon = isComingSoonProfile(targetProfile)
   const isMaint = isMaintenanceProfile(targetProfile)
@@ -94,9 +109,14 @@ function renderResume(onSelectProfile: (profile: any) => void) {
 
   container.innerHTML = `
     <div class="resume-card-box">
-      <div class="resume-card-thumb" style="background-image: url('${banner}')"></div>
-      <div class="resume-card-info">
-        <div class="resume-card-details">
+      <div class="resume-card-top">
+        <div class="resume-card-thumb">
+          <img src="${iconUrl}" alt="${serverName}" class="resume-card-icon-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+          <div class="resume-card-icon-fallback" style="display: none;">
+            ${solar('server', 'bold')}
+          </div>
+        </div>
+        <div class="resume-card-info">
           <div class="resume-card-title">${serverName}</div>
           <div class="resume-card-status">
             <span class="status-dot ${dotClass}"></span>
@@ -107,6 +127,8 @@ function renderResume(onSelectProfile: (profile: any) => void) {
             <span>${timeText}</span>
           </div>
         </div>
+      </div>
+      <div class="resume-card-actions">
         <button class="btn-resume-play ${disabled ? 'btn-disabled' : ''} ${isAdmin && (isSoon || isMaint || isDisabled) ? 'btn-admin-bypass' : ''}" id="btn-resume-play" ${disabled ? 'disabled' : ''}>
           ${solar(playIcon, 'bold')} <span>${playLabel}</span>
         </button>
