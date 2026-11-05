@@ -50,6 +50,49 @@
                 </div>
               </section>
 
+              <!-- Carte Résolution du Jeu propre au serveur -->
+              <section class="settings-card" id="server-resolution-card">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-window-bold"></use></svg>&nbsp;&nbsp;Résolution du jeu</h3>
+                </div>
+                <div class="select-wrapper">
+                  <select id="server-resolution-select">
+                    <option value="default">Par défaut (1280x720)</option>
+                    <option value="fullscreen">Plein écran</option>
+                    <option value="2560x1440">2560x1440 (1440p)</option>
+                    <option value="1920x1080">1920x1080 (1080p)</option>
+                    <option value="1600x900">1600x900</option>
+                    <option value="1366x768">1366x768</option>
+                    <option value="1280x720">1280x720 (720p)</option>
+                    <option value="854x480">854x480</option>
+                  </select>
+                </div>
+                <p class="muted">Définit le format d'affichage Minecraft dédié à ce serveur (plein écran natif ou fenêtre personnalisée).</p>
+              </section>
+
+              <!-- Carte Arguments JVM & Optimisation Java -->
+              <section class="settings-card" id="server-jvm-card">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>&nbsp;&nbsp;Arguments JVM &amp; Optimisation Java</h3>
+                </div>
+                <div class="input-wrapper" style="margin-top:4px;">
+                  <input type="text" id="server-jvm-args" class="settings-text-input" placeholder="-XX:+UseG1GC -XX:+UnlockExperimentalVMOptions" style="width:100%; box-sizing:border-box; padding:10px 14px; background:var(--bg-sunken); border:1px solid var(--line); border-radius:var(--r-md); color:var(--ink-900); font-family:monospace; font-size:12.5px;" />
+                </div>
+                <p class="muted">Arguments Java additionnels au lancement. Les options de base et l'agent d'authentification sont automatiquement injectés.</p>
+              </section>
+
+              <!-- Carte Maintenance & Diagnostics -->
+              <section class="settings-card settings-card--wide" id="server-maintenance-card">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-wrench-bold"></use></svg>&nbsp;&nbsp;Maintenance &amp; Diagnostics</h3>
+                </div>
+                <div class="btn-row" style="margin-top:4px;">
+                  <button type="button" class="settings-btn" id="server-repair-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Vérifier &amp; Réparer l'installation</button>
+                  <button type="button" class="settings-btn" id="server-open-logs-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-file-text-bold"></use></svg>&nbsp;Consulter les logs &amp; crashs</button>
+                </div>
+                <p class="muted">Vérifie l'intégrité SHA1 de tous les fichiers du client et réinstalle automatiquement tout mod ou ressource corrompu ou manquant.</p>
+              </section>
+
               <!-- Carte Mods Optionnels de l'instance -->
               <section class="settings-card settings-card--wide" id="server-optional-mods-card">
                 <div class="settings-card-head" style="display:flex; justify-content:space-between; align-items:center;">
@@ -105,15 +148,6 @@
                 </select>
               </div>
               <p class="muted">Choisissez entre le thème clair, le thème sombre ou le mode automatique qui s'adapte à votre système d'exploitation.</p>
-            </section>
-
-            <section class="settings-card global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-window-bold"></use></svg>&nbsp;&nbsp;Taille de la fenêtre</h3>
-              </div>
-              <div class="select-wrapper">
-                <select id="resolution-select"></select>
-              </div>
             </section>
 
             <section class="settings-card global-setting-card">
@@ -256,30 +290,27 @@
 
             <section class="settings-card settings-card--wide global-setting-card">
               <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>&nbsp;&nbsp;Fichiers par serveur</h3>
-              </div>
-              <div class="files-list" id="files-list">
-                <p class="muted">Chargement…</p>
-              </div>
-            </section>
-
-            <section class="settings-card settings-card--wide global-setting-card">
-              <div class="settings-card-head">
                 <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-scale-bold"></use></svg>&nbsp;&nbsp;Licence &amp; infrastructure</h3>
               </div>
               <div class="about-legal">
-                <p><strong>Icônes :</strong> Solar Icons — 480 Design, CC BY 4.0</p>
-                <p><strong>Licence :</strong> le code hérité d'EML (EML Template &amp; EML Lib) reste sous licence MIT ; le projet Modey n'a pas de licence publique (tous droits réservés).</p>
+                <p><strong>Licence du Launcher :</strong> Modey Launcher est un logiciel libre et open-source sous licence <strong>MIT</strong> (dérivé de EML Template © GoldFrite, enrichi par FlowCreativeStudio).</p>
+                <p><strong>Services distants :</strong> Les serveurs de jeu Minecraft, l'infrastructure d'administration et les services back-office associés restent privés et propriétaires (Tous droits réservés © FlowCreativeStudio).</p>
+                <p><strong>Composants tiers :</strong> skinview3d (MIT), Solar Icons (CC BY 4.0), bg.png (CC BY-ND 3.0), authlib-injector (AGPL-3.0 avec exception d'exécution).</p>
+                <div style="margin: 8px 0 12px 0;">
+                  <button type="button" class="settings-btn" id="btn-view-third-party-notices">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-file-text-bold"></use></svg>&nbsp;Consulter les notices des licences tierces
+                  </button>
+                </div>
                 <p><strong>Données :</strong> Aucune donnée personnelle n'est collectée sans consentement. Les réglages sont stockés localement.</p>
                 <p><strong>Studio :</strong> FlowCreativeStudio · <strong>Contact :</strong> <a href="mailto:contact@flowcrea.fr">contact@flowcrea.fr</a> · <strong>Discord :</strong> <a href="#" id="settings-discord-link">Rejoindre la communauté</a></p>
               </div>
               <div class="about-infra">
                 <h4>Infrastructure & services</h4>
                 <ul>
-                  <li><strong>Authentification :</strong> Modey Auth Server (Yggdrasil custom + authlib-injector) — gestion des comptes citoyens, sessions, skins</li>
-                  <li><strong>Distribution modpacks :</strong> EML AdminTool (Files Updater) — sync mods/configs/resourcepacks par serveur</li>
-                  <li><strong>Launcher :</strong> EML Lib 2.3.5 (Electron + eml-lib) — installation, mise à jour, lancement</li>
-                  <li><strong>Hébergement :</strong> Serveurs dédiés européens</li>
+                  <li><strong>Authentification :</strong> Modey Auth Server (compatible avec le protocole Yggdrasil et authlib-injector) — gestion des comptes citoyens, sessions, skins</li>
+                  <li><strong>Distribution modpacks :</strong> Files Updater Modey Core API — synchronisation certifiée mods, configs et optional-mods</li>
+                  <li><strong>Launcher :</strong> EML Lib 2.3.5 (Electron + eml-lib) — installation, vérification d'intégrité, lancement</li>
+                  <li><strong>Hébergement :</strong> Serveurs dédiés européens haute performance</li>
                 </ul>
               </div>
             </section>
