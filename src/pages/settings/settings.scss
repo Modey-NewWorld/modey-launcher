@@ -653,11 +653,119 @@
   .settings-scroll {
     grid-template-columns: 1fr !important;
   }
+
+  .settings-category-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 8px;
+
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+  }
+
+  .settings-category-tab {
+    flex: 0 0 auto;
+  }
 }
 
 @media (min-width: 1750px) {
   .settings-scroll {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* --- Navigation Catégories & Sticky Bar --- */
+.settings-nav {
+  grid-column: 1 / -1;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--bg-base);
+  padding: 6px 0 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-category-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+}
+
+.settings-category-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-500);
+  border: 1px solid transparent;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+
+  .solar-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: var(--bg-sunken);
+    color: var(--ink-900);
+  }
+
+  &.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+}
+
+/* CRUCIAL : .settings-card { display:flex } écrase [hidden] sans cette règle */
+.settings-card[hidden] {
+  display: none !important;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-500);
+}
+
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-700);
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+  }
+}
+
+.settings-disclosure {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink-700);
   }
 }
 
@@ -668,9 +776,8 @@
   gap: 10px;
   flex-wrap: wrap;
   padding: 4px 0 2px 0;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 14px;
-  margin-bottom: 4px;
+  padding-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .slot-pill-btn {

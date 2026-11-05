@@ -3,37 +3,30 @@
             <section class="page-header page-header--wide" id="settings-header">
               <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:12px;">
                 <div>
-                  <h1 id="settings-title">Parametres</h1>
+                  <h1 id="settings-title">Paramètres</h1>
                   <p id="settings-subtitle">Personnalise ton launcher et tes fichiers de jeu.</p>
                 </div>
               </div>
-              <!-- Barre d'onglets pillules style Admin Panel -->
+            </section>
+
+            <!-- Navigation 2 niveaux : Contexte (Pilules) + Catégories (Onglets) -->
+            <div class="settings-nav" id="settings-nav">
               <div class="settings-pills-bar" id="settings-pills-bar">
                 <button type="button" class="slot-pill-btn active" data-target="global" id="pill-tab-global">
                   <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sliders-bold"></use></svg>&nbsp;Paramètres généraux
                 </button>
-                <div class="settings-pills-servers" id="settings-pills-servers" style="display:inline-flex; gap:8px; flex-wrap:wrap;"></div>
+                <div class="settings-pills-servers" id="settings-pills-servers"></div>
               </div>
-            </section>
+              <nav class="settings-category-bar" id="settings-category-bar" role="tablist" aria-label="Catégories de paramètres"></nav>
+            </div>
 
             <!-- ========================================== -->
             <!-- VUE DÉDIÉE : PAGE PROFIL / SERVEUR         -->
             <!-- ========================================== -->
             <div id="server-settings-view" class="settings-view-section" style="grid-column: 1 / -1; display:none;">
-              <!-- Carte Emplacement & Fichiers de l'instance -->
-              <section class="settings-card settings-card--wide" id="server-location-card">
-                <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold" style="color:var(--success);" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;&nbsp;Stockage et fichiers du serveur</h3>
-                </div>
-                <div class="path-box" id="server-instance-path">Chargement...</div>
-                <div class="btn-row" style="margin-top:4px;">
-                  <button type="button" class="settings-btn" id="server-open-folder-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir le dossier du serveur</button>
-                </div>
-                <p class="muted">Ce dossier contient l'ensemble des fichiers locaux isolés (mods, configurations, ressources et données de jeu) spécifiques à ce serveur.</p>
-              </section>
-
-              <!-- Carte RAM spécifique à l'instance -->
-              <section class="settings-card settings-card--wide" id="server-ram-card">
+              <!-- Catégorie: Performance -->
+              <!-- Carte RAM spécifique à l'instance (1 colonne) -->
+              <section class="settings-card" id="server-ram-card" data-cat="performance">
                 <div class="settings-card-head">
                   <h3 id="server-ram-card-title"><svg class="solar-icon solar-bold" style="color:var(--success);" aria-hidden="true"><use href="#solar-cpu-bold"></use></svg>&nbsp;&nbsp;Mémoire allouée au serveur</h3>
                 </div>
@@ -53,8 +46,8 @@
                 <p class="muted">Sans réglage explicite, ce serveur utilise automatiquement la mémoire générale.</p>
               </section>
 
-              <!-- Carte Résolution du Jeu propre au serveur -->
-              <section class="settings-card" id="server-resolution-card">
+              <!-- Carte Résolution du Jeu propre au serveur (1 colonne) -->
+              <section class="settings-card" id="server-resolution-card" data-cat="performance">
                 <div class="settings-card-head">
                   <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-window-bold"></use></svg>&nbsp;&nbsp;Résolution du jeu</h3>
                 </div>
@@ -73,8 +66,8 @@
                 <p class="muted">Définit le format d'affichage Minecraft dédié à ce serveur (plein écran natif ou fenêtre personnalisée).</p>
               </section>
 
-              <!-- Carte Arguments JVM & Optimisation Java -->
-              <section class="settings-card" id="server-jvm-card">
+              <!-- Carte Arguments JVM & Optimisation Java (Pleine largeur) -->
+              <section class="settings-card settings-card--wide" id="server-jvm-card" data-cat="performance">
                 <div class="settings-card-head">
                   <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>&nbsp;&nbsp;Arguments JVM &amp; Optimisation Java</h3>
                 </div>
@@ -84,22 +77,11 @@
                 <p class="muted">Arguments Java additionnels au lancement. Les options de base et l'agent d'authentification sont automatiquement injectés.</p>
               </section>
 
-              <!-- Carte Maintenance & Diagnostics -->
-              <section class="settings-card settings-card--wide" id="server-maintenance-card">
-                <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-wrench-bold"></use></svg>&nbsp;&nbsp;Maintenance &amp; Diagnostics</h3>
-                </div>
-                <div class="btn-row" style="margin-top:4px;">
-                  <button type="button" class="settings-btn" id="server-repair-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Vérifier &amp; Réparer l'installation</button>
-                  <button type="button" class="settings-btn" id="server-open-logs-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-file-text-bold"></use></svg>&nbsp;Consulter les logs &amp; crashs</button>
-                </div>
-                <p class="muted">Vérifie l'intégrité SHA1 de tous les fichiers du client et réinstalle automatiquement tout mod ou ressource corrompu ou manquant.</p>
-              </section>
-
+              <!-- Catégorie: Contenu -->
               <!-- Carte Mods Optionnels de l'instance -->
-              <section class="settings-card settings-card--wide" id="server-optional-mods-card">
+              <section class="settings-card settings-card--wide" id="server-optional-mods-card" data-cat="content">
                 <div class="settings-card-head" style="display:flex; justify-content:space-between; align-items:center;">
-                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>&nbsp;&nbsp;Mods facultatifs &amp; Extensions de confort</h3>
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-box-bold"></use></svg>&nbsp;&nbsp;Mods facultatifs &amp; Extensions de confort</h3>
                   <div style="display:flex; align-items:center; gap:8px;">
                     <span class="slot-count-tag" id="optional-mods-badge" style="background:var(--accent-soft); color:var(--accent); font-weight:700;">0 disponible(s)</span>
                     <button type="button" class="settings-btn" id="btn-refresh-optional-mods" title="Actualiser la liste" aria-label="Actualiser la liste des mods" style="padding:4px 8px; font-size:12px;">
@@ -116,14 +98,40 @@
                   </div>
                 </div>
               </section>
+
+              <!-- Catégorie: Fichiers & maintenance -->
+              <!-- Carte Emplacement & Fichiers de l'instance -->
+              <section class="settings-card settings-card--wide" id="server-location-card" data-cat="maintenance">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--success);" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;&nbsp;Stockage et fichiers du serveur</h3>
+                </div>
+                <div class="path-box" id="server-instance-path">Chargement...</div>
+                <div class="btn-row" style="margin-top:4px;">
+                  <button type="button" class="settings-btn" id="server-open-folder-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir le dossier du serveur</button>
+                </div>
+                <p class="muted">Ce dossier contient l'ensemble des fichiers locaux isolés (mods, configurations, ressources et données de jeu) spécifiques à ce serveur.</p>
+              </section>
+
+              <!-- Carte Maintenance & Diagnostics -->
+              <section class="settings-card settings-card--wide" id="server-maintenance-card" data-cat="maintenance">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-wrench-bold"></use></svg>&nbsp;&nbsp;Maintenance &amp; Diagnostics</h3>
+                </div>
+                <div class="btn-row" style="margin-top:4px;">
+                  <button type="button" class="settings-btn" id="server-repair-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Vérifier &amp; Réparer l'installation</button>
+                  <button type="button" class="settings-btn" id="server-open-logs-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-file-text-bold"></use></svg>&nbsp;Consulter les logs &amp; crashs</button>
+                </div>
+                <p class="muted">Vérifie l'intégrité SHA1 de tous les fichiers du client et réinstalle automatiquement tout mod ou ressource corrompu ou manquant.</p>
+              </section>
             </div>
 
             <!-- ========================================== -->
             <!-- VUE DÉDIÉE : PAGE PARAMÈTRES GÉNÉRAUX       -->
             <!-- ========================================== -->
             <div id="global-settings-view" class="settings-view-section" style="grid-column: 1 / -1; display:contents;">
+              <!-- Catégorie: Jeu & performance -->
               <!-- Carte RAM générale par défaut -->
-              <section class="settings-card" id="ram-card">
+              <section class="settings-card" id="ram-card" data-cat="game">
                 <div class="settings-card-head">
                   <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cpu-bold"></use></svg>&nbsp;&nbsp;Mémoire générale par défaut</h3>
                 </div>
@@ -139,193 +147,219 @@
                 </div>
               </section>
 
-            <section class="settings-card global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sun-bold"></use></svg>&nbsp;&nbsp;Thème et apparence</h3>
-              </div>
-              <div class="select-wrapper">
-                <select id="theme-select">
-                  <option value="system">Automatique (suit le système)</option>
-                  <option value="light">Clair</option>
-                  <option value="dark">Sombre</option>
-                </select>
-              </div>
-              <p class="muted">Choisissez entre le thème clair, le thème sombre ou le mode automatique qui s'adapte à votre système d'exploitation.</p>
-            </section>
-
-            <section class="settings-card global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-magnifier-bold"></use></svg>&nbsp;&nbsp;Taille du launcher</h3>
-              </div>
-              <div class="ui-scale-row">
-                <button type="button" class="ui-scale-btn" id="ui-scale-minus" title="Réduire l'interface">
-                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-minus-bold"></use></svg>
-                </button>
-                <div class="ui-scale-slider" id="ui-scale-slider">
-                  <div class="slider-track"></div>
-                  <div class="slider-fill" id="ui-scale-fill"></div>
-                  <input type="range" id="ui-scale" min="75" max="150" step="5" value="100" />
+              <!-- Carte Version de Java -->
+              <section class="settings-card" id="java-card" data-cat="game">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cup-bold"></use></svg>&nbsp;&nbsp;Version de Java</h3>
                 </div>
-                <button type="button" class="ui-scale-btn" id="ui-scale-plus" title="Agrandir l'interface">
-                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg>
-                </button>
-                <span class="ui-scale-value" id="ui-scale-value">100 %</span>
-              </div>
-              <p class="muted">Agrandit ou réduit toute l'interface du launcher (textes, cartes, images). L'échelle est appliquée immédiatement et mémorisée.</p>
-            </section>
-
-            <section class="settings-card global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-power-bold"></use></svg>&nbsp;&nbsp;Action après le lancement</h3>
-              </div>
-              <div class="select-wrapper">
-                <select id="launcher-action-select">
-                  <option value="close">Fermer le launcher</option>
-                  <option value="keep">Garder le launcher ouvert</option>
-                  <option value="hide">Masquer le launcher (minimiser)</option>
-                </select>
-              </div>
-              <div class="select-wrapper">
-                <select id="background-sleep-select">
-                  <option value="0">Veille en arrière-plan : désactivée</option>
-                  <option value="30">Veille après 30 secondes d'inactivité</option>
-                  <option value="60">Veille après 1 minute d'inactivité</option>
-                  <option value="300">Veille après 5 minutes d'inactivité</option>
-                </select>
-              </div>
-              <p class="muted">En veille, le launcher limite son rendu à quasi zéro quand il est minimisé ou en arrière-plan. Il se réveille dès que vous y revenez ou quand Minecraft se ferme.</p>
-            </section>
-
-            <section class="settings-card global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cup-bold"></use></svg>&nbsp;&nbsp;Version de Java</h3>
-              </div>
-              <div class="java-selector">
-                <select id="java-select">
-                  <option value="bundled">Java fourni (recommandé)</option>
-                  <option value="system">Java système (PATH)</option>
-                </select>
-              </div>
-              <p class="muted">Le launcher détecte automatiquement Java 21. Le mode fourni garantit la compatibilité.</p>
-            </section>
-
-            <section class="settings-card global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;&nbsp;Mises à jour</h3>
-              </div>
-              
-              <div class="update-grid-info" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
-                <div class="update-line">
-                  <span class="update-line-label">Version installée :</span>
-                  <strong id="update-current-version">—</strong>
+                <div class="java-selector">
+                  <select id="java-select">
+                    <option value="bundled">Java fourni (recommandé)</option>
+                    <option value="system">Java système (PATH)</option>
+                  </select>
                 </div>
-                <div class="update-line">
-                  <span class="update-line-label">Dernière version disponible :</span>
-                  <strong id="update-latest-version" style="color:var(--accent);">—</strong>
+                <p class="muted">Le launcher détecte automatiquement Java 21. Le mode fourni garantit la compatibilité.</p>
+              </section>
+
+              <!-- Catégorie: Interface & comportement -->
+              <!-- Fusion Apparence (Thème + Taille) -->
+              <section class="settings-card" id="appearance-card" data-cat="interface">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sun-bold"></use></svg>&nbsp;&nbsp;Apparence &amp; interface</h3>
                 </div>
-              </div>
 
-              <label class="settings-toggle-row" for="auto-update-check" style="margin-bottom:12px;">
-                <input type="checkbox" id="auto-update-check" />
-                <span>Rechercher les mises à jour au démarrage</span>
-              </label>
+                <div class="settings-field">
+                  <label class="settings-label" for="theme-select">Thème</label>
+                  <div class="select-wrapper">
+                    <select id="theme-select">
+                      <option value="system">Automatique (suit le système)</option>
+                      <option value="light">Clair</option>
+                      <option value="dark">Sombre</option>
+                    </select>
+                  </div>
+                </div>
 
-              <div class="channel-selector-wrap" style="margin-bottom:14px;">
-                <label for="update-channel-select" style="display:block; font-size:12px; font-weight:600; color:var(--ink-500); margin-bottom:6px;">
-                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>&nbsp;Canal de mise à jour
+                <div class="settings-field">
+                  <label class="settings-label" for="ui-scale">Taille du launcher</label>
+                  <div class="ui-scale-row">
+                    <button type="button" class="ui-scale-btn" id="ui-scale-minus" title="Réduire l'interface">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-minus-bold"></use></svg>
+                    </button>
+                    <div class="ui-scale-slider" id="ui-scale-slider">
+                      <div class="slider-track"></div>
+                      <div class="slider-fill" id="ui-scale-fill"></div>
+                      <input type="range" id="ui-scale" min="75" max="150" step="5" value="100" />
+                    </div>
+                    <button type="button" class="ui-scale-btn" id="ui-scale-plus" title="Agrandir l'interface">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg>
+                    </button>
+                    <span class="ui-scale-value" id="ui-scale-value">100 %</span>
+                  </div>
+                </div>
+
+                <p class="muted">Le thème et l'échelle sont appliqués immédiatement et mémorisés localement.</p>
+              </section>
+
+              <!-- Fusion Comportement (Action après lancement + Veille + Démarrage système) -->
+              <section class="settings-card" id="behavior-card" data-cat="interface">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-power-bold"></use></svg>&nbsp;&nbsp;Comportement du launcher</h3>
+                </div>
+
+                <div class="settings-field">
+                  <label class="settings-label" for="launcher-action-select">Après le lancement du jeu</label>
+                  <div class="select-wrapper">
+                    <select id="launcher-action-select">
+                      <option value="close">Fermer le launcher</option>
+                      <option value="keep">Garder le launcher ouvert</option>
+                      <option value="hide">Masquer le launcher (minimiser)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="settings-field">
+                  <label class="settings-label" for="background-sleep-select">Veille en arrière-plan</label>
+                  <div class="select-wrapper">
+                    <select id="background-sleep-select">
+                      <option value="0">Veille en arrière-plan : désactivée</option>
+                      <option value="30">Veille après 30 secondes d'inactivité</option>
+                      <option value="60">Veille après 1 minute d'inactivité</option>
+                      <option value="300">Veille après 5 minutes d'inactivité</option>
+                    </select>
+                  </div>
+                </div>
+
+                <label class="settings-toggle-row" for="launch-at-startup">
+                  <input type="checkbox" id="launch-at-startup" />
+                  <span>Démarrer le launcher avec le système</span>
                 </label>
-                <select id="update-channel-select" class="settings-select" style="width:100%; max-width:280px; padding:7px 10px; border-radius:6px; border:1px solid var(--line); background:var(--bg-surface); color:var(--ink-900); font-size:13px;">
-                  <option value="stable">Canal Stable (Production - Recommandé)</option>
-                  <option value="beta">Canal Bêta (Releases expérimentales)</option>
-                </select>
-              </div>
 
-              <div class="btn-row">
-                <button type="button" class="settings-btn" id="update-check-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-magnifier-bold"></use></svg>&nbsp;Vérifier</button>
-                <button type="button" class="settings-btn settings-btn--primary hidden" id="update-install-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg>&nbsp;Télécharger et installer</button>
-              </div>
-              <p class="muted" id="update-status-text">Recherche automatique au démarrage du launcher.</p>
-              <div class="settings-progress hidden" id="settings-update-progress-container">
-                <div class="settings-progress-track"><div class="settings-progress-bar" id="settings-update-progress-bar"></div></div>
-                <div class="settings-progress-meta">
-                  <span id="settings-update-progress-label"></span>
-                  <span id="settings-update-progress-percent"></span>
+                <p class="muted">En veille, le launcher limite son rendu quand il est minimisé ou en arrière-plan. Il se réveille dès que vous y revenez ou quand Minecraft se ferme.</p>
+              </section>
+
+              <!-- Catégorie: Mises à jour & stockage -->
+              <!-- Carte Mises à jour -->
+              <section class="settings-card" id="update-card" data-cat="storage">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;&nbsp;Mises à jour</h3>
                 </div>
-              </div>
-            </section>
-
-            <section class="settings-card global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-bold"></use></svg>&nbsp;&nbsp;Emplacement des fichiers</h3>
-              </div>
-              <div class="path-box" id="files-root-path">Chargement…</div>
-              <p class="muted hidden" id="files-status"></p>
-              <div class="btn-row">
-                <button type="button" class="settings-btn" id="files-open-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir le dossier</button>
-                <button type="button" class="settings-btn" id="files-change-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Changer…</button>
-                <button type="button" class="settings-btn hidden" id="files-reset-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Rétablir par défaut</button>
-              </div>
-              <p class="muted">Mods, configs, sauvegardes et Java sont téléchargés ici, un dossier par serveur. Le changement peut déplacer plusieurs Gio : ne fermez pas le launcher pendant l'opération.</p>
-            </section>
-
-            <section class="settings-card global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg>&nbsp;&nbsp;À propos</h3>
-              </div>
-              <div class="about-grid">
-                <div><span>Version launcher</span><strong id="settings-version">—</strong></div>
-                <div><span>EML Lib</span><strong id="settings-emllib">2.3.5</strong></div>
-                <div><span>Electron</span><strong id="settings-electron">—</strong></div>
-                <div><span>OS</span><strong id="settings-os">—</strong></div>
-              </div>
-              <div class="about-project">
-                <h4>Modey Launcher</h4>
-                <p>Le <strong>Modey Launcher</strong> est construit à partir du <strong>EML Template</strong>, le template officiel de l'écosystème open-source <strong>EML (Electron Minecraft Launcher)</strong>, puis entièrement adapté à la plateforme Modey : interface sur-mesure, authentification Modey, architecture multi-serveurs et fichiers isolés par serveur.</p>
-                <p>Toute la logique Minecraft — authentification, téléchargements vérifiés, lancement du jeu — est assurée par <strong>EML Lib</strong>, dans une architecture « 1 compte, 1 launcher, N serveurs ».</p>
-              </div>
-              <div class="about-links">
-                <a href="https://emlproject.com/" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-up-right-bold"></use></svg>&nbsp;EML Project — https://emlproject.com/
-                </a>
-                <a href="https://github.com/Electron-Minecraft-Launcher/EML-Template" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>&nbsp;EML Template sur GitHub
-                </a>
-                <a href="https://github.com/Electron-Minecraft-Launcher/EML-Lib" target="_blank" rel="noopener noreferrer" class="about-link">
-                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>&nbsp;EML Lib sur GitHub
-                </a>
-              </div>
-            </section>
-
-            <section class="settings-card settings-card--wide global-setting-card">
-              <div class="settings-card-head">
-                <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-scale-bold"></use></svg>&nbsp;&nbsp;Licence &amp; infrastructure</h3>
-              </div>
-              <div class="about-legal">
-                <p><strong>Licence du Launcher :</strong> Modey Launcher est un logiciel libre et open-source sous licence <strong>MIT</strong> (dérivé de EML Template © GoldFrite, enrichi par FlowCreativeStudio).</p>
-                <p><strong>Services distants :</strong> Les serveurs de jeu Minecraft, l'infrastructure d'administration et les services back-office associés restent privés et propriétaires (Tous droits réservés © FlowCreativeStudio).</p>
-                <p><strong>Composants tiers :</strong> skinview3d (MIT), Solar Icons (CC BY 4.0), bg.png (CC BY-ND 3.0), authlib-injector (AGPL-3.0 avec exception d'exécution).</p>
-                <div style="margin: 8px 0 12px 0;">
-                  <button type="button" class="settings-btn" id="btn-view-third-party-notices">
-                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-file-text-bold"></use></svg>&nbsp;Consulter les notices des licences tierces
-                  </button>
+                
+                <div class="update-grid-info" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                  <div class="update-line">
+                    <span class="update-line-label">Version installée :</span>
+                    <strong id="update-current-version">—</strong>
+                  </div>
+                  <div class="update-line">
+                    <span class="update-line-label">Dernière version disponible :</span>
+                    <strong id="update-latest-version" style="color:var(--accent);">—</strong>
+                  </div>
                 </div>
-                <p><strong>Données :</strong> Aucune donnée personnelle n'est collectée sans consentement. Les réglages sont stockés localement.</p>
-                <p><strong>Studio :</strong> FlowCreativeStudio · <strong>Contact :</strong> <a href="mailto:contact@flowcrea.fr">contact@flowcrea.fr</a> · <strong>Discord :</strong> <a href="#" id="settings-discord-link">Rejoindre la communauté</a></p>
-              </div>
-              <div class="about-infra">
-                <h4>Infrastructure & services</h4>
-                <ul>
-                  <li><strong>Authentification :</strong> Modey Auth Server (compatible avec le protocole Yggdrasil et authlib-injector) — gestion des comptes citoyens, sessions, skins</li>
-                  <li><strong>Distribution modpacks :</strong> Files Updater Modey Core API — synchronisation certifiée mods, configs et optional-mods</li>
-                  <li><strong>Launcher :</strong> EML Lib 2.3.5 (Electron + eml-lib) — installation, vérification d'intégrité, lancement</li>
-                  <li><strong>Hébergement :</strong> Serveurs dédiés européens haute performance</li>
-                </ul>
-              </div>
-            </section>
 
+                <label class="settings-toggle-row" for="auto-update-check" style="margin-bottom:12px;">
+                  <input type="checkbox" id="auto-update-check" />
+                  <span>Rechercher les mises à jour au démarrage</span>
+                </label>
+
+                <div class="channel-selector-wrap" style="margin-bottom:14px;">
+                  <label for="update-channel-select" style="display:block; font-size:12px; font-weight:600; color:var(--ink-500); margin-bottom:6px;">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>&nbsp;Canal de mise à jour
+                  </label>
+                  <select id="update-channel-select" class="settings-select" style="width:100%; max-width:280px; padding:7px 10px; border-radius:6px; border:1px solid var(--line); background:var(--bg-surface); color:var(--ink-900); font-size:13px;">
+                    <option value="stable">Canal Stable (Production - Recommandé)</option>
+                    <option value="beta">Canal Bêta (Releases expérimentales)</option>
+                  </select>
+                </div>
+
+                <div class="btn-row">
+                  <button type="button" class="settings-btn" id="update-check-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-magnifier-bold"></use></svg>&nbsp;Vérifier</button>
+                  <button type="button" class="settings-btn settings-btn--primary hidden" id="update-install-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg>&nbsp;Télécharger et installer</button>
+                </div>
+                <p class="muted" id="update-status-text">Recherche automatique au démarrage du launcher.</p>
+                <div class="settings-progress hidden" id="settings-update-progress-container">
+                  <div class="settings-progress-track"><div class="settings-progress-bar" id="settings-update-progress-bar"></div></div>
+                  <div class="settings-progress-meta">
+                    <span id="settings-update-progress-label"></span>
+                    <span id="settings-update-progress-percent"></span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Carte Emplacement des fichiers -->
+              <section class="settings-card" id="files-card" data-cat="storage">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-bold"></use></svg>&nbsp;&nbsp;Emplacement des fichiers</h3>
+                </div>
+                <div class="path-box" id="files-root-path">Chargement…</div>
+                <p class="muted hidden" id="files-status"></p>
+                <div class="btn-row">
+                  <button type="button" class="settings-btn" id="files-open-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir le dossier</button>
+                  <button type="button" class="settings-btn" id="files-change-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Changer…</button>
+                  <button type="button" class="settings-btn hidden" id="files-reset-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Rétablir par défaut</button>
+                </div>
+                <p class="muted">Mods, configs, sauvegardes et Java sont téléchargés ici, un dossier par serveur. Le changement peut déplacer plusieurs Gio : ne fermez pas le launcher pendant l'opération.</p>
+              </section>
+
+              <!-- Catégorie: À propos & licences -->
+              <!-- Fusion À propos & licences (Pleine largeur) -->
+              <section class="settings-card settings-card--wide" id="about-card" data-cat="about">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg>&nbsp;&nbsp;À propos &amp; licences</h3>
+                </div>
+                <div class="about-grid">
+                  <div><span>Version launcher</span><strong id="settings-version">—</strong></div>
+                  <div><span>EML Lib</span><strong id="settings-emllib">2.3.5</strong></div>
+                  <div><span>Electron</span><strong id="settings-electron">—</strong></div>
+                  <div><span>OS</span><strong id="settings-os">—</strong></div>
+                </div>
+                <div class="about-project">
+                  <h4>Modey Launcher</h4>
+                  <p>Le <strong>Modey Launcher</strong> est construit à partir du <strong>EML Template</strong>, le template officiel de l'écosystème open-source <strong>EML (Electron Minecraft Launcher)</strong>, puis entièrement adapté à la plateforme Modey : interface sur-mesure, authentification Modey, architecture multi-serveurs et fichiers isolés par serveur.</p>
+                  <p>Toute la logique Minecraft — authentification, téléchargements vérifiés, lancement du jeu — est assurée par <strong>EML Lib</strong>, dans une architecture « 1 compte, 1 launcher, N serveurs ».</p>
+                </div>
+                <div class="about-links">
+                  <a href="https://emlproject.com/" target="_blank" rel="noopener noreferrer" class="about-link">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-up-right-bold"></use></svg>&nbsp;EML Project — https://emlproject.com/
+                  </a>
+                  <a href="https://github.com/Electron-Minecraft-Launcher/EML-Template" target="_blank" rel="noopener noreferrer" class="about-link">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>&nbsp;EML Template sur GitHub
+                  </a>
+                  <a href="https://github.com/Electron-Minecraft-Launcher/EML-Lib" target="_blank" rel="noopener noreferrer" class="about-link">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>&nbsp;EML Lib sur GitHub
+                  </a>
+                </div>
+
+                <details class="settings-disclosure" style="margin-top:12px;">
+                  <summary>Licence, services et composants tiers</summary>
+                  <div class="about-legal" style="margin-top:10px;">
+                    <p><strong>Licence du Launcher :</strong> Modey Launcher est un logiciel libre et open-source sous licence <strong>MIT</strong> (dérivé de EML Template © GoldFrite, enrichi par FlowCreativeStudio).</p>
+                    <p><strong>Services distants :</strong> Les serveurs de jeu Minecraft, l'infrastructure d'administration et les services back-office associés restent privés et propriétaires (Tous droits réservés © FlowCreativeStudio).</p>
+                    <p><strong>Composants tiers :</strong> skinview3d (MIT), Solar Icons (CC BY 4.0), bg.png (CC BY-ND 3.0), authlib-injector (AGPL-3.0 avec exception d'exécution).</p>
+                    <div style="margin: 8px 0 12px 0;">
+                      <button type="button" class="settings-btn" id="btn-view-third-party-notices">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-file-text-bold"></use></svg>&nbsp;Consulter les notices des licences tierces
+                      </button>
+                    </div>
+                    <p><strong>Données :</strong> Aucune donnée personnelle n'est collectée sans consentement. Les réglages sont stockés localement.</p>
+                    <p><strong>Studio :</strong> FlowCreativeStudio · <strong>Contact :</strong> <a href="mailto:contact@flowcrea.fr">contact@flowcrea.fr</a> · <strong>Discord :</strong> <a href="#" id="settings-discord-link">Rejoindre la communauté</a></p>
+                  </div>
+                </details>
+
+                <details class="settings-disclosure" style="margin-top:10px;">
+                  <summary>Infrastructure &amp; services Modey</summary>
+                  <div class="about-infra" style="margin-top:10px;">
+                    <ul>
+                      <li><strong>Authentification :</strong> Modey Auth Server (compatible avec le protocole Yggdrasil et authlib-injector) — gestion des comptes citoyens, sessions, skins</li>
+                      <li><strong>Distribution modpacks :</strong> Files Updater Modey Core API — synchronisation certifiée mods, configs et optional-mods</li>
+                      <li><strong>Launcher :</strong> EML Lib 2.3.5 (Electron + eml-lib) — installation, vérification d'intégrité, lancement</li>
+                      <li><strong>Hébergement :</strong> Serveurs dédiés européens haute performance</li>
+                    </ul>
+                  </div>
+                </details>
+              </section>
             </div>
+
             <footer class="settings-footer">
               <p class="muted"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>&nbsp;Tous les réglages sont sauvegardés localement. Aucune donnée ne quitte votre machine.</p>
             </footer>
-</div>
+          </div>
         </main>

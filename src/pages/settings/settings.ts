@@ -36,6 +36,118 @@ let currentSelectedTarget: string = 'global' // 'global' ou '<slug>'
 let allKnownProfiles: any[] = []
 let serverMemoryTouched = false
 
+type SettingsViewKind = 'global' | 'server'
+
+interface SettingsCategory {
+  id: string
+  label: string
+  icon: string
+}
+
+const GLOBAL_CATEGORIES: SettingsCategory[] = [
+  { id: 'game', label: 'Jeu & performance', icon: 'solar-gamepad-bold' },
+  { id: 'interface', label: 'Interface & comportement', icon: 'solar-monitor-bold' },
+  { id: 'storage', label: 'Mises à jour & stockage', icon: 'solar-download-bold' },
+  { id: 'about', label: 'À propos & licences', icon: 'solar-info-bold' }
+]
+
+const SERVER_CATEGORIES: SettingsCategory[] = [
+  { id: 'performance', label: 'Performance', icon: 'solar-cpu-bold' },
+  { id: 'content', label: 'Contenu', icon: 'solar-box-bold' },
+  { id: 'maintenance', label: 'Fichiers & maintenance', icon: 'solar-wrench-bold' }
+]
+
+const lastCategoryByView: Record<SettingsViewKind, string> = {
+  global: GLOBAL_CATEGORIES[0].id,
+  server: SERVER_CATEGORIES[0].id
+}
+
+let activeCategory = GLOBAL_CATEGORIES[0].id
+
+function currentViewKind(): SettingsViewKind {
+  return currentSelectedTarget === 'global' ? 'global' : 'server'
+}
+
+function currentCategories(): SettingsCategory[] {
+  return currentViewKind() === 'global' ? GLOBAL_CATEGORIES : SERVER_CATEGORIES
+}
+
+function renderCategoryTabs() {
+  const bar = el('settings-category-bar')
+  if (!bar) return
+
+  const categories = currentCategories()
+  if (!categories.some((cat) => cat.id === activeCategory)) {
+    const stored = lastCategoryByView[currentViewKind()]
+    activeCategory = categories.some((cat) => cat.id === stored) ? stored : categories[0].id
+  }
+
+  bar.innerHTML = ''
+  for (const cat of categories) {
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = `settings-category-tab ${cat.id === activeCategory ? 'active' : ''}`
+    btn.dataset.cat = cat.id
+    btn.setAttribute('role', 'tab')
+    btn.setAttribute('aria-selected', String(cat.id === activeCategory))
+    btn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#${cat.icon}"></use></svg><span>${cat.label}</span>`
+    btn.addEventListener('click', () => setCategory(cat.id))
+    bar.appendChild(btn)
+  }
+
+  applyCategoryFilter()
+}
+
+function setCategory(categoryId: string) {
+  activeCategory = categoryId
+  lastCategoryByView[currentViewKind()] = categoryId
+
+  document.querySelectorAll<HTMLElement>('.settings-category-tab').forEach((btn) => {
+    const isActive = btn.dataset.cat === categoryId
+    btn.classList.toggle('active', isActive)
+    btn.setAttribute('aria-selected', String(isActive))
+  })
+
+  applyCategoryFilter()
+}
+
+function applyCategoryFilter() {
+  const viewId = currentViewKind() === 'global' ? 'global-settings-view' : 'server-settings-view'
+  const view = el(viewId)
+  if (!view) return
+
+  view.querySelectorAll<HTMLElement>('.settings-card').forEach((card) => {
+    card.hidden = card.dataset.cat !== activeCategory
+  })
+}
+
+function initCategoryKeyboardNav() {
+  const bar = el('settings-category-bar')
+  if (!bar) return
+
+  bar.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+    const categories = currentCategories()
+    const currentIndex = categories.findIndex((c) => c.id === activeCategory)
+    if (currentIndex < 0) return
+
+    let nextIndex = currentIndex
+    if (e.key === 'ArrowRight') {
+      nextIndex = (currentIndex + 1) % categories.length
+    } else if (e.key === 'ArrowLeft') {
+      nextIndex = (currentIndex - 1 + categories.length) % categories.length
+    }
+
+    const nextCat = categories[nextIndex]
+    if (nextCat) {
+      e.preventDefault()
+      setCategory(nextCat.id)
+      const tabBtn = bar.querySelector<HTMLButtonElement>(`button[data-cat="${nextCat.id}"]`)
+      tabBtn?.focus()
+    }
+  })
+}
+
 export async function initSettings() {
   const sysInfo = await system.getInfo()
   currentSettings = await settings.get()
@@ -57,6 +169,8 @@ export async function initSettings() {
   initOptionalModsCard()
   await initServerPillTabs()
   initServerLocationCardListeners()
+  initCategoryKeyboardNav()
+  await applyServerSelection('global')
 
   // Écoute de l'événement de navigation directe vers un serveur
   window.addEventListener('select-settings-server', ((e: CustomEvent<{ slug: string }>) => {
@@ -213,7 +327,14 @@ export async function applyServerSelection(targetSlug: string) {
       serverView.style.display = 'contents'
       serverView.classList.remove('hidden')
     }
+  }
 
+  // Mettre à jour la navigation par catégories et filtrer les cartes
+  const kind: SettingsViewKind = targetSlug === 'global' ? 'global' : 'server'
+  activeCategory = lastCategoryByView[kind]
+  renderCategoryTabs()
+
+  if (targetSlug !== 'global') {
     // Mettre à jour l'emplacement et charger les mods optionnels
     try {
       await updateServerLocationCard(targetSlug)
