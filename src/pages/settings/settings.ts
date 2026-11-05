@@ -293,13 +293,17 @@ function initServerLocationCardListeners() {
 
   resetRamBtn?.addEventListener('click', async () => {
     if (currentSelectedTarget === 'global') return
-    if (!currentSettings.serverSettings) currentSettings.serverSettings = {}
-    delete currentSettings.serverSettings[currentSelectedTarget]
+    const cfg = currentSettings.serverSettings?.[currentSelectedTarget]
+    if (cfg) delete cfg.memory
 
+    serverMemoryTouched = false
     syncServerRamSliders(currentSettings.memory.min, currentSettings.memory.max)
     updateServerBadgeRam(currentSelectedTarget, null)
     await saveSettings()
-    await Dialog.show('La mémoire RAM de ce serveur a été réalignée sur le profil général.', [{ text: 'OK', type: 'ok' }])
+    await Dialog.show(
+      'La mémoire RAM de ce serveur est de nouveau héritée du profil général. Les autres réglages du serveur ont été conservés.',
+      [{ text: 'OK', type: 'ok' }]
+    )
   })
 }
 
@@ -314,8 +318,8 @@ async function initUIListeners() {
 
   ramMin?.addEventListener('input', saveSettingsDebounced)
   ramMax?.addEventListener('input', saveSettingsDebounced)
-  serverRamMin?.addEventListener('input', saveSettingsDebounced)
-  serverRamMax?.addEventListener('input', saveSettingsDebounced)
+  serverRamMin?.addEventListener('input', () => { serverMemoryTouched = true; saveSettingsDebounced() })
+  serverRamMax?.addEventListener('input', () => { serverMemoryTouched = true; saveSettingsDebounced() })
   launcherActionSelect?.addEventListener('change', saveSettingsDebounced)
   backgroundSleepSelect?.addEventListener('change', saveSettingsDebounced)
   javaSelect?.addEventListener('change', saveSettingsDebounced)
