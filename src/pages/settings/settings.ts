@@ -426,7 +426,11 @@ async function saveSettings() {
       height: 720,
       fullscreen: false
     },
-    java: javaSelect.value === 'bundled' ? 'bundled' : 'path',
+    java: javaSelect.value === 'system'
+      ? 'system'
+      : javaSelect.value === 'custom'
+        ? currentSettings.java
+        : 'bundled',
     launcherAction: launcherActionSelect.value as 'close' | 'keep' | 'hide',
     backgroundSleep: Number(backgroundSleepSelect?.value) || 0,
     uiScale: getUiScaleValue()
@@ -451,17 +455,24 @@ async function saveSettings() {
 
     const jvmArgsVal = jvmInput?.value?.trim() || ''
 
-    newSettings.serverSettings![currentSelectedTarget] = {
-      ...(newSettings.serverSettings![currentSelectedTarget] || {}),
-      memory: {
-        min: srvMin,
-        max: srvMax
-      },
+    const existingCfg = newSettings.serverSettings![currentSelectedTarget] || {}
+    const shouldPersistMemory = serverMemoryTouched || existingCfg.memory != null
+
+    const nextCfg: IServerGameSettings = {
+      ...existingCfg,
       resolution: parsedResolution,
       jvmArgs: jvmArgsVal,
       useDefaultJvmArgs: true
     }
-    updateServerBadgeRam(currentSelectedTarget, srvMax)
+
+    if (shouldPersistMemory) {
+      nextCfg.memory = { min: srvMin, max: srvMax }
+    } else {
+      delete nextCfg.memory
+    }
+
+    newSettings.serverSettings![currentSelectedTarget] = nextCfg
+    updateServerBadgeRam(currentSelectedTarget, shouldPersistMemory ? srvMax : null)
   }
 
   try {
@@ -605,7 +616,20 @@ function initFormValues(_sysResolution: { width: number; height: number }) {
   if (launcherActionSelect) launcherActionSelect.value = currentSettings.launcherAction
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
   if (backgroundSleepSelect) backgroundSleepSelect.value = String(currentSettings.backgroundSleep ?? 0)
-  if (javaSelect) javaSelect.value = currentSettings.java === 'bundled' ? 'bundled' : 'custom'
+
+  const javaVal = currentSettings.java
+  if (javaVal && javaVal !== 'bundled' && javaVal !== 'system') {
+    let customOpt = javaSelect.querySelector<HTMLOptionElement>('option[value="custom"]')
+    if (!customOpt) {
+      customOpt = document.createElement('option')
+      customOpt.value = 'custom'
+      javaSelect.appendChild(customOpt)
+    }
+    customOpt.textContent = `Personnalisé (${javaVal})`
+    javaSelect.value = 'custom'
+  } else {
+    javaSelect.value = javaVal === 'system' ? 'system' : 'bundled'
+  }
 
   const uiScaleInput = el('ui-scale') as HTMLInputElement
   if (uiScaleInput) uiScaleInput.value = String(Math.round((currentSettings.uiScale ?? 1) * 100))
