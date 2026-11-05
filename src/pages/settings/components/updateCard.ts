@@ -1,37 +1,41 @@
-import { bootstraps, settings } from '../../../ipc'
+import { bootstraps } from '../../../ipc'
 import { createProgressBar } from '../../../components/progressBar'
 import logger from 'electron-log/renderer'
 
 const el = (id: string) => document.getElementById(id)
 
+export interface IUpdateCardOptions {
+  betaChannel: boolean
+  autoUpdateCheck: boolean
+  onSettingsChange: () => void
+}
+
 /** Carte « Mises à jour » : vérification manuelle + flux téléch./install + sélecteur de canal. */
-export async function initUpdateCard(version: string) {
+export async function initUpdateCard(version: string, options: IUpdateCardOptions) {
   const currentEl = el('update-current-version')
   const latestEl = el('update-latest-version')
   const channelSelect = el('update-channel-select') as HTMLSelectElement | null
+  const autoUpdateCheck = el('auto-update-check') as HTMLInputElement | null
   const checkBtn = el('update-check-btn') as HTMLButtonElement | null
   const installBtn = el('update-install-btn') as HTMLButtonElement | null
   const statusEl = el('update-status-text')
 
   if (currentEl) currentEl.innerText = version || '—'
 
-  // Charger le canal actuel depuis les réglages utilisateur
-  try {
-    const currentSettings = await settings.get()
-    if (channelSelect) {
-      channelSelect.value = currentSettings.betaChannel ? 'beta' : 'stable'
-      
-      channelSelect.addEventListener('change', async () => {
-        const isBeta = channelSelect.value === 'beta'
-        const updated = await settings.get()
-        await settings.set({ ...updated, betaChannel: isBeta })
-        logger.log(`Update channel changed to: ${channelSelect.value}`)
-        // Lancer une vérification avec le nouveau canal sélectionné
-        checkUpdates()
-      })
-    }
-  } catch (err) {
-    logger.error('Failed to load settings in updateCard:', err)
+  if (channelSelect) {
+    channelSelect.value = options.betaChannel ? 'beta' : 'stable'
+    channelSelect.addEventListener('change', () => {
+      logger.log(`Update channel changed to: ${channelSelect.value}`)
+      options.onSettingsChange()
+      checkUpdates()
+    })
+  }
+
+  if (autoUpdateCheck) {
+    autoUpdateCheck.checked = options.autoUpdateCheck
+    autoUpdateCheck.addEventListener('change', () => {
+      options.onSettingsChange()
+    })
   }
 
   async function checkUpdates() {
@@ -61,8 +65,10 @@ export async function initUpdateCard(version: string) {
 
   checkBtn?.addEventListener('click', checkUpdates)
 
-  // Lancement automatique au chargement pour afficher directement la dernière version disponible
-  checkUpdates()
+  // Lancement automatique au chargement si activé dans les options
+  if (options.autoUpdateCheck) {
+    checkUpdates()
+  }
 
   installBtn?.addEventListener('click', async () => {
     installBtn.disabled = true

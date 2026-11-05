@@ -48,7 +48,11 @@ export async function initSettings() {
   initUiScale()
   initFormValues(sysInfo.resolution)
   populateAbout(sysInfo)
-  initUpdateCard(sysInfo.version ?? '')
+  initUpdateCard(sysInfo.version ?? '', {
+    betaChannel: !!currentSettings.betaChannel,
+    autoUpdateCheck: currentSettings.autoUpdateCheck !== false,
+    onSettingsChange: saveSettingsDebounced
+  })
   initFilesRoot()
   initOptionalModsCard()
   await initServerPillTabs()
@@ -324,6 +328,9 @@ async function initUIListeners() {
   backgroundSleepSelect?.addEventListener('change', saveSettingsDebounced)
   javaSelect?.addEventListener('change', saveSettingsDebounced)
 
+  const launchAtStartupInput = el('launch-at-startup') as HTMLInputElement | null
+  launchAtStartupInput?.addEventListener('change', saveSettingsDebounced)
+
   // Contrôles spécifiques au serveur sélectionné
   const serverResSelect = el('server-resolution-select') as HTMLSelectElement | null
   const serverJvmArgs = el('server-jvm-args') as HTMLInputElement | null
@@ -409,6 +416,9 @@ async function saveSettings() {
   const launcherActionSelect = el('launcher-action-select') as HTMLSelectElement
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
   const javaSelect = el('java-select') as HTMLSelectElement
+  const channelSelect = el('update-channel-select') as HTMLSelectElement | null
+  const autoUpdateCheck = el('auto-update-check') as HTMLInputElement | null
+  const launchAtStartup = el('launch-at-startup') as HTMLInputElement | null
 
   const minRam = parseFloat(minInput?.value || '2')
   const maxRam = parseFloat(maxInput?.value || '8')
@@ -433,6 +443,9 @@ async function saveSettings() {
         : 'bundled',
     launcherAction: launcherActionSelect.value as 'close' | 'keep' | 'hide',
     backgroundSleep: Number(backgroundSleepSelect?.value) || 0,
+    launchAtStartup: launchAtStartup ? launchAtStartup.checked : currentSettings.launchAtStartup,
+    autoUpdateCheck: autoUpdateCheck ? autoUpdateCheck.checked : currentSettings.autoUpdateCheck,
+    betaChannel: channelSelect ? channelSelect.value === 'beta' : !!currentSettings.betaChannel,
     uiScale: getUiScaleValue()
   }
 
@@ -616,6 +629,9 @@ function initFormValues(_sysResolution: { width: number; height: number }) {
   if (launcherActionSelect) launcherActionSelect.value = currentSettings.launcherAction
   const backgroundSleepSelect = el('background-sleep-select') as HTMLSelectElement
   if (backgroundSleepSelect) backgroundSleepSelect.value = String(currentSettings.backgroundSleep ?? 0)
+
+  const launchAtStartupInput = el('launch-at-startup') as HTMLInputElement | null
+  if (launchAtStartupInput) launchAtStartupInput.checked = !!currentSettings.launchAtStartup
 
   const javaVal = currentSettings.java
   if (javaVal && javaVal !== 'bundled' && javaVal !== 'system') {
