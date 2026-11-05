@@ -200,6 +200,17 @@ export function readAllSettingsWithSync(): IGameSettings {
   return settings
 }
 
+/**
+ * Active ou désactive le lancement du launcher au démarrage du système.
+ * Pris en charge nativement sur Windows et macOS via app.setLoginItemSettings().
+ * Note : Linux n'est pas couvert dans cette phase (pas de génération de fichier .desktop autostart).
+ */
+function applyLaunchAtStartup(enabled: boolean) {
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return
+  if (!app.isPackaged) return // Évite d'enregistrer electron.exe en développement
+  app.setLoginItemSettings({ openAtLogin: enabled })
+}
+
 export function registerSettingsHandlers() {
   ipcMain.handle(IPC.settings.get, async () => {
     return readAllSettingsWithSync()
@@ -214,6 +225,7 @@ export function registerSettingsHandlers() {
       }
       fs.writeFileSync(settingsPath, JSON.stringify(toWrite, null, 2))
       applyUiScale(toWrite.uiScale)
+      applyLaunchAtStartup(Boolean(toWrite.launchAtStartup))
 
       // Synchroniser les fichiers server-settings.json dans chaque dossier d'instance
       if (toWrite.serverSettings) {
@@ -248,4 +260,12 @@ export function registerSettingsHandlers() {
   ipcMain.handle(IPC.system.getRuntimeConfig, async () => {
     return getRuntimeConfig()
   })
+
+  // Resynchroniser l'état du démarrage automatique au boot
+  try {
+    const saved = readAllSettingsWithSync()
+    applyLaunchAtStartup(Boolean(saved.launchAtStartup))
+  } catch (err) {
+    logger.warn('Failed to apply initial launchAtStartup:', err)
+  }
 }
