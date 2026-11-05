@@ -28,11 +28,11 @@ function renderResume(onSelectProfile: (profile: any) => void) {
   const container = document.getElementById('resume-container')
   if (!container) return
 
+  const defaultPlayable = homeState.allProfiles.find((p) => p.slug === 'athena') || homeState.allProfiles[0]
   const last = getLastPlayedServer()
-  const current = homeState.selectedProfile || homeState.allProfiles[0]
   const targetProfile = last
-    ? homeState.allProfiles.find((p) => p.slug === last.slug || p.name === last.name) || current
-    : current
+    ? homeState.allProfiles.find((p) => p.slug === last.slug || p.name === last.name) || defaultPlayable
+    : defaultPlayable
 
   const serverName = targetProfile?.name || last?.name || 'Athéna'
   const timeText = last ? formatRelativeTime(last.playedAt) : 'Prêt à jouer'
@@ -56,7 +56,7 @@ function renderResume(onSelectProfile: (profile: any) => void) {
     dotClass = 'offline'
   }
 
-  let playLabel = 'Rejoindre'
+  let playLabel = `Jouer à ${serverName}`
   let playIcon = 'play'
   let disabled = false
 
@@ -94,22 +94,24 @@ function renderResume(onSelectProfile: (profile: any) => void) {
 
   container.innerHTML = `
     <div class="resume-card-box">
-      <div class="resume-card-header">
-        <div class="resume-card-thumb" style="background-image: url('${banner}')"></div>
-        <div class="resume-card-meta">
-          <div class="resume-card-title">${serverName}</div>
-          <div class="resume-card-time">${timeText}</div>
-        </div>
-        <div class="resume-card-status">
+      <div class="resume-card-banner" style="background-image: url('${banner}')">
+        <div class="resume-card-banner-overlay"></div>
+        <div class="resume-card-status-pill">
           <span class="status-dot ${dotClass}"></span>
           <span>${statusText}</span>
+        </div>
+        <div class="resume-card-banner-info">
+          <div class="resume-card-title">${serverName}</div>
+          <div class="resume-card-time">
+            ${solar('clock', 'bold')}
+            <span>${timeText}</span>
+          </div>
         </div>
       </div>
       <div class="resume-card-actions">
         <button class="btn-resume-play ${disabled ? 'btn-disabled' : ''} ${isAdmin && (isSoon || isMaint || isDisabled) ? 'btn-admin-bypass' : ''}" id="btn-resume-play" ${disabled ? 'disabled' : ''}>
-          ${solar(playIcon, "bold")} ${playLabel}
+          ${solar(playIcon, 'bold')} <span>${playLabel}</span>
         </button>
-        <button class="btn-resume-change" id="btn-resume-change">Changer de serveur</button>
       </div>
     </div>
   `
@@ -117,10 +119,6 @@ function renderResume(onSelectProfile: (profile: any) => void) {
   document.getElementById('btn-resume-play')?.addEventListener('click', () => {
     if (targetProfile) onSelectProfile(targetProfile)
     startLaunch()
-  })
-
-  document.getElementById('btn-resume-change')?.addEventListener('click', () => {
-    showServers()
   })
 }
 
