@@ -122,13 +122,6 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       const host = serverIp || '127.0.0.1'
       const port = serverPort || 25565
       const gameArgs = ['--quickPlayMultiplayer', `${host}:${port}`, '--quickPlayPath', 'quickPlay.json']
-      if (effectiveRes.fullscreen) {
-        gameArgs.push('--fullscreen')
-      } else {
-        const w = effectiveRes.width || 1280
-        const h = effectiveRes.height || 720
-        gameArgs.push('--width', String(w), '--height', String(h))
-      }
 
       let actionTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -266,6 +259,11 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
             args: gameArgs
           }
         },
+        window: {
+          width: effectiveRes.fullscreen ? 1280 : (effectiveRes.width || 1280),
+          height: effectiveRes.fullscreen ? 720 : (effectiveRes.height || 720),
+          fullscreen: !!effectiveRes.fullscreen
+        },
         account: account,
         cleaning: {
           enabled: forceClean ? true : !(account as any)?.hasNoCleaning,
@@ -321,10 +319,14 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
             }
 
             minecraft.stdout.on('data', (data: Buffer) => {
-              ;(launcher as any).emit('launch_data', data.toString('utf8').replace(/\n$/, ''))
+              const str = data.toString('utf8').replace(/\n$/, '')
+              logger.info(`[Minecraft stdout] ${str}`)
+              ;(launcher as any).emit('launch_data', str)
             })
             minecraft.stderr.on('data', (data: Buffer) => {
-              ;(launcher as any).emit('launch_data', data.toString('utf8').replace(/\n$/, ''))
+              const str = data.toString('utf8').replace(/\n$/, '')
+              logger.error(`[Minecraft stderr] ${str}`)
+              ;(launcher as any).emit('launch_data', str)
             })
             minecraft.on('error', (err: Error) => {
               logger.error('[Modey Launcher] Erreur processus Minecraft :', err)
