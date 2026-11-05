@@ -94,14 +94,14 @@ function renderResume(onSelectProfile: (profile: any) => void) {
 
   container.innerHTML = `
     <div class="resume-card-box">
-      <div class="resume-card-banner" style="background-image: url('${banner}')">
-        <div class="resume-card-banner-overlay"></div>
-        <div class="resume-card-status-pill">
-          <span class="status-dot ${dotClass}"></span>
-          <span>${statusText}</span>
-        </div>
-        <div class="resume-card-banner-info">
+      <div class="resume-card-content">
+        <div class="resume-card-thumb" style="background-image: url('${banner}')"></div>
+        <div class="resume-card-info">
           <div class="resume-card-title">${serverName}</div>
+          <div class="resume-card-status">
+            <span class="status-dot ${dotClass}"></span>
+            <span>${statusText}</span>
+          </div>
           <div class="resume-card-time">
             ${solar('clock', 'bold')}
             <span>${timeText}</span>
