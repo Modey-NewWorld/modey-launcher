@@ -176,8 +176,14 @@ export async function applyServerSelection(targetSlug: string) {
     if (titleEl) titleEl.innerText = 'Paramètres généraux'
     if (subtitleEl) subtitleEl.innerText = "Personnalise ton launcher, l'affichage, Java et tes fichiers de jeu généraux."
 
-    if (globalView) globalView.style.display = 'contents'
-    if (serverView) serverView.style.display = 'none'
+    if (globalView) {
+      globalView.style.display = 'contents'
+      globalView.classList.remove('hidden')
+    }
+    if (serverView) {
+      serverView.style.display = 'none'
+      serverView.classList.add('hidden')
+    }
 
     // Synchroniser le slider de RAM globale
     syncGlobalRamSliders(currentSettings.memory.min, currentSettings.memory.max)
@@ -194,12 +200,27 @@ export async function applyServerSelection(targetSlug: string) {
     if (titleEl) titleEl.innerText = `Paramètres : ${serverName}`
     if (subtitleEl) subtitleEl.innerText = `Personnalise la mémoire, les fichiers locaux et les extensions pour ${serverName}.`
 
-    if (globalView) globalView.style.display = 'none'
-    if (serverView) serverView.style.display = 'contents'
+    if (globalView) {
+      globalView.style.display = 'none'
+      globalView.classList.add('hidden')
+    }
+    if (serverView) {
+      serverView.style.display = 'contents'
+      serverView.classList.remove('hidden')
+    }
 
     // Mettre à jour l'emplacement et charger les mods optionnels
-    await updateServerLocationCard(targetSlug)
-    refreshOptionalMods(targetSlug)
+    try {
+      await updateServerLocationCard(targetSlug)
+    } catch (locErr) {
+      logger.warn('Failed to update server location card:', locErr)
+    }
+
+    try {
+      refreshOptionalMods(targetSlug)
+    } catch (optErr) {
+      logger.warn('Failed to refresh optional mods:', optErr)
+    }
 
     // Charger la RAM spécifique ou fallback sur la globale
     const srvMem = currentSettings.serverSettings?.[targetSlug]?.memory
