@@ -3,6 +3,7 @@ import { Launcher } from 'eml-lib'
 import type { Account } from 'eml-lib'
 import type { IGameSettings } from '../settings'
 import { readLocalServerConfig, writeLocalServerConfig } from '../settings'
+import { instancePathFor } from '../files'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL, AUTH_SERVER_URL, getSystemJava21Path, DEFAULT_MC_VERSION, DEFAULT_LOADER, DEFAULT_LOADER_VERSION } from '../../const'
 import fs from 'node:fs'
@@ -21,19 +22,22 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.handle(IPC.game.checkExtraMods, async (_event, profileSlug: string) => {
     try {
-      const appData = process.env.APPDATA || (process.platform === 'darwin' ? `${process.env.HOME}/Library/Application Support` : `${process.env.HOME}`)
+      const cleanSlug = (profileSlug || 'athena').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+      const instDir = instancePathFor(cleanSlug)
       const pathModule = require('node:path')
-      const modsDir = pathModule.join(appData, '.modey', profileSlug || 'athena', 'mods')
+      const modsDir = pathModule.join(instDir, 'mods')
+      const optDir = pathModule.join(instDir, 'optional-mods')
       if (!fs.existsSync(modsDir)) return { hasExtra: false, extraMods: [] }
 
-      const localFiles = fs.readdirSync(modsDir).filter((f) => f.endsWith('.jar'))
-      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${profileSlug || 'athena'}`)
+      const localFiles = fs.readdirSync(modsDir).filter((f: string) => f.endsWith('.jar'))
+      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`)
       if (!resp.ok) return { hasExtra: false, extraMods: [] }
       const data = await resp.json()
       const officialFiles = (data.files || []).map((f: any) => f.name)
       const allowedOptionalFiles = (data.optionalMods || []).map((f: any) => f.name)
-      const allowedSet = new Set([...officialFiles, ...allowedOptionalFiles])
-      const extraMods = localFiles.filter((f) => !allowedSet.has(f))
+      const localOptFiles = fs.existsSync(optDir) ? fs.readdirSync(optDir) : []
+      const allowedSet = new Set([...officialFiles, ...allowedOptionalFiles, ...localOptFiles])
+      const extraMods = localFiles.filter((f: string) => !allowedSet.has(f))
       return { hasExtra: extraMods.length > 0, extraMods }
     } catch (err) {
       logger.warn('Failed to check extra mods:', err)
@@ -133,19 +137,97 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
       logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M]`)
 
-      // Récupérer les règles d'exclusion de nettoyage décidées par le serveur
-      let serverCleaningIgnored: string[] | undefined = undefined
+      // 1. Synchroniser les mods optionnels pour ce profil avant lancement
+      try {
+        const cleanSlug = profileSlug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+        const instDir = instancePathFor(cleanSlug)
+        const optDir = require('node:path').join(instDir, 'optional-mods')
+        const modsDir = require('node:path').join(instDir, 'mods')
+
+        if (fs.existsSync(optDir)) {
+          const optModsConfig = settings.serverSettings?.[profileSlug]?.optionalMods || localDiskCfg?.optionalMods || {}
+          const optFiles = fs.readdirSync(optDir)
+
+          for (const file of optFiles) {
+            const modId = file.replace(/\.jar$/i, '')
+            const isEnabled = optModsConfig[modId] === true || (optModsConfig[modId] === undefined && optModsConfig[file] === true)
+            const isExplicitlyDisabled = optModsConfig[modId] === false || optModsConfig[file] === false
+            const activePath = require('node:path').join(modsDir, file)
+            const optPath = require('node:path').join(optDir, file)
+
+            if (isEnabled) {
+              if (!fs.existsSync(activePath) && fs.existsSync(optPath)) {
+                fs.copyFileSync(optPath, activePath)
+                logger.info(`[Launcher Sync] Mod optionnel activé synchronisé dans mods/: ${file}`)
+              }
+            } else if (isExplicitlyDisabled) {
+              if (fs.existsSync(activePath)) {
+                fs.unlinkSync(activePath)
+                logger.info(`[Launcher Sync] Mod optionnel désactivé retiré de mods/: ${file}`)
+              }
+            }
+          }
+        }
+      } catch (optSyncErr) {
+        logger.warn('[Launcher Sync] Erreur lors de la synchronisation des mods optionnels avant lancement:', optSyncErr)
+      }
+
+      // 2. Récupérer et enrichir les règles d'exclusion de nettoyage décidées par le serveur
+      let serverCleaningIgnored: string[] = [
+        'crash-reports/',
+        'logs/',
+        'resourcepacks/',
+        'resources/',
+        'saves/',
+        'shaderpacks/',
+        'screenshots/',
+        'optional-mods/',
+        'options.txt',
+        'optionsof.txt',
+        'quickPlay.json',
+        'servers.dat',
+        'server-settings.json',
+        'config/iris.properties',
+        'config/sodium-options.json',
+        'config/fancymenu/',
+        'config/drippyloadingscreen/'
+      ]
+
       try {
         const updaterResp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${profileSlug}`)
         if (updaterResp.ok) {
           const updaterManifest = await updaterResp.json()
           if (Array.isArray(updaterManifest.cleaningIgnored)) {
-            serverCleaningIgnored = updaterManifest.cleaningIgnored
+            for (const item of updaterManifest.cleaningIgnored) {
+              if (!serverCleaningIgnored.includes(item)) serverCleaningIgnored.push(item)
+            }
+          }
+          if (Array.isArray(updaterManifest.optionalMods)) {
+            for (const m of updaterManifest.optionalMods) {
+              const activeModPath = `mods/${m.name}`
+              if (!serverCleaningIgnored.includes(activeModPath)) {
+                serverCleaningIgnored.push(activeModPath)
+              }
+            }
           }
         }
       } catch (manifestErr) {
         logger.warn('Failed to fetch cleaning rules from server:', manifestErr)
       }
+
+      // Protéger aussi les mods optionnels installés localement contre toute suppression
+      try {
+        const localOptDir = require('node:path').join(instancePathFor(profileSlug), 'optional-mods')
+        if (fs.existsSync(localOptDir)) {
+          const localFiles = fs.readdirSync(localOptDir)
+          for (const f of localFiles) {
+            const activePath = `mods/${f}`
+            if (!serverCleaningIgnored.includes(activePath)) {
+              serverCleaningIgnored.push(activePath)
+            }
+          }
+        }
+      } catch (_) {}
 
       const launcher = new Launcher({
         root: 'modey',

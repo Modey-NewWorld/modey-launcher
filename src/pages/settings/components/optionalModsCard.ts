@@ -7,6 +7,7 @@ const el = (id: string) => document.getElementById(id)
 
 let currentSlug = ''
 let isLoading = false
+let requestSeq = 0
 
 export function initOptionalModsCard() {
   const refreshBtn = el('btn-refresh-optional-mods')
@@ -38,6 +39,7 @@ function cleanModDisplayName(rawName: string): string {
 
 export async function refreshOptionalMods(slug: string) {
   currentSlug = slug
+  const thisSeq = ++requestSeq
   const container = el('optional-mods-list-container')
   const badge = el('optional-mods-badge')
   if (!container || slug === 'global') return
@@ -54,10 +56,11 @@ export async function refreshOptionalMods(slug: string) {
 
   try {
     const list: IOptionalModItem[] = await optionalMods.list(slug)
-    isLoading = false
+    if (thisSeq !== requestSeq) return // Stale request drop
 
+    const activeCount = list.filter((m) => m.isEnabled).length
     if (badge) {
-      badge.innerText = `${list.length} disponible(s)`
+      badge.innerText = `${activeCount}/${list.length} actif(s)`
     }
 
     if (list.length === 0) {
@@ -84,24 +87,36 @@ export async function refreshOptionalMods(slug: string) {
       let actionHtml = ''
       if (!mod.isInstalled) {
         actionHtml = `
-          <button type="button" class="opt-btn opt-btn--install" id="btn-install-${mod.id}">
+          <button type="button" class="opt-btn opt-btn--install" id="btn-install-${mod.id}" title="Télécharger et installer ce mod">
             <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg>&nbsp;Télécharger
           </button>
         `
       } else {
         const toggleClass = mod.isEnabled ? 'opt-btn--toggle-on' : 'opt-btn--toggle-off'
-        
         const toggleText = mod.isEnabled ? 'Activé' : 'Désactivé'
+        const toggleIcon = mod.isEnabled ? '#solar-check-bold' : '#solar-close-circle-bold'
 
         actionHtml = `
-          <button type="button" class="opt-btn ${toggleClass}" id="btn-toggle-${mod.id}" title="${mod.isEnabled ? 'Désactiver ce mod' : 'Activer ce mod'}">
-            <svg class="solar-icon solar-bold"><use href="#solar-check-bold"></use></svg> <span>${toggleText}</span>
+          <button type="button" class="opt-btn ${toggleClass}" id="btn-toggle-${mod.id}" title="${mod.isEnabled ? 'Désactiver ce mod en jeu' : 'Activer ce mod en jeu'}">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="${toggleIcon}"></use></svg> <span>${toggleText}</span>
           </button>
           <button type="button" class="opt-btn opt-btn--delete" id="btn-del-${mod.id}" title="Désinstaller complètement ce mod">
             <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-trash-bold"></use></svg>
           </button>
         `
       }
+
+      const statusTag = mod.isEnabled
+        ? '<span class="slot-count-tag" style="background:var(--success-soft); color:var(--success); font-weight:700;">En jeu</span>'
+        : (mod.isInstalled
+          ? '<span class="slot-count-tag" style="background:var(--warning-soft); color:var(--warning); font-weight:700;">En pause</span>'
+          : '<span class="slot-count-tag" style="background:var(--bg-sunken); color:var(--ink-500);">Non installé</span>')
+
+      const statusDesc = mod.isEnabled
+        ? '<svg class="solar-icon solar-bold" style="color:var(--success);" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Actif au lancement'
+        : (mod.isInstalled
+          ? '<svg class="solar-icon solar-bold" style="color:var(--warning);" aria-hidden="true"><use href="#solar-clock-bold"></use></svg>&nbsp;Désactivé'
+          : '<svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-box-bold"></use></svg>&nbsp;Prêt à télécharger')
 
       card.innerHTML = `
         <div class="optional-mod-head">
@@ -113,13 +128,11 @@ export async function refreshOptionalMods(slug: string) {
               <span>${sizeStr}</span>
             </div>
           </div>
-          <span class="slot-count-tag" style="background:${mod.isEnabled ? 'var(--success-soft)' : 'var(--bg-sunken)'}; color:${mod.isEnabled ? 'var(--success)' : 'var(--ink-500)'};">
-            ${mod.isEnabled ? 'En jeu' : mod.isInstalled ? 'Prêt' : 'En ligne'}
-          </span>
+          ${statusTag}
         </div>
         <div class="optional-mod-actions">
-          <span style="font-size:11.5px; color:var(--ink-500);">
-            ${mod.isEnabled ? '<svg class="solar-icon solar-bold style="color:var(--success);"" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Actif au lancement' : (mod.isInstalled ? '<svg class="solar-icon solar-bold style="color:var(--warning);"" aria-hidden="true"><use href="#solar-clock-bold"></use></svg>&nbsp;En pause' : '<svg class="solar-icon solar-bold style="color:var(--accent);"" aria-hidden="true"><use href="#solar-box-bold"></use></svg>&nbsp;Non téléchargé')}
+          <span style="font-size:11.5px; color:var(--ink-500); display:flex; align-items:center; gap:4px;">
+            ${statusDesc}
           </span>
           <div style="display:flex; align-items:center; gap:6px;">
             ${actionHtml}
@@ -184,7 +197,7 @@ export async function refreshOptionalMods(slug: string) {
       })
     }
   } catch (err) {
-    isLoading = false
+    if (thisSeq !== requestSeq) return
     logger.error('Failed to load optional mods:', err)
     container.innerHTML = `
       <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:#fef2f2; border:1px dashed #fca5a5; border-radius:10px; padding:18px; text-align:center; color:#991b1b; font-size:13px;">
@@ -192,5 +205,7 @@ export async function refreshOptionalMods(slug: string) {
         <div>Impossible de charger les mods facultatifs. Vérifiez votre connexion.</div>
       </div>
     `
+  } finally {
+    isLoading = false
   }
 }
