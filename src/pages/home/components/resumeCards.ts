@@ -180,22 +180,62 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
     return
   }
 
+  const currentSlug = homeState.selectedProfile?.slug || 'athena'
+
   const cardsHtml = history
     .slice(0, 3)
     .map((item) => {
-      const banner = bannerCache.getBanner(item.slug) || bgImage
+      const profile = homeState.allProfiles.find((p) => p.slug === item.slug || p.name?.toLowerCase() === item.slug?.toLowerCase())
+      const meta = launcherConfig.getServer(item.slug)
+      const serverName = profile?.name || meta?.name || item.name || item.slug
+      const targetSlug = profile?.slug || item.slug
+      const hasCustomIcon = Boolean(profile?.iconUrl || profile?.modey?.iconUrl || meta?.iconUrl)
+      const rawSolarIcon = profile?.modey?.launcherIcon || meta?.launcherIcon || 'server'
+      const solarIconName = KNOWN_SOLAR_ICONS.has(rawSolarIcon.toLowerCase().trim()) ? rawSolarIcon.toLowerCase().trim() : 'server'
+      const isCrown = solarIconName === 'crown' || targetSlug === 'athena'
+      const iconUrl = getTargetServerIconUrl(profile, targetSlug)
+      const banner = bannerCache.getBanner(targetSlug) || profile?.bannerUrl || meta?.bannerUrl || bgImage
+      const isCurrent = currentSlug === targetSlug
+
+      // Statut réel du profil
+      const isSoon = isComingSoonProfile(profile)
+      const isMaint = isMaintenanceProfile(profile)
+      const isDisabled = isDisabledProfile(profile)
+
+      let dotClass = 'online'
+      let statusLabel = 'En ligne'
+
+      if (isSoon) {
+        dotClass = 'soon'
+        statusLabel = 'Bientôt'
+      } else if (isMaint) {
+        dotClass = 'maint'
+        statusLabel = 'Maintenance'
+      } else if (isDisabled) {
+        dotClass = 'offline'
+        statusLabel = 'Désactivé'
+      }
+
       return `
-        <div class="history-server-mini-card" data-slug="${item.slug}">
-          <div class="mini-card-thumb" style="background-image: url('${banner}')"></div>
+        <div class="history-server-mini-card ${isCurrent ? 'is-active-server' : ''}" data-slug="${targetSlug}" title="Sélectionner ${serverName}">
+          <div class="mini-card-thumb" style="background-image: url('${banner}')">
+            <div class="mini-card-icon-badge">
+              ${hasCustomIcon ? `<img src="${iconUrl}" alt="${serverName}" class="mini-card-icon-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />` : ''}
+              <div class="mini-card-icon-fallback" style="${hasCustomIcon ? 'display: none;' : 'display: flex;'}">
+                <svg class="solar-icon solar-bold ${isCrown ? 'server-icon-gold' : ''}" aria-hidden="true"><use href="#solar-${solarIconName}-bold"></use></svg>
+              </div>
+            </div>
+            ${isCurrent ? `<span class="mini-card-active-pill"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-circle-bold"></use></svg> Actif</span>` : ''}
+          </div>
           <div class="mini-card-body">
-            <div class="mini-card-title">${item.name}</div>
+            <div class="mini-card-title" title="${serverName}">${serverName}</div>
             <div class="mini-card-time">
               <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-clock-bold"></use></svg>
               <span>${formatRelativeTime(item.playedAt)}</span>
             </div>
             <div class="mini-card-status">
-              <span class="status-dot online"></span>
-              <span>En ligne</span>
+              <span class="status-dot ${dotClass}"></span>
+              <span>${statusLabel}</span>
             </div>
           </div>
         </div>
