@@ -42,3 +42,21 @@ export const getServerTarget = (profiles: any[], slug?: string) => {
 }
 
 export const athenaTarget = getServerTarget
+
+export interface CachedServerInfo {
+  online: boolean
+  playersOnline: number
+  playersMax: number
+  pingMs: number
+  timestamp: number
+}
+
+export const liveServersCache: Record<string, CachedServerInfo> = {}
+
+export function setCachedServerInfo(slug: string, info: { online: boolean; playersOnline: number; playersMax: number; pingMs: number }) {
+  liveServersCache[slug] = { ...info, timestamp: Date.now() }
+}
+
+export function getCachedServerInfo(slug: string): CachedServerInfo | null {
+  return liveServersCache[slug] || null
+}

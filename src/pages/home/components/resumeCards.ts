@@ -2,6 +2,7 @@ import { solarIcon as solar } from '../../../components/icon'
 import { showServers } from '../../../router'
 import { startLaunch } from '../../../services/launch'
 import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile } from '../../../services/profiles'
+import { getCachedServerInfo, setCachedServerInfo, pingServer, getServerTarget } from '../../../services/serverStatus'
 import { bannerCache } from '../../../services/bannerCache'
 import { homeState } from '../state'
 import { getLastPlayedServer, getServerHistory } from './serverHistory'
@@ -241,44 +242,79 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
       const banner = getTargetServerBanner(profile, targetSlug, serverName)
       const isCurrent = currentSlug === targetSlug
 
-      // Statut réel du profil
+      // Statut réel et joueurs du profil
       const isSoon = isComingSoonProfile(profile)
       const isMaint = isMaintenanceProfile(profile)
       const isDisabled = isDisabledProfile(profile)
+      const cached = getCachedServerInfo(targetSlug) || (targetSlug === 'athena' ? getCachedServerInfo('modey-athena') : null)
 
       let dotClass = 'online'
       let statusLabel = 'En ligne'
+      let playersText = cached && cached.online ? `${cached.playersOnline}/${cached.playersMax}` : '0/40'
 
       if (isSoon) {
         dotClass = 'soon'
-        statusLabel = 'Bientôt'
+        statusLabel = 'Arrive bientôt'
+        playersText = '—'
       } else if (isMaint) {
         dotClass = 'maint'
         statusLabel = 'Maintenance'
+        playersText = '—'
       } else if (isDisabled) {
         dotClass = 'offline'
         statusLabel = 'Désactivé'
+        playersText = '—'
+      } else if (cached && !cached.online) {
+        dotClass = 'offline'
+        statusLabel = 'Hors ligne'
+        playersText = '—'
+      }
+
+      // Sonde d'arrière-plan si non présent en cache
+      if (!isSoon && !isMaint && !isDisabled && !cached) {
+        const t = getServerTarget(homeState.allProfiles, targetSlug)
+        const host = profile?.server?.host || profile?.ip || t.host
+        const port = profile?.server?.port || profile?.port || t.port || 25565
+        pingServer(host, port).then((probe) => {
+          if (probe.online && probe.status) {
+            setCachedServerInfo(targetSlug, {
+              online: true,
+              playersOnline: probe.status.players.online,
+              playersMax: probe.status.players.max,
+              pingMs: probe.pingMs
+            })
+            const elPlayers = document.querySelector(`.history-server-mini-card[data-slug="${targetSlug}"] .mini-card-badge-players`)
+            const elStatus = document.querySelector(`.history-server-mini-card[data-slug="${targetSlug}"] .mini-card-badge-status`)
+            if (elPlayers) {
+              elPlayers.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
+            }
+            if (elStatus) {
+              elStatus.innerHTML = `<span class="status-dot online"></span>&nbsp;En ligne`
+            }
+          }
+        }).catch(() => {})
       }
 
       return `
         <div class="history-server-mini-card ${isCurrent ? 'is-active-server' : ''}" data-slug="${targetSlug}" title="Sélectionner ${serverName}">
           <div class="mini-card-thumb" style="background-image: url('${banner}')">
+            <div class="mini-card-badges-top">
+              <span class="mini-card-badge mini-card-badge-status">
+                <span class="status-dot ${dotClass}"></span>&nbsp;${statusLabel}
+              </span>
+              <span class="mini-card-badge mini-card-badge-players">
+                <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;${playersText}
+              </span>
+            </div>
             <div class="mini-card-icon-badge">
               ${hasCustomIcon ? `<img src="${iconUrl}" alt="${serverName}" class="mini-card-icon-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />` : ''}
               <div class="mini-card-icon-fallback" style="${hasCustomIcon ? 'display: none;' : 'display: flex;'}">
                 <svg class="solar-icon solar-bold ${isCrown ? 'server-icon-gold' : ''}" aria-hidden="true"><use href="#solar-${solarIconName}-bold"></use></svg>
               </div>
             </div>
-            ${isCurrent ? `<span class="mini-card-active-pill"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-circle-bold"></use></svg> Actif</span>` : ''}
           </div>
           <div class="mini-card-body">
-            <div class="mini-card-row-top">
-              <div class="mini-card-title" title="${serverName}">${serverName}</div>
-              <div class="mini-card-status">
-                <span class="status-dot ${dotClass}"></span>
-                <span>${statusLabel}</span>
-              </div>
-            </div>
+            <div class="mini-card-title" title="${serverName}">${serverName}</div>
             <div class="mini-card-time">
               <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-clock-bold"></use></svg>
               <span>${formatRelativeTime(item.playedAt)}</span>

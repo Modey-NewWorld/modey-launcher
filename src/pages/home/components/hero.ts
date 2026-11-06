@@ -1,6 +1,6 @@
 import { solarIcon as solar } from '../../../components/icon'
 import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile } from '../../../services/profiles'
-import { pingServer, targetFor } from '../../../services/serverStatus'
+import { pingServer, targetFor, setCachedServerInfo } from '../../../services/serverStatus'
 import { getUser } from '../../../state'
 import { launcherConfig, FALLBACK_MC_VERSION } from '../../../services/launcherConfig'
 import { bannerCache } from '../../../services/bannerCache'
@@ -279,6 +279,13 @@ export async function updateServerStatus(profile: any) {
     if (playerCount) {
       playerCount.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;${probe.status.players.online}/${probe.status.players.max}`
     }
+    const slug = profile?.slug || 'athena'
+    setCachedServerInfo(slug, {
+      online: true,
+      playersOnline: probe.status.players.online,
+      playersMax: probe.status.players.max,
+      pingMs: probe.pingMs
+    })
   } else {
     if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
     if (serverStatusText) serverStatusText.innerText = 'Hors ligne'

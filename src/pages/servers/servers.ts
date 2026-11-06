@@ -14,7 +14,7 @@ function resolveServerIconSvg(iconUrl?: string, iconName?: string, isCrown = fal
 
 import { Dialog } from '../../components/dialog'
 import { showAccueil } from '../../router'
-import { pingServer, getServerTarget } from '../../services/serverStatus'
+import { pingServer, getServerTarget, setCachedServerInfo } from '../../services/serverStatus'
 import { homeState } from '../home/state'
 import { launcherConfig } from '../../services/launcherConfig'
 import { openDiscordInvite } from '../../services/discord'
@@ -208,6 +208,8 @@ async function probeLiveServers() {
             playersOnline: probe.status.players.online,
             playersMax: probe.status.players.max
           }
+          setCachedServerInfo(s.id, pingLiveCache[s.id])
+          setCachedServerInfo(s.slug, pingLiveCache[s.id])
         } else {
           pingLiveCache[s.id] = { online: false, pingMs: 0, playersOnline: 0, playersMax: 0 }
         }

@@ -1084,21 +1084,58 @@
       }
     }
 
-    .mini-card-active-pill {
+    .mini-card-badges-top {
       position: absolute;
-      top: 5px;
-      right: 5px;
-      z-index: 2;
-      display: inline-flex;
+      top: 6px;
+      left: 6px;
+      right: 6px;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 3px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .mini-card-badge {
       font-size: 9.5px;
-      font-weight: 700;
-      color: #FFFFFF;
-      background: var(--accent);
+      font-weight: 600;
       padding: 2px 6px;
       border-radius: 999px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      gap: 3.5px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+
+        &.online {
+          background-color: var(--success);
+          box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+        }
+
+        &.soon {
+          background-color: var(--warning);
+          box-shadow: 0 0 6px var(--warning);
+        }
+
+        &.maint {
+          background-color: #ec4899;
+          box-shadow: 0 0 6px #ec4899;
+        }
+
+        &.offline {
+          background-color: var(--danger);
+        }
+      }
 
       .solar-icon {
         width: 10px;
