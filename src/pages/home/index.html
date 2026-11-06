@@ -145,8 +145,9 @@
               </div>
             </section>
 
-            <!-- 2. Rangée intermédiaire (Reprends là où tu t'es arrêté + Événements & actualités) -->
-            <div class="home-grid-row">
+            <!-- 2. Grille principale des cartes (Reprendre, À découvrir, Événements & Historique) -->
+            <div class="home-cards-grid">
+              <!-- Reprendre (Haut Gauche) -->
               <section class="home-card resume-card">
                 <div class="home-card-head">
                   <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-clock-bold"></use></svg> Reprendre</h3>
@@ -155,6 +156,16 @@
                 <div class="home-card-body" id="resume-container"></div>
               </section>
 
+              <!-- À découvrir (Haut Milieu : à droite de Reprendre, à gauche d'Événements) -->
+              <section class="home-card discovery-card">
+                <div class="home-card-head">
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-compass-bold"></use></svg> À découvrir</h3>
+                  <button class="head-link" id="discovery-view-all">Voir tout <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg></button>
+                </div>
+                <div class="home-card-body discovery-list" id="discovery-container"></div>
+              </section>
+
+              <!-- Événements & actualités (Vertical Droite : du haut jusqu'en bas) -->
               <section class="home-card news-card">
                 <div class="home-card-head">
                   <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-feed-bold"></use></svg> Événements & actualités</h3>
@@ -172,10 +183,8 @@
                 </div>
                 <div class="home-card-body news-events-container" id="events-news-list"></div>
               </section>
-            </div>
 
-            <!-- 3. Rangée inférieure (Tes serveurs officiels + À découvrir) -->
-            <div class="home-grid-row home-grid-row-bottom">
+              <!-- Historique (Bas : sous Reprendre et À découvrir) -->
               <section class="home-card history-card-section" id="section-history">
                 <div class="home-card-head">
                   <div class="card-title-group">
@@ -185,14 +194,6 @@
                   <button class="head-link" id="history-view-all">Explorer les serveurs <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg></button>
                 </div>
                 <div class="home-card-body history-servers-grid" id="history-servers-container"></div>
-              </section>
-
-              <section class="home-card discovery-card">
-                <div class="home-card-head">
-                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-compass-bold"></use></svg> À découvrir</h3>
-                  <button class="head-link" id="discovery-view-all">Voir tout <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-right-bold"></use></svg></button>
-                </div>
-                <div class="home-card-body discovery-list" id="discovery-container"></div>
               </section>
             </div>
           </div>
