@@ -411,6 +411,7 @@
     grid-column: 3;
     grid-row: 1 / span 2;
     height: 100%;
+    padding: 12px;
   }
 
   .history-card-section {
@@ -743,7 +744,7 @@
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
-  padding: 2px 2px 6px 2px;
+  padding: 0;
 
   scrollbar-width: thin;
   &::-webkit-scrollbar {
