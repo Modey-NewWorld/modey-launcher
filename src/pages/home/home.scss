@@ -944,7 +944,7 @@
 
   .history-servers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     align-items: stretch;
     height: 100%;
@@ -1023,7 +1023,7 @@
   }
 
   .mini-card-thumb {
-    height: 80px;
+    height: 96px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

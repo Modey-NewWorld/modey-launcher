@@ -218,7 +218,7 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
   const currentSlug = homeState.selectedProfile?.slug || 'athena'
 
   const cardsHtml = history
-    .slice(0, 2)
+    .slice(0, 3)
     .map((item) => {
       const profile = homeState.allProfiles.find((p) => p.slug === item.slug || p.name?.toLowerCase() === item.slug?.toLowerCase())
       const meta = launcherConfig.getServer(item.slug)
@@ -289,14 +289,14 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
     })
     .join('')
 
-  const exploreMoreHtml = `
-    <div class="history-server-mini-card history-server-add-card" id="btn-history-explore-more">
+  const exploreMoreHtml = history.length < 3 ? `
+    <div class="history-server-mini-card history-server-add-card" id="btn-history-explore-more" title="Explorer tous les mondes">
       <div class="add-card-plus">
         <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg>
       </div>
       <div class="add-card-title">Explorer d'autres serveurs</div>
     </div>
-  `
+  ` : ''
 
   container.innerHTML = cardsHtml + exploreMoreHtml
 
