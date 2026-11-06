@@ -23,6 +23,8 @@ import serversHtml from './index.html?raw'
 import './servers.scss'
 
 import bgAthena from '../../static/images/bg.webp'
+import cardAthena from '../../static/images/servers/card-athena.webp'
+import inspectorAthena from '../../static/images/servers/inspector-athena.webp'
 
 const el = (id: string) => document.getElementById(id)
 
@@ -103,7 +105,11 @@ function buildServersList(): ServerItem[] {
     const subtitle = p.subtitle || meta?.subtitle || `Europe (FR) • ${version}`
     const location = p.location || p.modey?.location || meta?.location || 'Europe (France)'
     const description = p.description || p.modey?.description || meta?.teaser?.description || p.teaser?.description || p.subtitle || ''
-    const banner = p.bannerUrl || p.modey?.bannerUrl || meta?.bannerUrl || bgAthena
+    const isAthena = slug === 'athena' || p.id === 'modey-athena' || p.name === 'Athéna'
+    const defaultBanner = isAthena ? cardAthena : bgAthena
+    const defaultDetail = isAthena ? inspectorAthena : bgAthena
+    const banner = p.bannerUrl || p.modey?.bannerUrl || meta?.bannerUrl || defaultBanner
+    const detailBanner = p.bannerUrl || p.modey?.bannerUrl || meta?.bannerUrl || defaultDetail
 
     const iconUrl = p.iconUrl || p.modey?.iconUrl || meta?.iconUrl
     const iconName = p.modey?.launcherIcon || (meta ? meta.launcherIcon : undefined) || p.launcherIcon || (isComingSoon ? 'box' : 'server')
@@ -127,7 +133,7 @@ function buildServersList(): ServerItem[] {
       description,
       tags,
       bannerUrl: banner,
-      detailBannerUrl: banner,
+      detailBannerUrl: detailBanner,
       websiteUrl: 'https://modey.fr',
       isOfficial: true,
       profileRef: p
@@ -142,7 +148,11 @@ function buildServersList(): ServerItem[] {
     const isComingSoon = meta.status === 'comingSoon'
     const version = meta.minecraftVersion || '1.21.1'
     const tags = meta.tags || []
-    const banner = meta.bannerUrl || bgAthena
+    const isAthena = slug === 'athena'
+    const defaultBanner = isAthena ? cardAthena : bgAthena
+    const defaultDetail = isAthena ? inspectorAthena : bgAthena
+    const banner = meta.bannerUrl || defaultBanner
+    const detailBanner = meta.bannerUrl || defaultDetail
 
     const iconUrl = meta.iconUrl
     const iconName = meta.launcherIcon || (isComingSoon ? 'box' : 'server')
@@ -166,7 +176,7 @@ function buildServersList(): ServerItem[] {
       description: meta.teaser?.description || '',
       tags,
       bannerUrl: banner,
-      detailBannerUrl: banner,
+      detailBannerUrl: detailBanner,
       websiteUrl: meta.mapUrl || 'https://modey.fr',
       isOfficial: true
     })

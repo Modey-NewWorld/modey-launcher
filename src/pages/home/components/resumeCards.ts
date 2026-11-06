@@ -7,6 +7,7 @@ import { homeState } from '../state'
 import { getLastPlayedServer, getServerHistory } from './serverHistory'
 import { checkIsAdmin } from './hero'
 import bgImage from '../../../static/images/bg-thumb.webp'
+import cardAthena from '../../../static/images/servers/card-athena.webp'
 import { BRAND } from '../../../config/brand'
 import { launcherConfig } from '../../../services/launcherConfig'
 
@@ -43,6 +44,31 @@ function getTargetServerIconUrl(profile: any, slug: string): string {
   return `${BRAND.apiUrl}/api/servers/${slug}/icon`
 }
 
+
+function getTargetServerBanner(profile: any, slug: string, name?: string): string {
+  const meta = launcherConfig.getServer(slug)
+  const isAthena =
+    slug === 'athena' ||
+    slug === 'modey-athena' ||
+    profile?.slug === 'athena' ||
+    profile?.id === 'modey-athena' ||
+    (name && (name.toLowerCase().includes('athéna') || name.toLowerCase().includes('athena'))) ||
+    profile?.name?.toLowerCase()?.includes('athéna') ||
+    profile?.name?.toLowerCase()?.includes('athena')
+
+  const remoteUrl = profile?.bannerUrl || profile?.modey?.bannerUrl || meta?.bannerUrl
+  if (remoteUrl) {
+    const cached = bannerCache.getBanner(slug, remoteUrl)
+    if (cached) return cached
+  }
+
+  if (isAthena) {
+    return cardAthena
+  }
+
+  return bgImage
+}
+
 function renderResume(onSelectProfile: (profile: any) => void) {
   const container = document.getElementById('resume-container')
   if (!container) return
@@ -57,9 +83,18 @@ function renderResume(onSelectProfile: (profile: any) => void) {
   const timeText = last ? formatRelativeTime(last.playedAt) : 'Prêt à jouer'
   const targetSlug = targetProfile?.slug || last?.slug || 'athena'
   const meta = launcherConfig.getServer(targetSlug)
+  const isAthena =
+    targetSlug === 'athena' ||
+    targetSlug === 'modey-athena' ||
+    targetProfile?.slug === 'athena' ||
+    targetProfile?.id === 'modey-athena' ||
+    serverName.toLowerCase().includes('athéna') ||
+    serverName.toLowerCase().includes('athena')
   const hasCustomIcon = Boolean(targetProfile?.iconUrl || targetProfile?.modey?.iconUrl || meta?.iconUrl)
-  const rawSolarIcon = targetProfile?.modey?.launcherIcon || meta?.launcherIcon || 'server'
-  const solarIconName = KNOWN_SOLAR_ICONS.has(rawSolarIcon.toLowerCase().trim()) ? rawSolarIcon.toLowerCase().trim() : 'server'
+  const rawSolarIcon = isAthena
+    ? 'crown'
+    : (targetProfile?.modey?.launcherIcon || meta?.launcherIcon || 'server')
+  const solarIconName = KNOWN_SOLAR_ICONS.has(rawSolarIcon.toLowerCase().trim()) ? rawSolarIcon.toLowerCase().trim() : (isAthena ? 'crown' : 'server')
   const iconUrl = getTargetServerIconUrl(targetProfile, targetSlug)
 
   const isSoon = isComingSoonProfile(targetProfile)
@@ -189,12 +224,21 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
       const meta = launcherConfig.getServer(item.slug)
       const serverName = profile?.name || meta?.name || item.name || item.slug
       const targetSlug = profile?.slug || item.slug
+      const isAthena =
+        targetSlug === 'athena' ||
+        targetSlug === 'modey-athena' ||
+        profile?.slug === 'athena' ||
+        profile?.id === 'modey-athena' ||
+        serverName.toLowerCase().includes('athéna') ||
+        serverName.toLowerCase().includes('athena')
       const hasCustomIcon = Boolean(profile?.iconUrl || profile?.modey?.iconUrl || meta?.iconUrl)
-      const rawSolarIcon = profile?.modey?.launcherIcon || meta?.launcherIcon || 'server'
-      const solarIconName = KNOWN_SOLAR_ICONS.has(rawSolarIcon.toLowerCase().trim()) ? rawSolarIcon.toLowerCase().trim() : 'server'
-      const isCrown = solarIconName === 'crown' || targetSlug === 'athena'
+      const rawSolarIcon = isAthena
+        ? 'crown'
+        : (profile?.modey?.launcherIcon || meta?.launcherIcon || 'server')
+      const solarIconName = KNOWN_SOLAR_ICONS.has(rawSolarIcon.toLowerCase().trim()) ? rawSolarIcon.toLowerCase().trim() : (isAthena ? 'crown' : 'server')
+      const isCrown = solarIconName === 'crown' || isAthena
       const iconUrl = getTargetServerIconUrl(profile, targetSlug)
-      const banner = bannerCache.getBanner(targetSlug) || profile?.bannerUrl || meta?.bannerUrl || bgImage
+      const banner = getTargetServerBanner(profile, targetSlug, serverName)
       const isCurrent = currentSlug === targetSlug
 
       // Statut réel du profil
