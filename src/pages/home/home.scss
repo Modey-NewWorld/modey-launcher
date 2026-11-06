@@ -192,8 +192,17 @@
     }
   }
 
-  .modey-hero-body {
+  .modey-hero-bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-top: auto;
+
     .modey-hero-info {
+      flex: 1;
+      max-width: 65%;
+
       h2 {
         font-size: 34px;
         font-family: var(--font-display);
@@ -208,36 +217,37 @@
       .hero-tags {
         display: flex;
         gap: 6px;
-        margin: 10px 0;
+        margin: 8px 0 10px 0;
         flex-wrap: wrap;
 
         .hero-tag {
-          font-size: 12px;
+          font-size: 11.5px;
           font-weight: 500;
           color: rgba(255, 255, 255, 0.9);
           background: rgba(255, 255, 255, 0.16);
           border: 1px solid rgba(255, 255, 255, 0.24);
-          padding: 4px 12px;
+          padding: 3px 10px;
           border-radius: 6px;
         }
       }
 
       p {
         font-size: 13.5px;
-        color: rgba(255, 255, 255, 0.9);
-        line-height: 1.55;
-        max-width: 680px;
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1.5;
+        max-width: 640px;
         margin: 0;
       }
     }
-  }
 
-  .modey-hero-bottom-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-top: auto;
+    @media (max-width: 900px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      .modey-hero-info {
+        max-width: 100%;
+      }
+    }
   }
 
   /* Mini Galerie */
@@ -392,10 +402,10 @@
 .home-cards-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr);
-  grid-template-rows: minmax(175px, auto) minmax(138px, auto);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 16px;
   flex: 1;
-  min-height: 325px;
+  min-height: 380px;
 
   .resume-card {
     grid-column: 1;
@@ -914,7 +924,7 @@
   padding: 12px;
 
   .home-card-head {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
   }
 
   .card-title-group {
@@ -1013,13 +1023,14 @@
   }
 
   .mini-card-thumb {
-    height: 72px;
+    height: 80px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     width: 100%;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0;
 
     &::after {
       content: '';
@@ -1097,10 +1108,11 @@
   }
 
   .mini-card-body {
-    padding: 7px 10px 8px;
+    padding: 8px 10px 10px;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    justify-content: space-between;
+    gap: 4px;
     flex: 1;
 
     .mini-card-row-top {
