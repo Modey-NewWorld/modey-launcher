@@ -6,57 +6,12 @@
         <h1>Serveurs</h1>
         <p>Rejoins l'un des mondes Modey et vis une expérience unique !</p>
       </div>
-      <div class="servers-online-pill" id="servers-online-pill">
-        <span class="online-dot"></span>
-        <span id="servers-online-counter">1 serveur en ligne</span>
-      </div>
     </header>
 
-    <!-- Two-column main layout -->
+        <!-- Two-column main layout: Inspector at left (larger & full height), Server cards at right -->
     <div class="servers-main-layout">
-      <!-- Left column: Filters + Section header + Cards Grid -->
-      <section class="servers-catalog-col">
-        <!-- Controls row: Search + Filter Pills + Filter Settings + Sort -->
-        <div class="servers-filter-bar">
-          <div class="servers-search-wrapper">
-            <svg class="solar-icon solar-linear search-icon" aria-hidden="true"><use href="#solar-magnifier-linear"></use></svg>
-            <input type="text" id="servers-search-input" placeholder="Rechercher un serveur..." autocomplete="off" />
-          </div>
-          <div class="servers-filter-tags" id="servers-filter-tags">
-            <button class="filter-pill active" data-tag="all">Tous</button>
-          </div>
-          <button class="btn-filter-settings" id="btn-servers-filter-settings" title="Filtres avancés">
-            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>
-          </button>
-          <div class="servers-sort-box">
-            <label for="servers-sort-select">Trier par :</label>
-            <select id="servers-sort-select">
-              <option value="popularity">Popularité</option>
-              <option value="players">Joueurs</option>
-              <option value="name">Nom</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Section Title: Serveurs officiels Modey -->
-        <div class="servers-section-heading">
-          <div class="heading-icon-badge">
-            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>
-          </div>
-          <div class="heading-text">
-            <h2>Serveurs officiels Modey</h2>
-            <p>Des mondes uniques, créés et gérés par l'équipe Modey.</p>
-          </div>
-        </div>
-
-        <!-- Cards Grid (2 columns) -->
-        <div class="servers-cards-grid" id="servers-cards-grid">
-          <!-- Dynamically rendered server cards -->
-        </div>
-      </section>
-
-      <!-- Right column: Inspector Details Panel -->
-      <aside class="servers-inspector-col">
+      <!-- Left column: Inspector Details Panel -->
+<aside class="servers-inspector-col">
         <div class="server-inspector-panel" id="server-inspector-panel">
           <!-- Top 16:9 Banner -->
           <div class="inspector-banner" id="inspector-banner">
@@ -171,6 +126,25 @@
           </div>
         </div>
       </aside>
+
+      <!-- Right column: Section header + Cards Grid -->
+      <section class="servers-catalog-col">
+        <!-- Section Title: Serveurs officiels Modey -->
+        <div class="servers-section-heading">
+          <div class="heading-icon-badge">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>
+          </div>
+          <div class="heading-text">
+            <h2>Serveurs officiels Modey</h2>
+            <p>Des mondes uniques, créés et gérés par l'équipe Modey.</p>
+          </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="servers-cards-grid" id="servers-cards-grid">
+          <!-- Dynamically rendered server cards -->
+        </div>
+      </section>
     </div>
   </div>
 </main>
