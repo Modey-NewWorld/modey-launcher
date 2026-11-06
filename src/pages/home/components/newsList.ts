@@ -115,14 +115,14 @@ function initNav(itemCount: number) {
   btnPrev.onclick = () => {
     if (!newsList) return
     const firstItem = newsList.querySelector('.news-event-item') as HTMLElement | null
-    const step = firstItem ? (firstItem.offsetHeight + 12) : 180
+    const step = firstItem ? (firstItem.offsetHeight + 10) : 135
     newsList.scrollBy({ top: -step, behavior: 'smooth' })
   }
 
   btnNext.onclick = () => {
     if (!newsList) return
     const firstItem = newsList.querySelector('.news-event-item') as HTMLElement | null
-    const step = firstItem ? (firstItem.offsetHeight + 12) : 180
+    const step = firstItem ? (firstItem.offsetHeight + 10) : 135
     newsList.scrollBy({ top: step, behavior: 'smooth' })
   }
 
