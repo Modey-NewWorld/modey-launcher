@@ -405,6 +405,7 @@
   .discovery-card {
     grid-column: 2;
     grid-row: 1;
+    padding: 12px;
   }
 
   .news-card {
@@ -1090,10 +1091,16 @@
 
 /* 3. Carte À découvrir */
 .discovery-card {
+  padding: 12px;
+
+  .home-card-head {
+    margin-bottom: 12px;
+  }
+
   .discovery-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     height: 100%;
     flex: 1;
   }
@@ -1101,9 +1108,9 @@
   .discovery-row-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 10px;
-    border-radius: 8px;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
     background: var(--bg-sunken);
     border: 1px solid var(--line);
     cursor: pointer;
@@ -1113,7 +1120,7 @@
 
     &:hover {
       background: var(--bg-hover);
-      border-color: var(--line-strong);
+      border-color: var(--accent);
       transform: translateX(2px);
     }
 

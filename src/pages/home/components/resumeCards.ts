@@ -10,6 +10,11 @@ import bgImage from '../../../static/images/bg-thumb.webp'
 import { BRAND } from '../../../config/brand'
 import { launcherConfig } from '../../../services/launcherConfig'
 
+const KNOWN_SOLAR_ICONS = new Set([
+  'server', 'shield', 'crown', 'sparkles', 'rocket', 'box',
+  'compass', 'bolt', 'star', 'gamepad', 'cup'
+])
+
 export function renderResumeAndHistory(onSelectProfile: (profile: any) => void) {
   renderResume(onSelectProfile)
   renderHistory(onSelectProfile)
@@ -51,6 +56,10 @@ function renderResume(onSelectProfile: (profile: any) => void) {
   const serverName = targetProfile?.name || last?.name || 'Athéna'
   const timeText = last ? formatRelativeTime(last.playedAt) : 'Prêt à jouer'
   const targetSlug = targetProfile?.slug || last?.slug || 'athena'
+  const meta = launcherConfig.getServer(targetSlug)
+  const hasCustomIcon = Boolean(targetProfile?.iconUrl || targetProfile?.modey?.iconUrl || meta?.iconUrl)
+  const rawSolarIcon = targetProfile?.modey?.launcherIcon || meta?.launcherIcon || 'server'
+  const solarIconName = KNOWN_SOLAR_ICONS.has(rawSolarIcon.toLowerCase().trim()) ? rawSolarIcon.toLowerCase().trim() : 'server'
   const iconUrl = getTargetServerIconUrl(targetProfile, targetSlug)
 
   const isSoon = isComingSoonProfile(targetProfile)
@@ -111,9 +120,9 @@ function renderResume(onSelectProfile: (profile: any) => void) {
     <div class="resume-card-box">
       <div class="resume-card-top">
         <div class="resume-card-thumb">
-          <img src="${iconUrl}" alt="${serverName}" class="resume-card-icon-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-          <div class="resume-card-icon-fallback" style="display: none;">
-            ${solar('server', 'bold')}
+          ${hasCustomIcon ? `<img src="${iconUrl}" alt="${serverName}" class="resume-card-icon-img" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />` : ''}
+          <div class="resume-card-icon-fallback" style="${hasCustomIcon ? 'display: none;' : 'display: flex;'}">
+            ${solar(solarIconName, 'bold')}
           </div>
         </div>
         <div class="resume-card-info">
