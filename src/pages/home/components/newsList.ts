@@ -62,14 +62,15 @@ export async function loadNews() {
       'beforeend',
       `
       <div class="news-event-item" data-index="${index}">
-        <div class="news-event-thumb" style="background-image: url('${thumbImg}')"></div>
+        <div class="news-event-banner" style="background-image: url('${thumbImg}')">
+          <div class="news-event-banner-badges">
+            <span class="news-event-badge ${badgeClass}">${badgeLabel}</span>
+            <span class="news-event-date-pill">${dateText}</span>
+          </div>
+        </div>
         <div class="news-event-body">
           <div class="news-event-title" title="${item.title}">${item.title}</div>
           <div class="news-event-desc" title="${teaser}">${teaser}</div>
-        </div>
-        <div class="news-event-meta-col">
-          <span class="news-event-badge ${badgeClass}">${badgeLabel}</span>
-          <span class="news-event-meta">${dateText}</span>
         </div>
       </div>
     `
@@ -114,14 +115,14 @@ function initNav(itemCount: number) {
   btnPrev.onclick = () => {
     if (!newsList) return
     const firstItem = newsList.querySelector('.news-event-item') as HTMLElement | null
-    const step = firstItem ? (firstItem.offsetHeight + 8) * 2 : 130
+    const step = firstItem ? (firstItem.offsetHeight + 12) : 180
     newsList.scrollBy({ top: -step, behavior: 'smooth' })
   }
 
   btnNext.onclick = () => {
     if (!newsList) return
     const firstItem = newsList.querySelector('.news-event-item') as HTMLElement | null
-    const step = firstItem ? (firstItem.offsetHeight + 8) * 2 : 130
+    const step = firstItem ? (firstItem.offsetHeight + 12) : 180
     newsList.scrollBy({ top: step, behavior: 'smooth' })
   }
 
