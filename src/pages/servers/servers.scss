@@ -17,10 +17,10 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px 24px 24px 24px;
+  padding: 18px 18px 18px 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -38,22 +38,28 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 6px;
 
   .servers-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
     h1 {
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 800;
       font-family: var(--font-display, inherit);
-      color: var(--text-main);
+      color: var(--ink-900);
       margin: 0;
-      letter-spacing: -0.4px;
-      line-height: 1.15;
+      letter-spacing: -0.6px;
+      line-height: 1.2;
     }
 
     p {
       font-size: 13.5px;
-      color: var(--text-muted);
-      margin: 4px 0 0 0;
+      color: var(--ink-500);
+      line-height: 1.45;
+      margin: 0;
     }
   }
 
@@ -69,6 +75,7 @@
     border-radius: 999px;
     padding: 5px 14px;
     white-space: nowrap;
+    align-self: center;
 
     .online-dot {
       width: 7px;
@@ -84,7 +91,7 @@
 .servers-main-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 350px;
-  gap: 20px;
+  gap: 16px;
   align-items: flex-start;
   flex: 1;
   min-height: 0;
@@ -260,7 +267,7 @@
 .servers-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .servers-empty-state {

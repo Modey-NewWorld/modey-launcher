@@ -16,8 +16,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  gap: clamp(12px, 1.2vw, 18px);
-  padding: 18px 18px 0 18px;
+  gap: 16px;
+  padding: 18px 18px 18px 18px;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -26,6 +26,20 @@
   &::-webkit-scrollbar-thumb {
     background: var(--accent-soft);
     border-radius: 4px;
+  }
+}
+
+.settings-header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 }
 
