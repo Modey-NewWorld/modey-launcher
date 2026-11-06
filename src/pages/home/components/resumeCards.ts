@@ -218,7 +218,7 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
   const currentSlug = homeState.selectedProfile?.slug || 'athena'
 
   const cardsHtml = history
-    .slice(0, 3)
+    .slice(0, 2)
     .map((item) => {
       const profile = homeState.allProfiles.find((p) => p.slug === item.slug || p.name?.toLowerCase() === item.slug?.toLowerCase())
       const meta = launcherConfig.getServer(item.slug)
@@ -272,14 +272,16 @@ function renderHistory(onSelectProfile: (profile: any) => void) {
             ${isCurrent ? `<span class="mini-card-active-pill"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-circle-bold"></use></svg> Actif</span>` : ''}
           </div>
           <div class="mini-card-body">
-            <div class="mini-card-title" title="${serverName}">${serverName}</div>
+            <div class="mini-card-row-top">
+              <div class="mini-card-title" title="${serverName}">${serverName}</div>
+              <div class="mini-card-status">
+                <span class="status-dot ${dotClass}"></span>
+                <span>${statusLabel}</span>
+              </div>
+            </div>
             <div class="mini-card-time">
               <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-clock-bold"></use></svg>
               <span>${formatRelativeTime(item.playedAt)}</span>
-            </div>
-            <div class="mini-card-status">
-              <span class="status-dot ${dotClass}"></span>
-              <span>${statusLabel}</span>
             </div>
           </div>
         </div>

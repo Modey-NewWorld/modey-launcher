@@ -97,9 +97,9 @@
     #131B26;
   box-shadow: 0 4px 20px var(--shadow-sm);
   border: 1px solid var(--line);
-  padding: 20px 24px;
-  min-height: 235px;
-  height: clamp(235px, 29vh, 290px);
+  padding: 22px 26px;
+  min-height: 275px;
+  height: clamp(275px, 34vh, 335px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -392,10 +392,10 @@
 .home-cards-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr);
-  grid-template-rows: minmax(185px, auto) minmax(170px, 1fr);
+  grid-template-rows: minmax(175px, auto) minmax(138px, auto);
   gap: 16px;
   flex: 1;
-  min-height: 360px;
+  min-height: 325px;
 
   .resume-card {
     grid-column: 1;
@@ -914,7 +914,7 @@
   padding: 12px;
 
   .home-card-head {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   .card-title-group {
@@ -934,7 +934,7 @@
 
   .history-servers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 12px;
     align-items: stretch;
     height: 100%;
@@ -1013,7 +1013,7 @@
   }
 
   .mini-card-thumb {
-    height: 60px;
+    height: 72px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -1025,7 +1025,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.55) 100%);
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.45) 100%);
       pointer-events: none;
     }
 
@@ -1097,10 +1097,18 @@
   }
 
   .mini-card-body {
-    padding: 8px 10px;
+    padding: 7px 10px 8px;
     display: flex;
     flex-direction: column;
+    gap: 3px;
     flex: 1;
+
+    .mini-card-row-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
 
     .mini-card-title {
       font-size: 13px;
@@ -1109,29 +1117,17 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    .mini-card-time {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      color: var(--ink-500);
-      margin-top: 3px;
-
-      .solar-icon {
-        font-size: 11px;
-      }
+      flex: 1;
     }
 
     .mini-card-status {
       display: flex;
       align-items: center;
-      gap: 5px;
-      font-size: 11px;
+      gap: 4px;
+      font-size: 10.5px;
       font-weight: 600;
       color: var(--ink-700);
-      margin-top: 5px;
+      flex-shrink: 0;
 
       .status-dot {
         width: 6px;
