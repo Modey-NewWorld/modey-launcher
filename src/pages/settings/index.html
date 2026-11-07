@@ -233,6 +233,7 @@
                   <input type="checkbox" id="launch-at-startup" />
                   <span>Démarrer le launcher avec le système</span>
                 </label>
+                <p class="muted hidden" id="launch-at-startup-portable-note">Indisponible en mode portable : un lanceur sur clé USB ne s'installe pas au démarrage de l'ordinateur.</p>
 
                 <p class="muted">En veille, le launcher limite son rendu quand il est minimisé ou en arrière-plan. Il se réveille dès que vous y revenez ou quand Minecraft se ferme.</p>
               </section>
@@ -290,6 +291,7 @@
                   <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-bold"></use></svg>&nbsp;&nbsp;Emplacement des fichiers</h3>
                 </div>
                 <div class="path-box" id="files-root-path">Chargement…</div>
+                <p class="muted hidden" id="files-portable-note">Mode portable : les fichiers restent dans le dossier <strong>ModeyData</strong> à côté du lanceur (clé USB). L'emplacement n'est pas modifiable.</p>
                 <p class="muted hidden" id="files-status"></p>
                 <div class="btn-row">
                   <button type="button" class="settings-btn" id="files-open-root"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-open-bold"></use></svg>&nbsp;Ouvrir le dossier</button>

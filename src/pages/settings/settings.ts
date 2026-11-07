@@ -35,6 +35,7 @@ let currentSettings: IGameSettings
 let currentSelectedTarget: string = 'global' // 'global' ou '<slug>'
 let allKnownProfiles: any[] = []
 let serverMemoryTouched = false
+let portableMode = false
 
 type SettingsViewKind = 'global' | 'server'
 
@@ -150,6 +151,7 @@ function initCategoryKeyboardNav() {
 
 export async function initSettings() {
   const sysInfo = await system.getInfo()
+  portableMode = !!sysInfo.portable
   currentSettings = await settings.get()
   if (!currentSettings.serverSettings) {
     currentSettings.serverSettings = {}
@@ -163,6 +165,7 @@ export async function initSettings() {
   initUpdateCard(sysInfo.version ?? '', {
     betaChannel: !!currentSettings.betaChannel,
     autoUpdateCheck: currentSettings.autoUpdateCheck !== false,
+    portable: !!sysInfo.portable,
     onSettingsChange: saveSettingsDebounced
   })
   initFilesRoot()
@@ -564,7 +567,9 @@ async function saveSettings() {
         : 'bundled',
     launcherAction: launcherActionSelect.value as 'close' | 'keep' | 'hide',
     backgroundSleep: Number(backgroundSleepSelect?.value) || 0,
-    launchAtStartup: launchAtStartup ? launchAtStartup.checked : currentSettings.launchAtStartup,
+    launchAtStartup: portableMode
+      ? false
+      : launchAtStartup ? launchAtStartup.checked : currentSettings.launchAtStartup,
     autoUpdateCheck: autoUpdateCheck ? autoUpdateCheck.checked : currentSettings.autoUpdateCheck,
     betaChannel: channelSelect ? channelSelect.value === 'beta' : !!currentSettings.betaChannel,
     uiScale: getUiScaleValue()
@@ -753,6 +758,15 @@ function initFormValues(_sysResolution: { width: number; height: number }) {
 
   const launchAtStartupInput = el('launch-at-startup') as HTMLInputElement | null
   if (launchAtStartupInput) launchAtStartupInput.checked = !!currentSettings.launchAtStartup
+
+  // Le démarrage automatique n'a pas de sens depuis une clé USB.
+  if (portableMode) {
+    if (launchAtStartupInput) {
+      launchAtStartupInput.checked = false
+      launchAtStartupInput.disabled = true
+    }
+    el('launch-at-startup-portable-note')?.classList.remove('hidden')
+  }
 
   const javaVal = currentSettings.java
   if (javaVal && javaVal !== 'bundled' && javaVal !== 'system') {

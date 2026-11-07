@@ -8,6 +8,7 @@ import { ipcMain, app } from 'electron'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL } from '../const'
 import { IPC } from '../ipc-channels'
+import { isPortable } from '../portable'
 
 let latestDownloadUrl = ''
 let latestTargetVersion = ''
@@ -58,6 +59,14 @@ async function downloadFileWithProgress(
 export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
   ipcMain.handle(IPC.bootstraps.check, async () => {
     try {
+      // En mode portable, l'installateur NSIS ne doit jamais être téléchargé ni
+      // exécuté : la mise à jour se fait en remplaçant l'archive ZIP. On renvoie
+      // donc simplement la version courante sans proposer de mise à jour.
+      if (isPortable()) {
+        const currentVersion = app.getVersion()
+        return { updateAvailable: false, currentVersion, latestVersion: currentVersion }
+      }
+
       const currentVersion = app.getVersion()
 
       // Récupérer le canal configuré par l'utilisateur (stable ou beta)
@@ -116,6 +125,12 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
 
   ipcMain.handle(IPC.bootstraps.download, async () => {
     try {
+      if (isPortable()) {
+        throw new Error(
+          'Les mises à jour automatiques sont désactivées en mode portable. Téléchargez la nouvelle archive ZIP et remplacez le dossier du launcher.'
+        )
+      }
+
       if (!latestDownloadUrl) {
         throw new Error('Aucune URL de téléchargement disponible.')
       }
@@ -159,6 +174,12 @@ export function registerBootstrapHandlers(mainWindow: Electron.BrowserWindow) {
 
   ipcMain.handle(IPC.bootstraps.install, async () => {
     try {
+      if (isPortable()) {
+        throw new Error(
+          'Les mises à jour automatiques sont désactivées en mode portable. Téléchargez la nouvelle archive ZIP et remplacez le dossier du launcher.'
+        )
+      }
+
       if (!downloadedInstallerPath || !fs.existsSync(downloadedInstallerPath)) {
         throw new Error("Le fichier d'installation est introuvable sur le disque.")
       }

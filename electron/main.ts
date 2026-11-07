@@ -15,6 +15,12 @@ import logger from 'electron-log/main'
 import { registerProfilesHandlers } from './handlers/profiles'
 import { registerSkinHandlers } from './handlers/skin'
 import { IPC } from './ipc-channels'
+import { initPortable, isPortable } from './portable'
+
+// Doit rester avant toute lecture de app.getPath('userData') : les handlers
+// résolvent leurs chemins à la demande, mais Electron doit connaître le
+// dossier de données avant la création de la session/caches.
+initPortable()
 
 const APP_TITLE = 'Modey Launcher'
 const BG_COLOR_LIGHT = '#F0F4F8'
@@ -215,6 +221,8 @@ function configureAppMenu() {
 // Migration temporaire v26.1.1 : nettoyage automatique de l'ancien dossier AppData résiduel "Modey Launcher — Athéna"
 // TODO: Supprimer cette fonction de nettoyage à partir de la version 26.2.0
 function cleanupLegacyAthenaFolder() {
+  // Ne jamais toucher au %APPDATA% de la machine hôte en mode portable.
+  if (isPortable()) return
   try {
     const appData = app.getPath('appData')
     const candidates = [
@@ -236,6 +244,9 @@ function cleanupLegacyAthenaFolder() {
 
 app.whenReady().then(() => {
   logger.initialize()
+  if (isPortable()) {
+    logger.info('[Modey Launcher] Mode portable actif — données dans le dossier ModeyData de la clé USB.')
+  }
   cleanupLegacyAthenaFolder()
   configureAppMenu()
   createWindow()

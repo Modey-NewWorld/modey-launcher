@@ -16,7 +16,8 @@ export function normalizeSkinUrl(url: string | null | undefined): string {
 }
 
 let skin: Skin | null = null
-const skinPath = path.join(app.getPath('userData'), 'skins.json')
+/** Résolu à la demande pour respecter le dossier `userData` du mode portable. */
+const skinPath = () => path.join(app.getPath('userData'), 'skins.json')
 const DEFAULT_SKINS: ISkin[] = [
   {
     id: 'steve',
@@ -119,11 +120,11 @@ export function registerSkinHandlers() {
       }
 
       // Marquer tous les skins custom comme inactifs dans le cache
-      if (fs.existsSync(skinPath)) {
+      if (fs.existsSync(skinPath())) {
         try {
-          const cached = (JSON.parse(fs.readFileSync(skinPath, 'utf-8') || '[]') as (ISkin & { name?: string })[])
+          const cached = (JSON.parse(fs.readFileSync(skinPath(), 'utf-8') || '[]') as (ISkin & { name?: string })[])
             .map((s) => ({ ...s, state: 'inactive' as const }))
-          fs.writeFileSync(skinPath, JSON.stringify(cached, null, 2))
+          fs.writeFileSync(skinPath(), JSON.stringify(cached, null, 2))
         } catch (_) {}
       }
 
@@ -182,12 +183,12 @@ export function registerSkinHandlers() {
   })
 
   ipcMain.handle(IPC.skin.deleteSkin, async (_event, id: string) => {
-    if (!fs.existsSync(skinPath)) {
+    if (!fs.existsSync(skinPath())) {
       return null
     }
 
     try {
-      const data = JSON.parse(fs.readFileSync(skinPath, 'utf-8')) as (ISkin & { name?: string })[]
+      const data = JSON.parse(fs.readFileSync(skinPath(), 'utf-8')) as (ISkin & { name?: string })[]
       const target = data.find((s) => s.id === id)
       const isActive = target?.state === 'active'
 
@@ -217,7 +218,7 @@ export function registerSkinHandlers() {
         newSkins = newSkins.map((s) => ({ ...s, state: 'inactive' as const }))
       }
 
-      fs.writeFileSync(skinPath, JSON.stringify(newSkins, null, 2))
+      fs.writeFileSync(skinPath(), JSON.stringify(newSkins, null, 2))
       return await getSkins(true, [
         {
           id: 'steve',
@@ -233,12 +234,12 @@ export function registerSkinHandlers() {
   })
 
   ipcMain.handle(IPC.skin.renameSkin, async (_event, id: string, name: string) => {
-    if (!fs.existsSync(skinPath)) {
+    if (!fs.existsSync(skinPath())) {
       return null
     }
 
     try {
-      const data = JSON.parse(fs.readFileSync(skinPath, 'utf-8')) as (ISkin & { name?: string })[]
+      const data = JSON.parse(fs.readFileSync(skinPath(), 'utf-8')) as (ISkin & { name?: string })[]
       const cleanName = (name || '').trim()
       const updated = data.map((s) => {
         if (s.id === id) {
@@ -246,7 +247,7 @@ export function registerSkinHandlers() {
         }
         return s
       })
-      fs.writeFileSync(skinPath, JSON.stringify(updated, null, 2))
+      fs.writeFileSync(skinPath(), JSON.stringify(updated, null, 2))
       return await getSkins(true)
     } catch (err: any) {
       logger.error('Failed to rename skin:', err)
@@ -307,8 +308,8 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
 
   let localCache: (ISkin & { name?: string })[] = []
   try {
-    if (fs.existsSync(skinPath)) {
-      const raw = JSON.parse(fs.readFileSync(skinPath, 'utf-8') || '[]') as (ISkin & { name?: string })[]
+    if (fs.existsSync(skinPath())) {
+      const raw = JSON.parse(fs.readFileSync(skinPath(), 'utf-8') || '[]') as (ISkin & { name?: string })[]
       const seenUrls = new Set<string>()
 
       for (const s of raw) {
@@ -366,7 +367,7 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
   }
 
   try {
-    fs.writeFileSync(skinPath, JSON.stringify(localCache, null, 2))
+    fs.writeFileSync(skinPath(), JSON.stringify(localCache, null, 2))
   } catch (_) {}
 
   // Déterminer l'état de Steve
@@ -393,15 +394,15 @@ async function appendSkin(...skins: (ISkin & { name?: string })[]) {
     }))
   const activeSkin = normalizedSkins.find((s) => s.state === 'active')
 
-  if (!fs.existsSync(skinPath)) {
+  if (!fs.existsSync(skinPath())) {
     try {
-      fs.writeFileSync(skinPath, JSON.stringify(normalizedSkins, null, 2))
+      fs.writeFileSync(skinPath(), JSON.stringify(normalizedSkins, null, 2))
     } catch (err: any) {
       logger.error('Failed to write skin to cache:', err)
     }
   } else {
     try {
-      const raw = JSON.parse(fs.readFileSync(skinPath, 'utf-8') || '[]') as (ISkin & { name?: string })[]
+      const raw = JSON.parse(fs.readFileSync(skinPath(), 'utf-8') || '[]') as (ISkin & { name?: string })[]
       const seen = new Set<string>()
       let existing: (ISkin & { name?: string })[] = []
 
@@ -427,7 +428,7 @@ async function appendSkin(...skins: (ISkin & { name?: string })[]) {
         }
       }
 
-      fs.writeFileSync(skinPath, JSON.stringify(existing, null, 2))
+      fs.writeFileSync(skinPath(), JSON.stringify(existing, null, 2))
     } catch (err: any) {
       logger.error('Failed to update skin cache:', err)
     }

@@ -47,6 +47,21 @@ Le Modey Launcher est un fork du **[EML Template](https://github.com/Electron-Mi
 Rendez-vous dans la section [Releases](https://github.com/Modey-NewWorld/modey-launcher/releases) pour télécharger le dernier installateur officiel Windows :
 
 - 📦 **Modey Launcher-Setup-26.1.0.exe**
+- 💼 **Modey Launcher-Portable-26.1.0.zip** (voir ci-dessous)
+
+### 💼 Version portable (clé USB, sans droits administrateur)
+
+L'archive **Portable** se décompresse dans n'importe quel dossier (clé USB, disque externe, bureau) puis se lance avec `Modey Launcher.exe`. Aucune installation ni élévation de privilèges n'est demandée.
+
+- Toutes les données (compte, réglages, skins, mods, Java, fichiers de jeu) sont stockées dans le sous-dossier **`ModeyData`**, à côté de l'exécutable :
+  - `ModeyData/launcher` : données du launcher ;
+  - `ModeyData/.modey` : fichiers Minecraft et Java téléchargés au premier lancement (connexion Internet requise).
+- Le mode portable est automatique : il suffit que le fichier `portable.flag` (fourni dans l'archive) ou le dossier `ModeyData` soit présent à côté de l'exécutable.
+- Conservez le dossier complet lors des mises à jour : remplacez uniquement les fichiers du launcher et gardez `ModeyData` pour retrouver vos données.
+- Les mises à jour automatiques, le démarrage avec le système et le déplacement des fichiers sont désactivés : téléchargez la nouvelle archive ZIP pour mettre à jour.
+- Windows SmartScreen peut afficher un avertissement car l'exécutable n'est pas signé ; cela reste indépendant des droits administrateur.
+
+Pour forcer le mode portable (tests) : `MODEY_PORTABLE=1`. La variable `PORTABLE_EXECUTABLE_DIR` est également reconnue.
 
 ---
 
@@ -76,6 +91,9 @@ npm run build
 
 # Générer l'installateur Windows NSIS
 npm run release:win
+
+# Générer l'archive ZIP portable Windows (sans installation ni admin)
+npm run release:portable
 ```
 
 ---

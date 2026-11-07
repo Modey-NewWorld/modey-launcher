@@ -5,12 +5,14 @@ import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { IPC } from '../ipc-channels'
 import { hasActiveMinecraft } from './launcher/process'
+import { getPortableGameRoot, isPortable } from '../portable'
 
 export interface IFilesInfo {
   defaultRoot: string
   currentPath: string
   relocated: boolean
   exists: boolean
+  portable: boolean
 }
 
 export interface IInstanceInfo {
@@ -21,8 +23,14 @@ export interface IInstanceInfo {
 
 type OpResult = { success: boolean; error?: string }
 
-const DEFAULT_ROOT = path.join(process.env.APPDATA ?? app.getPath('appData'), '.modey')
-const STAGING = `${DEFAULT_ROOT}.ancien`
+/** Racine par défaut : `ModeyData/.modey` en portable, `%APPDATA%/.modey` sinon. */
+function defaultRoot(): string {
+  return getPortableGameRoot() ?? path.join(process.env.APPDATA ?? app.getPath('appData'), '.modey')
+}
+
+function stagingRoot(): string {
+  return `${defaultRoot()}.ancien`
+}
 
 function linkType(): 'junction' | 'dir' {
   return process.platform === 'win32' ? 'junction' : 'dir'
@@ -107,42 +115,48 @@ function fail(error: string): OpResult {
 
 /** Racine effective des fichiers du jeu (suit la junction si présente). */
 export function currentRoot(): string {
-  return readJunction(DEFAULT_ROOT) ?? DEFAULT_ROOT
+  const defaultDir = defaultRoot()
+  return readJunction(defaultDir) ?? defaultDir
 }
 
 /**
  * Change l'emplacement des fichiers du jeu.
- * Principe : EML écrit toujours dans %APPDATA%\.modey-athena — ce chemin devient
+ * Principe : EML écrit toujours dans %APPDATA%\.modey — ce chemin devient
  * une junction (lien) vers le dossier choisi, transparent pour le jeu.
  */
 async function setRoot(newDir: string, moveExisting: boolean): Promise<OpResult> {
   if (hasActiveMinecraft()) {
     return fail("Le jeu est en cours d'exécution. Fermez Minecraft avant de modifier les fichiers.")
   }
+  if (isPortable()) {
+    return fail('Le déplacement des fichiers est désactivé en mode portable : les données restent à côté du lanceur, sur la clé USB.')
+  }
 
+  const defaultDir = defaultRoot()
+  const staging = stagingRoot()
   const target = path.resolve(newDir)
-  const oldLink = readJunction(DEFAULT_ROOT)
+  const oldLink = readJunction(defaultDir)
 
   if (oldLink !== null && samePath(oldLink, target)) return fail("C'est déjà l'emplacement actuel des fichiers.")
-  if (oldLink === null && samePath(DEFAULT_ROOT, target)) return fail("C'est déjà l'emplacement actuel des fichiers.")
+  if (oldLink === null && samePath(defaultDir, target)) return fail("C'est déjà l'emplacement actuel des fichiers.")
   // Refuse un dossier parent (ex. %APPDATA% lui-même) ou un sous-dossier des fichiers du jeu :
-  // la junction pointant vers un ancêtre/descendant de .modey-athena créerait une boucle.
-  if (containsPath(target, DEFAULT_ROOT) || containsPath(DEFAULT_ROOT, target)) {
+  // la junction pointant vers un ancêtre/descendant de .modey créerait une boucle.
+  if (containsPath(target, defaultDir) || containsPath(defaultDir, target)) {
     return fail('Dossier invalide : il ne peut contenir ni se trouver à l’intérieur des fichiers du jeu actuels.')
   }
   if (fs.existsSync(target) && !isEmptyDir(target)) return fail('Le dossier sélectionné n’est pas vide. Choisissez un dossier vide ou annulez.')
 
-  // 1. Libère le nom EML (.modey-athena) — les données vont dans le staging ou restent sur oldLink
+  // 1. Libère le nom EML (.modey) — les données vont dans le staging ou restent sur oldLink
   if (oldLink !== null) {
     try {
-      fs.rmdirSync(DEFAULT_ROOT)
+      fs.rmdirSync(defaultDir)
     } catch (err: any) {
       return fail(`Impossible de retirer l’ancien lien : ${err?.message ?? err}`)
     }
-  } else if (fs.existsSync(DEFAULT_ROOT)) {
+  } else if (fs.existsSync(defaultDir)) {
     try {
-      if (fs.existsSync(STAGING)) await fsp.rm(STAGING, { recursive: true, force: true })
-      await fsp.rename(DEFAULT_ROOT, STAGING)
+      if (fs.existsSync(staging)) await fsp.rm(staging, { recursive: true, force: true })
+      await fsp.rename(defaultDir, staging)
     } catch (err: any) {
       return fail(`Impossible de préparer l’ancien dossier : ${err?.message ?? err}`)
     }
@@ -150,17 +164,17 @@ async function setRoot(newDir: string, moveExisting: boolean): Promise<OpResult>
 
   // 2. Nouveau lien (la cible peut encore être inexistante : junction valide)
   try {
-    makeLink(DEFAULT_ROOT, target)
+    makeLink(defaultDir, target)
   } catch (err: any) {
-    if (oldLink === null && fs.existsSync(STAGING)) {
+    if (oldLink === null && fs.existsSync(staging)) {
       try {
-        await fsp.rename(STAGING, DEFAULT_ROOT)
+        await fsp.rename(staging, defaultDir)
       } catch {
         /* best effort */
       }
     } else if (oldLink !== null) {
       try {
-        makeLink(DEFAULT_ROOT, oldLink)
+        makeLink(defaultDir, oldLink)
       } catch {
         /* best effort */
       }
@@ -169,7 +183,7 @@ async function setRoot(newDir: string, moveExisting: boolean): Promise<OpResult>
   }
 
   // 3. Données : déplacement ou suppression (selon le choix explicite de l'utilisateur)
-  const dataPath = oldLink ?? STAGING
+  const dataPath = oldLink ?? staging
   try {
     if (fs.existsSync(dataPath)) {
       if (moveExisting) await moveDir(dataPath, target)
@@ -178,13 +192,13 @@ async function setRoot(newDir: string, moveExisting: boolean): Promise<OpResult>
   } catch (err: any) {
     // Rollback : retire le nouveau lien et restaure l'ancien état
     try {
-      fs.rmdirSync(DEFAULT_ROOT)
+      fs.rmdirSync(defaultDir)
     } catch {
       /* best effort */
     }
     if (oldLink !== null) {
       try {
-        makeLink(DEFAULT_ROOT, oldLink)
+        makeLink(defaultDir, oldLink)
       } catch {
         /* best effort */
       }
@@ -195,9 +209,9 @@ async function setRoot(newDir: string, moveExisting: boolean): Promise<OpResult>
           /* best effort */
         }
       }
-    } else if (fs.existsSync(STAGING)) {
+    } else if (fs.existsSync(staging)) {
       try {
-        await fsp.rename(STAGING, DEFAULT_ROOT)
+        await fsp.rename(staging, defaultDir)
       } catch {
         /* best effort */
       }
@@ -221,26 +235,30 @@ async function setRoot(newDir: string, moveExisting: boolean): Promise<OpResult>
   return { success: true }
 }
 
-/** Remet l'emplacement par défaut (%APPDATA%\.modey-athena réel). */
+/** Remet l'emplacement par défaut (%APPDATA%\.modey réel). */
 async function resetRoot(): Promise<OpResult> {
   if (hasActiveMinecraft()) {
     return fail("Le jeu est en cours d'exécution. Fermez Minecraft avant de modifier les fichiers.")
   }
-  const oldLink = readJunction(DEFAULT_ROOT)
+  if (isPortable()) {
+    return fail("L'emplacement des fichiers est géré automatiquement en mode portable.")
+  }
+  const defaultDir = defaultRoot()
+  const oldLink = readJunction(defaultDir)
   if (!oldLink) return fail("L'emplacement est déjà celui par défaut.")
 
   try {
-    fs.rmdirSync(DEFAULT_ROOT)
+    fs.rmdirSync(defaultDir)
   } catch (err: any) {
     return fail(`Impossible de retirer le lien : ${err?.message ?? err}`)
   }
   try {
-    if (fs.existsSync(oldLink)) await moveDir(oldLink, DEFAULT_ROOT)
-    logger.info(`[Files] Fichiers du jeu restaurés → ${DEFAULT_ROOT}`)
+    if (fs.existsSync(oldLink)) await moveDir(oldLink, defaultDir)
+    logger.info(`[Files] Fichiers du jeu restaurés → ${defaultDir}`)
     return { success: true }
   } catch (err: any) {
     try {
-      makeLink(DEFAULT_ROOT, oldLink)
+      makeLink(defaultDir, oldLink)
     } catch {
       /* best effort */
     }
@@ -261,13 +279,15 @@ export function instancePathFor(slug: string): string {
 
 export function registerFilesHandlers() {
   ipcMain.handle(IPC.files.info, (): IFilesInfo => {
-    const link = readJunction(DEFAULT_ROOT)
-    const currentPath = link ?? DEFAULT_ROOT
+    const defaultDir = defaultRoot()
+    const link = readJunction(defaultDir)
+    const currentPath = link ?? defaultDir
     return {
-      defaultRoot: DEFAULT_ROOT,
+      defaultRoot: defaultDir,
       currentPath,
       relocated: link !== null,
-      exists: fs.existsSync(currentPath)
+      exists: fs.existsSync(currentPath),
+      portable: isPortable()
     }
   })
 

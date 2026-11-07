@@ -33,6 +33,128 @@ function resolveModFileName(dir: string, modId: string): string {
   return modId.endsWith('.jar') ? modId : `${modId}.jar`
 }
 
+/**
+ * Nettoie et purge les mods facultatifs qui ne sont plus présents sur le serveur.
+ * Supprime les fichiers obsolètes dans optional-mods/, dans mods/, et nettoie server-settings.json.
+ */
+export function pruneOrphanedOptionalMods(
+  slug: string,
+  remoteOptionalMods: any[] = [],
+  officialFiles: any[] = []
+): { deletedFromOpt: string[]; deletedFromMods: string[]; cleanedSettings: string[] } {
+  const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+  const instDir = instancePathFor(cleanSlug)
+  const optDir = path.join(instDir, 'optional-mods')
+  const modsDir = path.join(instDir, 'mods')
+
+  const deletedFromOpt: string[] = []
+  const deletedFromMods: string[] = []
+  const cleanedSettings: string[] = []
+
+  // 1. Liste des noms et IDs de mods optionnels autorisés par le serveur
+  const validOptionalFileNames = new Set<string>()
+  const validOptionalModIds = new Set<string>()
+
+  for (const m of remoteOptionalMods || []) {
+    if (!m) continue
+    const fname = m.name || m.path || (m.id ? `${m.id}.jar` : '')
+    if (fname) {
+      validOptionalFileNames.add(fname)
+      validOptionalFileNames.add(path.basename(fname))
+    }
+    if (m.id) {
+      validOptionalModIds.add(m.id)
+    }
+  }
+
+  // 2. Liste des mods officiels obligatoires (ne jamais y toucher !)
+  const officialModNames = new Set<string>()
+  for (const f of officialFiles || []) {
+    if (!f) continue
+    const subfolder = f.subfolder || ''
+    const relPath = f.path || f.name || ''
+    if (subfolder === 'mods' || relPath.startsWith('mods/')) {
+      const bname = path.basename(relPath)
+      officialModNames.add(bname)
+      if (f.name) officialModNames.add(f.name)
+    }
+  }
+
+  // 3. Purge du dossier optional-mods/ local
+  if (fs.existsSync(optDir)) {
+    try {
+      const filesInOpt = fs.readdirSync(optDir)
+      for (const file of filesInOpt) {
+        if (!validOptionalFileNames.has(file)) {
+          try {
+            fs.unlinkSync(path.join(optDir, file))
+            deletedFromOpt.push(file)
+            logger.info(`[Prune OptionalMods] Supprimé de optional-mods/ (supprimé du serveur) : ${file}`)
+          } catch (delErr) {
+            logger.warn(`[Prune OptionalMods] Échec suppression optional-mods/${file}:`, delErr)
+          }
+        }
+      }
+    } catch (readErr) {
+      logger.warn('[Prune OptionalMods] Erreur lecture dossier optional-mods:', readErr)
+    }
+  }
+
+  // 4. Purge du dossier mods/ actif : supprimer les mods retirés du serveur
+  if (fs.existsSync(modsDir)) {
+    try {
+      const filesInMods = fs.readdirSync(modsDir)
+      for (const file of filesInMods) {
+        if (!file.endsWith('.jar')) continue
+
+        // Ne jamais supprimer les mods officiels
+        if (officialModNames.has(file)) continue
+
+        // Si ce n'est pas un mod optionnel serveur valide, c'est un mod orphelin / retiré !
+        if (!validOptionalFileNames.has(file)) {
+          try {
+            fs.unlinkSync(path.join(modsDir, file))
+            deletedFromMods.push(file)
+            logger.info(`[Prune OptionalMods] Supprimé de mods/ (mod orphelin / retiré du serveur) : ${file}`)
+          } catch (delErr) {
+            logger.warn(`[Prune OptionalMods] Échec suppression mods/${file}:`, delErr)
+          }
+        }
+      }
+    } catch (readErr) {
+      logger.warn('[Prune OptionalMods] Erreur lecture dossier mods:', readErr)
+    }
+  }
+
+  // 5. Nettoyage des clés obsolètes dans server-settings.json
+  try {
+    const localCfg = readLocalServerConfig(cleanSlug)
+    if (localCfg?.optionalMods) {
+      let modified = false
+      for (const key of Object.keys(localCfg.optionalMods)) {
+        const baseKey = key.replace(/\.jar$/i, '')
+        const isKnownOptional =
+          validOptionalFileNames.has(key) ||
+          validOptionalModIds.has(key) ||
+          validOptionalModIds.has(baseKey)
+        if (!isKnownOptional) {
+          delete localCfg.optionalMods[key]
+          cleanedSettings.push(key)
+          modified = true
+        }
+      }
+      if (modified) {
+        writeLocalServerConfig(cleanSlug, localCfg)
+        logger.info(`[Prune OptionalMods] Clés obsolètes purgées de server-settings.json:`, cleanedSettings)
+      }
+    }
+  } catch (cfgErr) {
+    logger.warn('[Prune OptionalMods] Erreur nettoyage config locale:', cfgErr)
+  }
+
+  return { deletedFromOpt, deletedFromMods, cleanedSettings }
+}
+
 export function registerOptionalModsHandlers() {
   // 1. Lister les mods optionnels pour un serveur (manifest distant vs état local)
   ipcMain.handle(IPC.optionalMods.list, async (_event, slug: string): Promise<IOptionalModItem[]> => {
@@ -55,6 +177,9 @@ export function registerOptionalModsHandlers() {
         return []
       }
       const remoteOptionalMods: any[] = Array.isArray(data.optionalMods) ? data.optionalMods : []
+
+      // Purger immédiatement les mods orphelins (qui ont été supprimés côté serveur)
+      pruneOrphanedOptionalMods(cleanSlug, remoteOptionalMods, data.files || [])
 
       // Lire la configuration locale pour savoir quels mods sont activés
       const localCfg = readLocalServerConfig(cleanSlug)
@@ -242,7 +367,16 @@ export function registerOptionalModsHandlers() {
           await fsp.copyFile(optPath, activePath)
         } else {
           if (fs.existsSync(activePath)) {
-            await fsp.unlink(activePath)
+            try { await fsp.unlink(activePath) } catch (_) {}
+          }
+          // S'assurer de retirer toute variante dans mods/
+          const modBase = modId.replace(/\.jar$/i, '')
+          if (fs.existsSync(modsDir)) {
+            for (const f of fs.readdirSync(modsDir)) {
+              if (f === fileName || f.replace(/\.jar$/i, '') === modBase) {
+                try { await fsp.unlink(path.join(modsDir, f)) } catch (_) {}
+              }
+            }
           }
         }
 

@@ -6,8 +6,12 @@ import os from 'node:os'
 import { IPC } from '../ipc-channels'
 import { currentRoot } from './files'
 import { getRuntimeConfig, getDynamicMemoryLimits } from '../runtimeConfig'
+import { isPortable } from '../portable'
 
-const settingsPath = path.join(app.getPath('userData'), 'settings.json')
+/** Résolu à la demande : le mode portable peut changer `userData` au démarrage. */
+function settingsPath(): string {
+  return path.join(app.getPath('userData'), 'settings.json')
+}
 
 export interface ISystemInfo {
   totalMem: number // in GB
@@ -16,6 +20,7 @@ export interface ISystemInfo {
     height: number
   }
   version: string
+  portable: boolean
 }
 
 export interface IServerGameSettings {
@@ -85,8 +90,8 @@ function clampScale(value: number): number {
 
 export function getSavedUiScale(): number {
   try {
-    if (!fs.existsSync(settingsPath)) return DEFAULT_SETTINGS.uiScale
-    const data = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
+    if (!fs.existsSync(settingsPath())) return DEFAULT_SETTINGS.uiScale
+    const data = JSON.parse(fs.readFileSync(settingsPath(), 'utf-8'))
     const scale = Number(data.uiScale)
     return Number.isFinite(scale) ? clampScale(scale) : DEFAULT_SETTINGS.uiScale
   } catch (err) {
@@ -104,8 +109,8 @@ function applyUiScale(scale: number) {
 
 export function getSavedBackgroundSleep(): number {
   try {
-    if (!fs.existsSync(settingsPath)) return DEFAULT_SETTINGS.backgroundSleep
-    const data = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
+    if (!fs.existsSync(settingsPath())) return DEFAULT_SETTINGS.backgroundSleep
+    const data = JSON.parse(fs.readFileSync(settingsPath(), 'utf-8'))
     const seconds = Number(data.backgroundSleep)
     return Number.isFinite(seconds) && seconds > 0 ? seconds : 0
   } catch (err) {
@@ -155,17 +160,21 @@ export function writeLocalServerConfig(slug: string, cfg: IServerGameSettings): 
 export function readAllSettingsWithSync(): IGameSettings {
   let settings: IGameSettings = { ...DEFAULT_SETTINGS }
   try {
-    if (fs.existsSync(settingsPath)) {
-      const data = fs.readFileSync(settingsPath, 'utf-8')
+    if (fs.existsSync(settingsPath())) {
+      const data = fs.readFileSync(settingsPath(), 'utf-8')
       settings = { ...DEFAULT_SETTINGS, ...JSON.parse(data) }
     } else {
-      fs.writeFileSync(settingsPath, JSON.stringify(DEFAULT_SETTINGS, null, 2))
+      fs.writeFileSync(settingsPath(), JSON.stringify(DEFAULT_SETTINGS, null, 2))
     }
 
     // Migration douce des anciennes valeurs erronées
     if (settings.java === 'path' || settings.java === 'custom') {
       settings.java = 'system'
     }
+
+    // Le démarrage automatique Windows n'a pas de sens pour une clé USB
+    // déplaçable : on force la valeur à false en mode portable.
+    if (isPortable()) settings.launchAtStartup = false
   } catch (err) {
     logger.error('Error reading settings:', err)
   }
@@ -206,6 +215,7 @@ export function readAllSettingsWithSync(): IGameSettings {
  * Note : Linux n'est pas couvert dans cette phase (pas de génération de fichier .desktop autostart).
  */
 function applyLaunchAtStartup(enabled: boolean) {
+  if (isPortable()) return // Pas d'inscription au démarrage depuis une clé USB
   if (process.platform !== 'win32' && process.platform !== 'darwin') return
   if (!app.isPackaged) return // Évite d'enregistrer electron.exe en développement
   app.setLoginItemSettings({ openAtLogin: enabled })
@@ -223,7 +233,7 @@ export function registerSettingsHandlers() {
         backgroundSleep: Math.max(0, Number(newSettings.backgroundSleep) || 0),
         uiScale: clampScale(Number(newSettings.uiScale) || DEFAULT_SETTINGS.uiScale)
       }
-      fs.writeFileSync(settingsPath, JSON.stringify(toWrite, null, 2))
+      fs.writeFileSync(settingsPath(), JSON.stringify(toWrite, null, 2))
       applyUiScale(toWrite.uiScale)
       applyLaunchAtStartup(Boolean(toWrite.launchAtStartup))
 
@@ -253,7 +263,8 @@ export function registerSettingsHandlers() {
     return {
       totalMem: totalMemGB,
       resolution: { width, height },
-      version: app.getVersion()
+      version: app.getVersion(),
+      portable: isPortable()
     }
   })
 

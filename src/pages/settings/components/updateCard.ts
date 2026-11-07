@@ -7,6 +7,7 @@ const el = (id: string) => document.getElementById(id)
 export interface IUpdateCardOptions {
   betaChannel: boolean
   autoUpdateCheck: boolean
+  portable?: boolean
   onSettingsChange: () => void
 }
 
@@ -21,6 +22,24 @@ export async function initUpdateCard(version: string, options: IUpdateCardOption
   const statusEl = el('update-status-text')
 
   if (currentEl) currentEl.innerText = version || '—'
+
+  // En mode portable, le launcher ne peut pas s'auto-installer (pas d'installateur
+  // NSIS ni d'élévation) : la mise à jour se fait manuellement via le ZIP.
+  if (options.portable) {
+    if (latestEl) latestEl.innerText = 'Gérée manuellement'
+    if (autoUpdateCheck) {
+      autoUpdateCheck.checked = false
+      autoUpdateCheck.disabled = true
+    }
+    if (channelSelect) channelSelect.disabled = true
+    checkBtn?.classList.add('hidden')
+    installBtn?.classList.add('hidden')
+    if (statusEl) {
+      statusEl.innerText =
+        'Mode portable : téléchargez la nouvelle archive ZIP et remplacez le dossier du launcher. Les données de ModeyData sont conservées.'
+    }
+    return
+  }
 
   if (channelSelect) {
     channelSelect.value = options.betaChannel ? 'beta' : 'stable'

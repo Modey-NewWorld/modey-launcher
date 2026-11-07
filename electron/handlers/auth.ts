@@ -7,8 +7,9 @@ import * as path from 'node:path'
 import { AUTH_SERVER_URL, AUTH_API_URL } from '../const'
 import { IPC } from '../ipc-channels'
 
-const sessionPath = path.join(app.getPath('userData'), 'session.json')
-const accountsPath = path.join(app.getPath('userData'), 'accounts.json')
+/** Résolus à la demande pour respecter le dossier `userData` du mode portable. */
+const sessionPath = () => path.join(app.getPath('userData'), 'session.json')
+const accountsPath = () => path.join(app.getPath('userData'), 'accounts.json')
 
 export type IAuthResponse = { success: true; account: Account } | { success: false; error: string }
 
@@ -21,8 +22,8 @@ export interface IStoredAccount {
 
 function loadSavedAccounts(): IStoredAccount[] {
   try {
-    if (fs.existsSync(accountsPath)) {
-      const data = fs.readFileSync(accountsPath, 'utf-8')
+    if (fs.existsSync(accountsPath())) {
+      const data = fs.readFileSync(accountsPath(), 'utf-8')
       return JSON.parse(data)
     }
   } catch (err) {
@@ -40,7 +41,7 @@ function saveAccount(name: string, uuid: string, email?: string) {
       email,
       lastUsed: Date.now()
     })
-    fs.writeFileSync(accountsPath, JSON.stringify(list, null, 2))
+    fs.writeFileSync(accountsPath(), JSON.stringify(list, null, 2))
   } catch (err) {
     logger.warn('Failed to save to accounts.json:', err)
   }
@@ -99,7 +100,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
         ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
 
-        fs.writeFileSync(sessionPath, JSON.stringify(account))
+        fs.writeFileSync(sessionPath(), JSON.stringify(account))
         saveAccount(account.name, account.uuid, data.user?.email)
 
         logger.info(`Connexion sécurisée validée pour le joueur : ${account.name} (Rôle: ${(account as any).role})`)
@@ -153,7 +154,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
       ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
       ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
 
-      fs.writeFileSync(sessionPath, JSON.stringify(account))
+      fs.writeFileSync(sessionPath(), JSON.stringify(account))
       saveAccount(account.name, account.uuid, data.user.email)
 
       return { success: true, account } as IAuthResponse
@@ -172,12 +173,12 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
   ipcMain.handle(IPC.auth.removeAccount, async (_event, username: string) => {
     try {
       const list = loadSavedAccounts().filter((acc) => acc.name.toLowerCase() !== username.toLowerCase())
-      fs.writeFileSync(accountsPath, JSON.stringify(list, null, 2))
-      if (fs.existsSync(sessionPath)) {
+      fs.writeFileSync(accountsPath(), JSON.stringify(list, null, 2))
+      if (fs.existsSync(sessionPath())) {
         try {
-          const current = JSON.parse(fs.readFileSync(sessionPath, 'utf-8'))
+          const current = JSON.parse(fs.readFileSync(sessionPath(), 'utf-8'))
           if (current?.name?.toLowerCase() === username.toLowerCase()) {
-            fs.unlinkSync(sessionPath)
+            fs.unlinkSync(sessionPath())
           }
         } catch (_) {}
       }
@@ -191,7 +192,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
   ipcMain.handle(IPC.auth.login, async () => {
     try {
       const account = await msAuth.auth()
-      fs.writeFileSync(sessionPath, JSON.stringify(account))
+      fs.writeFileSync(sessionPath(), JSON.stringify(account))
       saveAccount(account.name, account.uuid)
       return { success: true, account } as IAuthResponse
     } catch (err: any) {
@@ -202,12 +203,12 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
 
   // Rafraîchissement / Restauration de session
   ipcMain.handle(IPC.auth.refresh, async () => {
-    if (!fs.existsSync(sessionPath)) {
+    if (!fs.existsSync(sessionPath())) {
       return { success: false } as { success: false }
     }
 
     try {
-      const data = fs.readFileSync(sessionPath, 'utf-8')
+      const data = fs.readFileSync(sessionPath(), 'utf-8')
       const savedSession = JSON.parse(data) as Account
 
       if (savedSession && savedSession.uuid) {
@@ -243,7 +244,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
               } else if (!(savedSession as any).role) {
                 (savedSession as any).role = 'citizen'
               }
-              fs.writeFileSync(sessionPath, JSON.stringify(savedSession))
+              fs.writeFileSync(sessionPath(), JSON.stringify(savedSession))
               return { success: true, account: savedSession } as IAuthResponse
             }
             // Réponse explicite du serveur : la session est révoquée ou invalide
@@ -271,7 +272,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
           return { success: true, account: savedSession } as IAuthResponse
         }
         const account = await msAuth.refresh(savedSession)
-        fs.writeFileSync(sessionPath, JSON.stringify(account))
+        fs.writeFileSync(sessionPath(), JSON.stringify(account))
         return { success: true, account } as IAuthResponse
       }
       return { success: false }
@@ -282,8 +283,8 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
   })
 
   ipcMain.handle(IPC.auth.logout, async () => {
-    if (fs.existsSync(sessionPath)) {
-      fs.unlinkSync(sessionPath)
+    if (fs.existsSync(sessionPath())) {
+      fs.unlinkSync(sessionPath())
     }
     return { success: true }
   })

@@ -26,7 +26,9 @@ async function refreshInfo() {
       pathEl.innerText = info.exists ? info.currentPath : `${info.currentPath} — dossier introuvable`
       pathEl.classList.toggle('path-box--error', !info.exists)
     }
-    el('files-reset-root')?.classList.toggle('hidden', !info.relocated)
+    el('files-change-root')?.classList.toggle('hidden', info.portable)
+    el('files-reset-root')?.classList.toggle('hidden', info.portable || !info.relocated)
+    el('files-portable-note')?.classList.toggle('hidden', !info.portable)
   } catch (err) {
     logger.error('files.info failed:', err)
   }

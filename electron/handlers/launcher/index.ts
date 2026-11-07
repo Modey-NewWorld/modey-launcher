@@ -13,6 +13,8 @@ import { IPC } from '../../ipc-channels'
 import { getDynamicMemoryLimits } from '../../runtimeConfig'
 import { getAuthlibInjectorPath } from './authlib'
 import { killMinecraft, trackMinecraftPid, schedulePostLaunchAction } from './process'
+import { withPortableAppData } from '../../portable'
+import { pruneOrphanedOptionalMods } from '../optionalMods'
 
 export { killMinecraft } from './process'
 
@@ -26,19 +28,20 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
     try {
       const cleanSlug = (profileSlug || 'athena').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
       const instDir = instancePathFor(cleanSlug)
-      const pathModule = require('node:path')
-      const modsDir = pathModule.join(instDir, 'mods')
-      const optDir = pathModule.join(instDir, 'optional-mods')
+      const modsDir = path.join(instDir, 'mods')
       if (!fs.existsSync(modsDir)) return { hasExtra: false, extraMods: [] }
 
       const localFiles = fs.readdirSync(modsDir).filter((f: string) => f.endsWith('.jar'))
       const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`)
       if (!resp.ok) return { hasExtra: false, extraMods: [] }
       const data = await resp.json()
+
+      // Nettoyer les mods orphelins
+      pruneOrphanedOptionalMods(cleanSlug, data.optionalMods || [], data.files || [])
+
       const officialFiles = (data.files || []).map((f: any) => f.name)
       const allowedOptionalFiles = (data.optionalMods || []).map((f: any) => f.name)
-      const localOptFiles = fs.existsSync(optDir) ? fs.readdirSync(optDir) : []
-      const allowedSet = new Set([...officialFiles, ...allowedOptionalFiles, ...localOptFiles])
+      const allowedSet = new Set([...officialFiles, ...allowedOptionalFiles])
       const extraMods = localFiles.filter((f: string) => !allowedSet.has(f))
       return { hasExtra: extraMods.length > 0, extraMods }
     } catch (err) {
@@ -153,12 +156,46 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
       logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M, Res: ${effectiveRes.fullscreen ? 'fullscreen' : `${effectiveRes.width}x${effectiveRes.height}`}]`)
 
-      // 1. Synchroniser les mods optionnels pour ce profil avant lancement
+      // 1. Récupérer le manifest distant du serveur
+      let updaterManifest: any = null
+      try {
+        const updaterResp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${profileSlug}`).catch(() => null)
+        if (updaterResp && updaterResp.ok) {
+          updaterManifest = await updaterResp.json()
+        }
+      } catch (manifestErr) {
+        logger.warn('Failed to fetch manifest from server:', manifestErr)
+      }
+
+      // Purger immédiatement les mods supprimés du serveur (orphelins)
+      if (updaterManifest) {
+        try {
+          pruneOrphanedOptionalMods(
+            profileSlug,
+            updaterManifest.optionalMods || [],
+            updaterManifest.files || []
+          )
+        } catch (pruneErr) {
+          logger.warn('[Launcher Prune] Erreur nettoyage mods orphelins avant lancement:', pruneErr)
+        }
+      }
+
+      // Synchroniser les mods optionnels autorisés pour ce profil avant lancement
+      const remoteApprovedMods: any[] = Array.isArray(updaterManifest?.optionalMods) ? updaterManifest.optionalMods : []
+      const approvedModNames = new Set<string>()
+      const approvedModIds = new Set<string>()
+      for (const m of remoteApprovedMods) {
+        if (!m) continue
+        const fname = m.name || m.path || (m.id ? `${m.id}.jar` : '')
+        if (fname) approvedModNames.add(fname)
+        if (m.id) approvedModIds.add(m.id)
+      }
+
       try {
         const cleanSlug = profileSlug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
         const instDir = instancePathFor(cleanSlug)
-        const optDir = require('node:path').join(instDir, 'optional-mods')
-        const modsDir = require('node:path').join(instDir, 'mods')
+        const optDir = path.join(instDir, 'optional-mods')
+        const modsDir = path.join(instDir, 'mods')
 
         if (fs.existsSync(optDir)) {
           const optModsConfig = settings.serverSettings?.[profileSlug]?.optionalMods || localDiskCfg?.optionalMods || {}
@@ -166,10 +203,17 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
           for (const file of optFiles) {
             const modId = file.replace(/\.jar$/i, '')
+            // Ne synchroniser QUE les fichiers autorisés par le serveur
+            if (!approvedModNames.has(file) && !approvedModIds.has(modId)) {
+              try { fs.unlinkSync(path.join(optDir, file)) } catch (_) {}
+              try { fs.unlinkSync(path.join(modsDir, file)) } catch (_) {}
+              continue
+            }
+
             const isEnabled = optModsConfig[modId] === true || (optModsConfig[modId] === undefined && optModsConfig[file] === true)
             const isExplicitlyDisabled = optModsConfig[modId] === false || optModsConfig[file] === false
-            const activePath = require('node:path').join(modsDir, file)
-            const optPath = require('node:path').join(optDir, file)
+            const activePath = path.join(modsDir, file)
+            const optPath = path.join(optDir, file)
 
             if (isEnabled) {
               if (!fs.existsSync(activePath) && fs.existsSync(optPath)) {
@@ -188,7 +232,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         logger.warn('[Launcher Sync] Erreur lors de la synchronisation des mods optionnels avant lancement:', optSyncErr)
       }
 
-      // 2. Récupérer et enrichir les règles d'exclusion de nettoyage décidées par le serveur
+      // 2. Règles d'exclusion de nettoyage décidées par le serveur
       let serverCleaningIgnored: string[] = [
         'crash-reports/',
         'logs/',
@@ -209,43 +253,42 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         'config/drippyloadingscreen/'
       ]
 
-      try {
-        const updaterResp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${profileSlug}`)
-        if (updaterResp.ok) {
-          const updaterManifest = await updaterResp.json()
-          if (Array.isArray(updaterManifest.cleaningIgnored)) {
-            for (const item of updaterManifest.cleaningIgnored) {
-              if (!serverCleaningIgnored.includes(item)) serverCleaningIgnored.push(item)
-            }
+      if (updaterManifest) {
+        if (Array.isArray(updaterManifest.cleaningIgnored)) {
+          for (const item of updaterManifest.cleaningIgnored) {
+            if (!serverCleaningIgnored.includes(item)) serverCleaningIgnored.push(item)
           }
-          if (Array.isArray(updaterManifest.optionalMods)) {
-            for (const m of updaterManifest.optionalMods) {
-              const activeModPath = `mods/${m.name}`
-              if (!serverCleaningIgnored.includes(activeModPath)) {
-                serverCleaningIgnored.push(activeModPath)
-              }
+        }
+        // Pour les mods optionnels, NE PROTÉGER QUE CEUX QUI SONT ACTIVÉS PAR LE JOUEUR !
+        const optModsConfig = settings.serverSettings?.[profileSlug]?.optionalMods || localDiskCfg?.optionalMods || {}
+        const cleanSlug = profileSlug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+        const modsDir = path.join(instancePathFor(cleanSlug), 'mods')
+
+        for (const m of remoteApprovedMods) {
+          const fileName = m.name || (m.id ? `${m.id}.jar` : '')
+          const modId = m.id || fileName.replace(/\.jar$/i, '')
+          const isEnabled = optModsConfig[modId] === true || (optModsConfig[modId] === undefined && optModsConfig[fileName] === true)
+          const activeModPath = `mods/${fileName}`
+
+          if (isEnabled) {
+            if (!serverCleaningIgnored.includes(activeModPath)) {
+              serverCleaningIgnored.push(activeModPath)
+            }
+          } else {
+            // S'il est désactivé, le retirer impérativement de serverCleaningIgnored
+            serverCleaningIgnored = serverCleaningIgnored.filter((item) => item !== activeModPath)
+            const activeOnDisk = path.join(modsDir, fileName)
+            if (fs.existsSync(activeOnDisk)) {
+              try { fs.unlinkSync(activeOnDisk) } catch (_) {}
             }
           }
         }
-      } catch (manifestErr) {
-        logger.warn('Failed to fetch cleaning rules from server:', manifestErr)
       }
 
-      // Protéger aussi les mods optionnels installés localement contre toute suppression
-      try {
-        const localOptDir = require('node:path').join(instancePathFor(profileSlug), 'optional-mods')
-        if (fs.existsSync(localOptDir)) {
-          const localFiles = fs.readdirSync(localOptDir)
-          for (const f of localFiles) {
-            const activePath = `mods/${f}`
-            if (!serverCleaningIgnored.includes(activePath)) {
-              serverCleaningIgnored.push(activePath)
-            }
-          }
-        }
-      } catch (_) {}
-
-      const launcher = new Launcher({
+      // EML résout sa racine depuis `process.env.APPDATA` dans le constructeur.
+      // En portable, on redirige temporairement vers `ModeyData` le temps de
+      // l'instanciation : le chemin résolu est ensuite conservé dans la config.
+      const launcher = withPortableAppData(() => new Launcher({
         root: 'modey',
         profile: {
           slug: profileSlug,
@@ -274,7 +317,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
           min: ramMinMb,
           max: ramMaxMb
         }
-      })
+      }))
 
       // Interception de run() pour la capture de PID et l'injection authlib-injector
       ;(launcher as any).run = async function (javaPath: string, args: string[]) {
@@ -465,6 +508,14 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         return { success: false, error: 'Impossible de joindre le serveur de distribution pour vérifier les fichiers.' }
       }
       const manifest = await resp.json()
+
+      // Purger également les mods facultatifs orphelins retirés du serveur
+      try {
+        pruneOrphanedOptionalMods(cleanSlug, manifest.optionalMods || [], manifest.files || [])
+      } catch (pruneErr) {
+        logger.warn('[Integrity Repair] Échec du nettoyage des mods orphelins:', pruneErr)
+      }
+
       const filesList: any[] = Array.isArray(manifest.files) ? manifest.files : []
       let repairedCount = 0
       let validCount = 0
