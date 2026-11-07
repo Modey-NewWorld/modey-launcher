@@ -3,6 +3,7 @@ import logger from 'electron-log/main'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
+import crypto from 'node:crypto'
 import { IPC } from '../ipc-channels'
 import { instancePathFor } from './files'
 import { ADMINTOOL_URL } from '../const'
@@ -22,52 +23,120 @@ function sanitizeFileName(filename: string): string {
   return path.basename(filename).replace(/[^a-zA-Z0-9_\-\.\+]/g, '_')
 }
 
-function resolveModFileName(dir: string, modId: string): string {
-  if (fs.existsSync(dir)) {
-    const files = fs.readdirSync(dir)
-    if (files.includes(modId)) return modId
-    if (files.includes(`${modId}.jar`)) return `${modId}.jar`
-    const matched = files.find((f) => f.replace(/\.jar$/i, '') === modId || f.startsWith(modId))
-    if (matched) return matched
+/**
+ * Calcule l'empreinte SHA1 d'un fichier sur disque
+ */
+export function computeFileSha1(filePath: string): string | null {
+  try {
+    if (!fs.existsSync(filePath)) return null
+    const buf = fs.readFileSync(filePath)
+    return crypto.createHash('sha1').update(buf).digest('hex').toLowerCase()
+  } catch {
+    return null
   }
-  return modId.endsWith('.jar') ? modId : `${modId}.jar`
+}
+
+/**
+ * Migre l'ancien dossier legacy optional-mods/ vers le dossier mods/
+ * en respectant les états .jar (activé) ou .jar.disabled (désactivé).
+ */
+function migrateLegacyOptionalModsDir(
+  instDir: string,
+  modsDir: string,
+  validModsMap: Map<string, { id: string; name: string; sha1: string }>,
+  optModsConfig: Record<string, boolean>
+) {
+  const legacyOptDir = path.join(instDir, 'optional-mods')
+  if (!fs.existsSync(legacyOptDir)) return
+
+  try {
+    const files = fs.readdirSync(legacyOptDir)
+    for (const f of files) {
+      const srcPath = path.join(legacyOptDir, f)
+      const baseName = f.replace(/\.disabled$/i, '')
+      const modInfo = validModsMap.get(baseName) || validModsMap.get(baseName.replace(/\.jar$/i, ''))
+
+      if (modInfo) {
+        // Déterminer si le mod doit être activé (.jar) ou désactivé (.jar.disabled)
+        const isEnabled =
+          optModsConfig[modInfo.id] === true ||
+          (optModsConfig[modInfo.id] === undefined && optModsConfig[modInfo.name] === true)
+
+        const targetFileName = isEnabled ? modInfo.name : `${modInfo.name}.disabled`
+        const targetPath = path.join(modsDir, targetFileName)
+
+        if (!fs.existsSync(targetPath)) {
+          try {
+            fs.copyFileSync(srcPath, targetPath)
+            logger.info(`[Migrate OptionalMods] ${f} migré vers mods/${targetFileName}`)
+          } catch (_) {}
+        }
+      }
+
+      try {
+        fs.unlinkSync(srcPath)
+      } catch (_) {}
+    }
+
+    try {
+      fs.rmdirSync(legacyOptDir)
+      logger.info('[Migrate OptionalMods] Ancien dossier optional-mods supprimé avec succès.')
+    } catch (_) {}
+  } catch (err) {
+    logger.warn('[Migrate OptionalMods] Erreur migration ancien dossier optional-mods:', err)
+  }
 }
 
 /**
  * Nettoie et purge les mods facultatifs qui ne sont plus présents sur le serveur.
- * Supprime les fichiers obsolètes dans optional-mods/, dans mods/, et nettoie server-settings.json.
+ * Supprime les fichiers obsolètes ou falsifiés dans mods/, et nettoie server-settings.json.
  */
 export function pruneOrphanedOptionalMods(
   slug: string,
   remoteOptionalMods: any[] = [],
   officialFiles: any[] = []
-): { deletedFromOpt: string[]; deletedFromMods: string[]; cleanedSettings: string[] } {
+): { deletedFromMods: string[]; cleanedSettings: string[] } {
   const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
   const instDir = instancePathFor(cleanSlug)
-  const optDir = path.join(instDir, 'optional-mods')
   const modsDir = path.join(instDir, 'mods')
 
-  const deletedFromOpt: string[] = []
+  if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
+
   const deletedFromMods: string[] = []
   const cleanedSettings: string[] = []
 
-  // 1. Liste des noms et IDs de mods optionnels autorisés par le serveur
+  // Configuration locale pour déterminer l'état d'activation
+  const localCfg = readLocalServerConfig(cleanSlug)
+  const optModsConfig = localCfg?.optionalMods || {}
+
+  // 1. Map des mods optionnels autorisés avec leur hash officiel
+  const validModsMap = new Map<string, { id: string; name: string; sha1: string }>()
   const validOptionalFileNames = new Set<string>()
   const validOptionalModIds = new Set<string>()
 
   for (const m of remoteOptionalMods || []) {
     if (!m) continue
     const fname = m.name || m.path || (m.id ? `${m.id}.jar` : '')
+    const modId = m.id || fname.replace(/\.jar$/i, '')
+    const sha1 = (m.sha1 || '').toLowerCase()
+    const info = { id: modId, name: fname, sha1 }
+    validModsMap.set(fname, info)
+    validModsMap.set(modId, info)
     if (fname) {
       validOptionalFileNames.add(fname)
+      validOptionalFileNames.add(`${fname}.disabled`)
       validOptionalFileNames.add(path.basename(fname))
+      validOptionalFileNames.add(`${path.basename(fname)}.disabled`)
     }
-    if (m.id) {
-      validOptionalModIds.add(m.id)
+    if (modId) {
+      validOptionalModIds.add(modId)
     }
   }
 
-  // 2. Liste des mods officiels obligatoires (ne jamais y toucher !)
+  // 2. Migration automatique de l'ancien dossier legacy optional-mods/ si présent
+  migrateLegacyOptionalModsDir(instDir, modsDir, validModsMap, optModsConfig)
+
+  // 3. Liste des mods officiels obligatoires (ne jamais y toucher !)
   const officialModNames = new Set<string>()
   for (const f of officialFiles || []) {
     if (!f) continue
@@ -80,44 +149,47 @@ export function pruneOrphanedOptionalMods(
     }
   }
 
-  // 3. Purge du dossier optional-mods/ local
-  if (fs.existsSync(optDir)) {
-    try {
-      const filesInOpt = fs.readdirSync(optDir)
-      for (const file of filesInOpt) {
-        if (!validOptionalFileNames.has(file)) {
-          try {
-            fs.unlinkSync(path.join(optDir, file))
-            deletedFromOpt.push(file)
-            logger.info(`[Prune OptionalMods] Supprimé de optional-mods/ (supprimé du serveur) : ${file}`)
-          } catch (delErr) {
-            logger.warn(`[Prune OptionalMods] Échec suppression optional-mods/${file}:`, delErr)
-          }
-        }
-      }
-    } catch (readErr) {
-      logger.warn('[Prune OptionalMods] Erreur lecture dossier optional-mods:', readErr)
-    }
-  }
-
-  // 4. Purge du dossier mods/ actif : supprimer les mods retirés du serveur
+  // 4. Purge et contrôle d'intégrité SHA1 dans le dossier mods/
   if (fs.existsSync(modsDir)) {
     try {
       const filesInMods = fs.readdirSync(modsDir)
       for (const file of filesInMods) {
-        if (!file.endsWith('.jar')) continue
+        const isJar = file.endsWith('.jar')
+        const isDisabledJar = file.endsWith('.jar.disabled')
+        if (!isJar && !isDisabledJar) continue
 
-        // Ne jamais supprimer les mods officiels
+        // Ne jamais toucher aux mods officiels
         if (officialModNames.has(file)) continue
 
-        // Si ce n'est pas un mod optionnel serveur valide, c'est un mod orphelin / retiré !
-        if (!validOptionalFileNames.has(file)) {
+        const filePath = path.join(modsDir, file)
+        const baseName = file.replace(/\.disabled$/i, '')
+        const modInfo = validModsMap.get(baseName)
+
+        if (!modInfo) {
+          // Ce mod n'est ni officiel ni dans la liste optionnelle approuvée par le serveur : SUPPRESSION
           try {
-            fs.unlinkSync(path.join(modsDir, file))
+            fs.unlinkSync(filePath)
             deletedFromMods.push(file)
-            logger.info(`[Prune OptionalMods] Supprimé de mods/ (mod orphelin / retiré du serveur) : ${file}`)
+            logger.info(`[Prune OptionalMods] Supprimé de mods/ (mod orphelin ou supprimé du serveur) : ${file}`)
           } catch (delErr) {
             logger.warn(`[Prune OptionalMods] Échec suppression mods/${file}:`, delErr)
+          }
+          continue
+        }
+
+        // Le mod est bien un mod optionnel serveur approuvé : CONTRÔLE STRICT DU HASH SHA1 !
+        if (modInfo.sha1) {
+          const localSha1 = computeFileSha1(filePath)
+          if (localSha1 && localSha1 !== modInfo.sha1) {
+            // ALERTE INTÉGRITÉ : Mod falsifié, modifié ou corrompu !
+            logger.warn(
+              `[OptionalMods Security] ⚠️ Falsification ou hash invalide détecté pour ${file} ! Attendu: ${modInfo.sha1}, Trouvé: ${localSha1}. Suppression immédiate.`
+            )
+            try {
+              fs.unlinkSync(filePath)
+              deletedFromMods.push(`${file} (falsifié/corrompu)`)
+            } catch (_) {}
+            continue
           }
         }
       }
@@ -128,11 +200,10 @@ export function pruneOrphanedOptionalMods(
 
   // 5. Nettoyage des clés obsolètes dans server-settings.json
   try {
-    const localCfg = readLocalServerConfig(cleanSlug)
     if (localCfg?.optionalMods) {
       let modified = false
       for (const key of Object.keys(localCfg.optionalMods)) {
-        const baseKey = key.replace(/\.jar$/i, '')
+        const baseKey = key.replace(/\.jar$/i, '').replace(/\.disabled$/i, '')
         const isKnownOptional =
           validOptionalFileNames.has(key) ||
           validOptionalModIds.has(key) ||
@@ -152,7 +223,7 @@ export function pruneOrphanedOptionalMods(
     logger.warn('[Prune OptionalMods] Erreur nettoyage config locale:', cfgErr)
   }
 
-  return { deletedFromOpt, deletedFromMods, cleanedSettings }
+  return { deletedFromMods, cleanedSettings }
 }
 
 export function registerOptionalModsHandlers() {
@@ -161,10 +232,8 @@ export function registerOptionalModsHandlers() {
     try {
       const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
       const instDir = instancePathFor(cleanSlug)
-      const optDir = path.join(instDir, 'optional-mods')
       const modsDir = path.join(instDir, 'mods')
 
-      if (!fs.existsSync(optDir)) fs.mkdirSync(optDir, { recursive: true })
       if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
       // Récupérer le manifest distant
@@ -178,53 +247,63 @@ export function registerOptionalModsHandlers() {
       }
       const remoteOptionalMods: any[] = Array.isArray(data.optionalMods) ? data.optionalMods : []
 
-      // Purger immédiatement les mods orphelins (qui ont été supprimés côté serveur)
+      // Purger immédiatement les mods orphelins et vérifier les hashs
       pruneOrphanedOptionalMods(cleanSlug, remoteOptionalMods, data.files || [])
 
       // Lire la configuration locale pour savoir quels mods sont activés
       const localCfg = readLocalServerConfig(cleanSlug)
       const optionalModsStates: Record<string, boolean> = localCfg?.optionalMods || {}
-
-      const localOptFiles = fs.existsSync(optDir) ? fs.readdirSync(optDir) : []
-      const localActiveMods = fs.existsSync(modsDir) ? fs.readdirSync(modsDir) : []
+      const filesInMods = fs.existsSync(modsDir) ? fs.readdirSync(modsDir) : []
 
       const result: IOptionalModItem[] = remoteOptionalMods
         .filter((rem) => rem && (rem.name || rem.path || rem.id))
         .map((rem) => {
           const fileName = rem.name || rem.path || `${rem.id}.jar`
-          const modId = rem.id || fileName
-          const isPresentInOpt = localOptFiles.includes(fileName)
-          const isPresentInActive = localActiveMods.includes(fileName)
-          const isInstalled = isPresentInOpt || isPresentInActive
+          const disabledFileName = `${fileName}.disabled`
+          const modId = rem.id || fileName.replace(/\.jar$/i, '')
 
-          // Déterminer l'état actif :
-          const explicitState = optionalModsStates[modId] !== undefined ? optionalModsStates[modId] : optionalModsStates[fileName]
-          const isEnabled = explicitState !== undefined ? explicitState === true : isPresentInActive
+          const isActivePresent = filesInMods.includes(fileName)
+          const isDisabledPresent = filesInMods.includes(disabledFileName)
+          const isInstalled = isActivePresent || isDisabledPresent
 
-        // Si le mod est installé et activé mais pas encore copié dans mods/, on le copie
-        if (isEnabled && isPresentInOpt && !isPresentInActive) {
-          try {
-            fs.copyFileSync(path.join(optDir, fileName), path.join(modsDir, fileName))
-          } catch (_) {}
-        }
+          // Déterminer l'état actif (config explicite prioritaire, sinon fichier actif présent)
+          const explicitState =
+            optionalModsStates[modId] !== undefined
+              ? optionalModsStates[modId]
+              : optionalModsStates[fileName] !== undefined
+                ? optionalModsStates[fileName]
+                : optionalModsStates[disabledFileName]
 
-        // Si expressément désactivé mais présent dans mods/, on le retire
-        if (explicitState === false && isPresentInActive) {
-          try {
-            fs.unlinkSync(path.join(modsDir, fileName))
-          } catch (_) {}
-        }
+          const isEnabled = explicitState !== undefined ? explicitState === true : isActivePresent
 
-        return {
-          id: rem.id,
-          name: rem.name,
-          url: rem.url,
-          sha1: rem.sha1,
-          size: rem.size,
-          isInstalled,
-          isEnabled
-        }
-      })
+          // Si le mod est installé, s'assurer que le nom sur disque reflète l'état activé/désactivé
+          if (isInstalled) {
+            const activePath = path.join(modsDir, fileName)
+            const disabledPath = path.join(modsDir, disabledFileName)
+
+            if (isEnabled && isDisabledPresent && !isActivePresent) {
+              try {
+                fs.renameSync(disabledPath, activePath)
+                logger.info(`[OptionalMods] Renommé ${disabledFileName} -> ${fileName} (activé)`)
+              } catch (_) {}
+            } else if (!isEnabled && isActivePresent && !isDisabledPresent) {
+              try {
+                fs.renameSync(activePath, disabledPath)
+                logger.info(`[OptionalMods] Renommé ${fileName} -> ${disabledFileName} (désactivé)`)
+              } catch (_) {}
+            }
+          }
+
+          return {
+            id: rem.id,
+            name: rem.name,
+            url: rem.url,
+            sha1: rem.sha1,
+            size: rem.size,
+            isInstalled,
+            isEnabled
+          }
+        })
 
       return result
     } catch (err) {
@@ -233,17 +312,15 @@ export function registerOptionalModsHandlers() {
     }
   })
 
-  // 2. Installer (télécharger) un mod optionnel
+  // 2. Installer (télécharger avec vérification SHA1) un mod optionnel directement dans mods/
   ipcMain.handle(
     IPC.optionalMods.install,
     async (_event, { slug, modId }: { slug: string; modId: string }): Promise<{ success: boolean; error?: string }> => {
       try {
         const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
         const instDir = instancePathFor(cleanSlug)
-        const optDir = path.join(instDir, 'optional-mods')
         const modsDir = path.join(instDir, 'mods')
 
-        if (!fs.existsSync(optDir)) fs.mkdirSync(optDir, { recursive: true })
         if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
         // Chercher l'URL de téléchargement
@@ -259,17 +336,37 @@ export function registerOptionalModsHandlers() {
         if (!mod || !mod.url) return { success: false, error: 'Mod optionnel introuvable dans le catalogue.' }
 
         const cleanName = sanitizeFileName(mod.name || `${modId}.jar`)
-        const targetOptPath = path.join(optDir, cleanName)
+        const targetActivePath = path.join(modsDir, cleanName)
+        const disabledPath = `${targetActivePath}.disabled`
 
         // Télécharger le fichier
         const fileResp = await fetch(mod.url).catch(() => null)
-        if (!fileResp || !fileResp.ok) return { success: false, error: `Erreur téléchargement (${fileResp ? fileResp.status : 'réseau'})` }
+        if (!fileResp || !fileResp.ok) {
+          return { success: false, error: `Erreur téléchargement (${fileResp ? fileResp.status : 'réseau'})` }
+        }
         const arrayBuf = await fileResp.arrayBuffer()
-        await fsp.writeFile(targetOptPath, Buffer.from(arrayBuf))
+        const buffer = Buffer.from(arrayBuf)
 
-        // Par défaut lors de l'installation, on l'active directement
-        const targetActivePath = path.join(modsDir, cleanName)
-        await fsp.copyFile(targetOptPath, targetActivePath)
+        // Vérification stricte du hash SHA1 reçu
+        if (mod.sha1) {
+          const downloadedSha1 = crypto.createHash('sha1').update(buffer).digest('hex').toLowerCase()
+          if (downloadedSha1 !== mod.sha1.toLowerCase()) {
+            return {
+              success: false,
+              error: 'Intégrité compromise : le hash SHA1 du fichier téléchargé ne correspond pas au serveur.'
+            }
+          }
+        }
+
+        // Supprimer toute ancienne version .disabled éventuelle
+        if (fs.existsSync(disabledPath)) {
+          try {
+            await fsp.unlink(disabledPath)
+          } catch (_) {}
+        }
+
+        // Écrire directement dans mods/<cleanName> (activé par défaut)
+        await fsp.writeFile(targetActivePath, buffer)
 
         // Mettre à jour server-settings.json
         const currentCfg = readLocalServerConfig(cleanSlug) || {}
@@ -278,7 +375,7 @@ export function registerOptionalModsHandlers() {
         currentCfg.optionalMods[cleanName] = true
         writeLocalServerConfig(cleanSlug, currentCfg)
 
-        logger.info(`[OptionalMods] Mod installé et activé : ${cleanName} sur ${cleanSlug}`)
+        logger.info(`[OptionalMods] Mod installé, certifié SHA1 et activé : ${cleanName} sur ${cleanSlug}`)
         return { success: true }
       } catch (err: any) {
         logger.error(`[OptionalMods] Échec install mod ${modId} sur ${slug}:`, err)
@@ -287,33 +384,32 @@ export function registerOptionalModsHandlers() {
     }
   )
 
-  // 3. Désinstaller (supprimer du disque) un mod optionnel
+  // 3. Désinstaller (supprimer complètement du dossier mods/) un mod optionnel
   ipcMain.handle(
     IPC.optionalMods.uninstall,
     async (_event, { slug, modId }: { slug: string; modId: string }): Promise<{ success: boolean; error?: string }> => {
       try {
         const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
         const instDir = instancePathFor(cleanSlug)
-        const optDir = path.join(instDir, 'optional-mods')
         const modsDir = path.join(instDir, 'mods')
 
-        // Identifier le nom du fichier
-        const fileName = resolveModFileName(optDir, modId)
-        const optPath = path.join(optDir, fileName)
-        const activePath = path.join(modsDir, fileName)
+        const cleanName = sanitizeFileName(modId.endsWith('.jar') ? modId : `${modId}.jar`)
+        const activePath = path.join(modsDir, cleanName)
+        const disabledPath = `${activePath}.disabled`
 
-        if (fs.existsSync(optPath)) await fsp.unlink(optPath)
         if (fs.existsSync(activePath)) await fsp.unlink(activePath)
+        if (fs.existsSync(disabledPath)) await fsp.unlink(disabledPath)
 
         // Mettre à jour server-settings.json
         const currentCfg = readLocalServerConfig(cleanSlug) || {}
         if (currentCfg.optionalMods) {
           delete currentCfg.optionalMods[modId]
-          delete currentCfg.optionalMods[fileName]
+          delete currentCfg.optionalMods[cleanName]
+          delete currentCfg.optionalMods[`${cleanName}.disabled`]
           writeLocalServerConfig(cleanSlug, currentCfg)
         }
 
-        logger.info(`[OptionalMods] Mod désinstallé : ${fileName} sur ${cleanSlug}`)
+        logger.info(`[OptionalMods] Mod désinstallé complètement : ${cleanName} sur ${cleanSlug}`)
         return { success: true }
       } catch (err: any) {
         logger.error(`[OptionalMods] Échec désinstallation mod ${modId} sur ${slug}:`, err)
@@ -322,7 +418,7 @@ export function registerOptionalModsHandlers() {
     }
   )
 
-  // 4. Activer ou désactiver (copier / retirer du dossier mods actif)
+  // 4. Activer ou désactiver (renommer .jar <-> .jar.disabled directement dans mods/)
   ipcMain.handle(
     IPC.optionalMods.toggle,
     async (
@@ -332,51 +428,72 @@ export function registerOptionalModsHandlers() {
       try {
         const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
         const instDir = instancePathFor(cleanSlug)
-        const optDir = path.join(instDir, 'optional-mods')
         const modsDir = path.join(instDir, 'mods')
 
-        if (!fs.existsSync(optDir)) fs.mkdirSync(optDir, { recursive: true })
         if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
-        let fileName = resolveModFileName(optDir, modId)
-        let optPath = path.join(optDir, fileName)
-        const activePath = path.join(modsDir, fileName)
+        const cleanName = sanitizeFileName(modId.endsWith('.jar') ? modId : `${modId}.jar`)
+        const activePath = path.join(modsDir, cleanName)
+        const disabledPath = `${activePath}.disabled`
 
         if (enable) {
-          if (!fs.existsSync(optPath)) {
-            // Tentative de téléchargement automatique si manquant
-            const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`)
-            if (resp.ok) {
-              const data = await resp.json()
-              const mod = (data.optionalMods || []).find((m: any) => m.id === modId || m.name === modId || m.name === fileName)
-              if (mod && mod.url) {
-                const fileResp = await fetch(mod.url)
-                if (fileResp.ok) {
-                  const arrayBuf = await fileResp.arrayBuffer()
-                  fileName = sanitizeFileName(mod.name)
-                  optPath = path.join(optDir, fileName)
-                  await fsp.writeFile(optPath, Buffer.from(arrayBuf))
-                }
+          if (fs.existsSync(disabledPath)) {
+            // Contrôler le SHA1 du fichier désactivé avant de le réactiver
+            const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`).catch(() => null)
+            let modMeta: any = null
+            if (resp && resp.ok) {
+              try {
+                const data = await resp.json()
+                modMeta = (data.optionalMods || []).find(
+                  (m: any) => m.id === modId || m.name === modId || m.name === cleanName
+                )
+              } catch (_) {}
+            }
+            if (modMeta && modMeta.sha1) {
+              const localSha1 = computeFileSha1(disabledPath)
+              if (localSha1 && localSha1 !== modMeta.sha1.toLowerCase()) {
+                logger.warn(`[OptionalMods Toggle] Mod falsifié détecté (${cleanName}). Suppression du fichier altéré.`)
+                try {
+                  await fsp.unlink(disabledPath)
+                } catch (_) {}
               }
             }
           }
 
-          if (!fs.existsSync(optPath)) {
-            return { success: false, error: "Le mod n'est pas encore téléchargé. Cliquez sur Installer." }
-          }
-          await fsp.copyFile(optPath, activePath)
-        } else {
-          if (fs.existsSync(activePath)) {
-            try { await fsp.unlink(activePath) } catch (_) {}
-          }
-          // S'assurer de retirer toute variante dans mods/
-          const modBase = modId.replace(/\.jar$/i, '')
-          if (fs.existsSync(modsDir)) {
-            for (const f of fs.readdirSync(modsDir)) {
-              if (f === fileName || f.replace(/\.jar$/i, '') === modBase) {
-                try { await fsp.unlink(path.join(modsDir, f)) } catch (_) {}
+          if (fs.existsSync(disabledPath)) {
+            // Renommer .jar.disabled -> .jar
+            await fsp.rename(disabledPath, activePath)
+          } else if (!fs.existsSync(activePath)) {
+            // Si le mod n'est pas présent, le télécharger officiellement
+            const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`)
+            if (!resp.ok) return { success: false, error: 'Impossible de joindre le serveur pour télécharger le mod.' }
+            const data = await resp.json()
+            const mod = (data.optionalMods || []).find(
+              (m: any) => m.id === modId || m.name === modId || m.name === cleanName
+            )
+            if (!mod || !mod.url) return { success: false, error: 'Mod optionnel introuvable sur le serveur.' }
+
+            const fileResp = await fetch(mod.url)
+            if (!fileResp.ok) return { success: false, error: 'Échec du téléchargement du mod officiel.' }
+            const arrayBuf = await fileResp.arrayBuffer()
+            const buffer = Buffer.from(arrayBuf)
+            if (mod.sha1) {
+              const hash = crypto.createHash('sha1').update(buffer).digest('hex').toLowerCase()
+              if (hash !== mod.sha1.toLowerCase()) {
+                return { success: false, error: 'Erreur d’intégrité SHA1 sur le fichier téléchargé.' }
               }
             }
+            await fsp.writeFile(activePath, buffer)
+          }
+        } else {
+          // Désactiver : renommer .jar -> .jar.disabled
+          if (fs.existsSync(activePath)) {
+            if (fs.existsSync(disabledPath)) {
+              try {
+                await fsp.unlink(disabledPath)
+              } catch (_) {}
+            }
+            await fsp.rename(activePath, disabledPath)
           }
         }
 
@@ -384,10 +501,12 @@ export function registerOptionalModsHandlers() {
         const currentCfg = readLocalServerConfig(cleanSlug) || {}
         if (!currentCfg.optionalMods) currentCfg.optionalMods = {}
         currentCfg.optionalMods[modId] = enable
-        currentCfg.optionalMods[fileName] = enable
+        currentCfg.optionalMods[cleanName] = enable
         writeLocalServerConfig(cleanSlug, currentCfg)
 
-        logger.info(`[OptionalMods] Mod ${fileName} ${enable ? 'activé' : 'désactivé'} sur ${cleanSlug}`)
+        logger.info(
+          `[OptionalMods] Mod ${cleanName} ${enable ? 'activé (.jar)' : 'désactivé (.jar.disabled)'} sur ${cleanSlug}`
+        )
         return { success: true }
       } catch (err: any) {
         logger.error(`[OptionalMods] Échec toggle mod ${modId} sur ${slug}:`, err)
