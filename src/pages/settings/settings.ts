@@ -120,6 +120,11 @@ function applyCategoryFilter() {
   view.querySelectorAll<HTMLElement>('.settings-card').forEach((card) => {
     card.hidden = card.dataset.cat !== activeCategory
   })
+
+  const scrollEl = el('settings-scroll')
+  if (scrollEl) {
+    scrollEl.classList.toggle('is-cat-content', activeCategory === 'content')
+  }
 }
 
 function initCategoryKeyboardNav() {

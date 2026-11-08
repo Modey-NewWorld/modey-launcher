@@ -854,28 +854,30 @@
 }
 
 
-/* --- Master-Detail Optional Mods Browser --- */
-.optional-mods-browser {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 16px;
-  margin-top: 14px;
-  height: 580px;
-  min-height: 500px;
+/* --- Dual-Card Layout for Optional Mods --- */
+.settings-scroll.is-cat-content,
+.settings-scroll:has(#server-optional-mods-card:not([hidden])) {
+  grid-template-columns: 350px 1fr;
+  align-items: stretch;
 
   @media (max-width: 960px) {
     grid-template-columns: 1fr;
-    height: auto;
   }
 }
 
-/* --- Left Column: Mods Sidebar --- */
-.opt-mods-sidebar {
+/* Card 1: Mods List */
+.opt-mods-card--list {
+  height: 680px;
+  max-height: calc(100vh - 190px);
+  min-height: 520px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  height: 100%;
-  min-height: 0;
+  gap: 12px;
+  padding: 16px 18px;
+
+  @media (max-width: 960px) {
+    height: 480px;
+  }
 
   .opt-mods-search-bar {
     display: flex;
@@ -929,6 +931,33 @@
       background: var(--line-strong);
       border-radius: 4px;
     }
+  }
+}
+
+/* Card 2: Mod Detail & Inspector */
+.opt-mods-card--detail {
+  height: 680px;
+  max-height: calc(100vh - 190px);
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 22px;
+  overflow: hidden;
+
+  @media (max-width: 960px) {
+    height: auto;
+    min-height: 500px;
+  }
+
+  .opt-mods-inspector {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    background: transparent;
+    border: none;
+    border-radius: 0;
   }
 }
 
@@ -1126,10 +1155,10 @@
   .opt-inspector-content {
     flex: 1;
     overflow-y: auto;
-    padding: 20px 24px;
+    padding: 2px 6px 10px 0;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 18px;
 
     /* Clean custom scrollbar */
     &::-webkit-scrollbar {
