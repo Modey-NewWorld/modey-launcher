@@ -689,7 +689,7 @@
 }
 
 @media (min-width: 1750px) {
-  .settings-scroll {
+  .settings-scroll:not(.is-cat-content) {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
@@ -857,26 +857,39 @@
 /* --- Dual-Card Layout for Optional Mods --- */
 .settings-scroll.is-cat-content,
 .settings-scroll:has(#server-optional-mods-card:not([hidden])) {
-  grid-template-columns: 350px 1fr;
-  align-items: stretch;
+  grid-template-columns: 340px 1fr !important;
+  grid-template-rows: auto auto 1fr !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow-y: hidden !important;
+  padding: 18px 18px 0 18px !important;
+  align-items: stretch !important;
+
+  /* Masquer le footer en mode contenu */
+  .settings-footer {
+    display: none !important;
+  }
 
   @media (max-width: 960px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto auto auto !important;
+    overflow-y: auto !important;
   }
 }
 
 /* Card 1: Mods List */
 .opt-mods-card--list {
-  height: 680px;
-  max-height: calc(100vh - 190px);
-  min-height: 520px;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px 18px;
+  overflow: hidden;
 
   @media (max-width: 960px) {
-    height: 480px;
+    height: 480px !important;
   }
 
   .opt-mods-search-bar {
@@ -916,6 +929,7 @@
 
   .opt-mods-items-list {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     display: flex;
@@ -936,17 +950,18 @@
 
 /* Card 2: Mod Detail & Inspector */
 .opt-mods-card--detail {
-  height: 680px;
-  max-height: calc(100vh - 190px);
-  min-height: 520px;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
   display: flex;
   flex-direction: column;
-  padding: 18px 22px;
+  padding: 16px 20px;
   overflow: hidden;
+  width: 100% !important;
 
   @media (max-width: 960px) {
-    height: auto;
-    min-height: 500px;
+    height: auto !important;
+    min-height: 500px !important;
   }
 
   .opt-mods-inspector {

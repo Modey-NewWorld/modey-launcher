@@ -123,7 +123,7 @@ function applyCategoryFilter() {
 
   const scrollEl = el('settings-scroll')
   if (scrollEl) {
-    scrollEl.classList.toggle('is-cat-content', activeCategory === 'content')
+    scrollEl.classList.toggle('is-cat-content', activeCategory === 'content' && currentViewKind() === 'server')
   }
 }
 
