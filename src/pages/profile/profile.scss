@@ -232,10 +232,10 @@
 
     &:hover {
       background: var(--bg-sunken);
-      border-color: #3B82F6;
+      border-color: var(--accent);
 
       svg {
-        color: #3B82F6;
+        color: var(--accent);
       }
     }
 

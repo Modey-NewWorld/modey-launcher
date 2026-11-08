@@ -11,7 +11,9 @@
 
   /* Encre */
   --ink-900: #0D1726;   /* titres */
+  --ink-800: #18273B;   /* texte très fort */
   --ink-700: #24374F;   /* texte fort */
+  --ink-600: #3E516B;   /* texte intermédiaire */
   --ink-500: #55657D;   /* texte courant — 5.9:1 sur blanc */
   --ink-400: #586982;   /* texte secondaire / discret — ≥ 5.4:1 sur blanc */
 
@@ -23,13 +25,15 @@
   /* Lignes */
   --line: #E4E9F0;
   --line-strong: #C9D4E2;
+  --line-subtle: rgba(0, 0, 0, 0.05);
+  --bg-subtle: #F1F5F9;
 
   /* Accent unique (Bleu électrique et éclatant en thème clair) */
-  --accent: #3B82F6;
-  --accent-strong: #2563EB;
+  --accent: #2563EB;
+  --accent-strong: #1D4ED8;
   --accent-soft: #EFF6FF;
   --accent-ink: #1D4ED8;
-  --accent-ring: rgba(59, 130, 246, 0.35);
+  --accent-ring: rgba(37, 99, 235, 0.35);
 
   /* Aliases compat primary */
   --primary: var(--accent);
@@ -150,20 +154,24 @@
 
   /* Encre claire */
   --ink-900: #F0F4F8;   /* titres très clairs */
+  --ink-800: #E2E8F0;   /* texte très fort clair */
   --ink-700: #D0DBEA;   /* texte fort */
+  --ink-600: #B4C3D7;   /* texte intermédiaire clair */
   --ink-500: #94A3B8;   /* texte courant */
-  --ink-400: #64748B;   /* texte discret */
+  --ink-400: #78889E;   /* texte discret bien contrasté */
 
   /* Lignes sombres */
   --line: #1F2C3F;
   --line-strong: #2D3E56;
+  --line-subtle: rgba(255, 255, 255, 0.06);
+  --bg-subtle: #17212F;
 
-  /* Accent en sombre (bleu profond et contrasté) */
-  --accent: #2563EB;
-  --accent-strong: #1D4ED8;
-  --accent-soft: rgba(37, 99, 235, 0.15);
+  /* Accent en sombre (bleu lumineux et éclatant sur fond sombre) */
+  --accent: #3B82F6;
+  --accent-strong: #60A5FA;
+  --accent-soft: rgba(59, 130, 246, 0.16);
   --accent-ink: #93C5FD;
-  --accent-ring: rgba(37, 99, 235, 0.4);
+  --accent-ring: rgba(59, 130, 246, 0.4);
 
   /* Glassmorphism sombre */
   --glass-bg: rgba(19, 27, 38, 0.88);

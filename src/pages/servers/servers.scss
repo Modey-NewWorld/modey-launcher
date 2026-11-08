@@ -579,6 +579,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        color: #FFFFFF;
 
         .inspector-server-icon {
           width: 24px;
@@ -586,14 +587,16 @@
           display: flex;
           align-items: center;
           justify-content: center;
+          color: #FFFFFF;
 
           svg {
             width: 22px;
             height: 22px;
+            color: #FFFFFF;
           }
 
           .server-icon-gold {
-            color: #F59E0B;
+            color: var(--founder-gold) !important;
           }
         }
 

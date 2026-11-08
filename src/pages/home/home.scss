@@ -466,6 +466,10 @@
       display: flex;
       align-items: center;
       gap: 7px;
+
+      .solar-icon {
+        color: var(--accent);
+      }
     }
 
     .head-link {
@@ -1485,6 +1489,10 @@
         display: flex;
         align-items: center;
         gap: 7px;
+
+        .solar-icon {
+          color: var(--accent);
+        }
       }
 
       .head-link {
