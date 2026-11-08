@@ -1,7 +1,15 @@
 import { NewsModal } from '../../../components/newsModal'
 import { fetchNews, stripMarkdown, formatDate } from '../../../services/news'
 import { homeState } from '../state'
-import bgImage from '../../../static/images/bg-thumb.webp'
+
+function escapeHtml(str: string): string {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
 export async function loadNews() {
   const newsList = document.getElementById('events-news-list')
@@ -56,25 +64,44 @@ export async function loadNews() {
       }
     }
     const dateText = item.createdAt ? formatDate(item.createdAt) : 'Récent'
-    const thumbImg = item.icon || item.icon_url || item.image || bgImage
 
-    newsList.insertAdjacentHTML(
-      'beforeend',
-      `
-      <div class="news-event-item" data-index="${index}">
-        <div class="news-event-banner" style="background-image: url('${thumbImg}')">
+    const rawImg = String(item.image || item.image_url || item.icon || item.icon_url || '').trim()
+    const hasImage = Boolean(rawImg && rawImg !== 'null' && rawImg !== 'undefined')
+
+    const safeTitle = escapeHtml(item.title || '')
+    const safeTeaser = escapeHtml(teaser)
+    const safeBadge = escapeHtml(badgeLabel)
+    const safeDate = escapeHtml(dateText)
+
+    const itemHtml = hasImage
+      ? `
+      <div class="news-event-item with-image" data-index="${index}">
+        <div class="news-event-banner" style="background-image: url('${escapeHtml(rawImg)}')">
           <div class="news-event-banner-badges">
-            <span class="news-event-badge ${badgeClass}">${badgeLabel}</span>
-            <span class="news-event-date-pill">${dateText}</span>
+            <span class="news-event-badge ${badgeClass}">${safeBadge}</span>
+            <span class="news-event-date-pill">${safeDate}</span>
           </div>
         </div>
         <div class="news-event-body">
-          <div class="news-event-title" title="${item.title}">${item.title}</div>
-          <div class="news-event-desc" title="${teaser}">${teaser}</div>
+          <div class="news-event-title" title="${safeTitle}">${safeTitle}</div>
+          <div class="news-event-desc" title="${safeTeaser}">${safeTeaser}</div>
         </div>
       </div>
     `
-    )
+      : `
+      <div class="news-event-item no-image" data-index="${index}">
+        <div class="news-event-header-row">
+          <span class="news-event-badge ${badgeClass}">${safeBadge}</span>
+          <span class="news-event-date-pill">${safeDate}</span>
+        </div>
+        <div class="news-event-body">
+          <div class="news-event-title" title="${safeTitle}">${safeTitle}</div>
+          <div class="news-event-desc" title="${safeTeaser}">${safeTeaser}</div>
+        </div>
+      </div>
+    `
+
+    newsList.insertAdjacentHTML('beforeend', itemHtml)
   })
 
   // Clic pour ouvrir le modal immersif de l'actualité
@@ -97,7 +124,7 @@ function initNav(itemCount: number) {
 
   if (!newsList || !navWrap || !btnPrev || !btnNext) return
 
-  // Si 2 éléments ou moins, masquer les flèches car ils s\'affichent directement
+  // Si 2 éléments ou moins, masquer les flèches car ils s'affichent directement
   if (itemCount <= 2) {
     navWrap.style.display = 'none'
     return
@@ -115,14 +142,14 @@ function initNav(itemCount: number) {
   btnPrev.onclick = () => {
     if (!newsList) return
     const firstItem = newsList.querySelector('.news-event-item') as HTMLElement | null
-    const step = firstItem ? (firstItem.offsetHeight + 10) : 135
+    const step = firstItem ? (firstItem.offsetHeight + 12) : 135
     newsList.scrollBy({ top: -step, behavior: 'smooth' })
   }
 
   btnNext.onclick = () => {
     if (!newsList) return
     const firstItem = newsList.querySelector('.news-event-item') as HTMLElement | null
-    const step = firstItem ? (firstItem.offsetHeight + 10) : 135
+    const step = firstItem ? (firstItem.offsetHeight + 12) : 135
     newsList.scrollBy({ top: step, behavior: 'smooth' })
   }
 
