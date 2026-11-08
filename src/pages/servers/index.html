@@ -11,7 +11,27 @@
         <!-- Two-column main layout: Inspector at left (larger & full height), Server cards at right -->
     <div class="servers-main-layout">
       <!-- Left column: Inspector Details Panel -->
-<aside class="servers-inspector-col">
+      <!-- Left column: Section header + Cards Grid -->
+      <section class="servers-catalog-col">
+        <!-- Section Title: Serveurs officiels Modey -->
+        <div class="servers-section-heading">
+          <div class="heading-icon-badge">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>
+          </div>
+          <div class="heading-text">
+            <h2>Serveurs officiels Modey</h2>
+            <p>Des mondes uniques, créés et gérés par l'équipe Modey.</p>
+          </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="servers-cards-grid" id="servers-cards-grid">
+          <!-- Dynamically rendered server cards -->
+        </div>
+      </section>
+
+      <!-- Right column: Inspector Details Panel -->
+      <aside class="servers-inspector-col">
         <div class="server-inspector-panel" id="server-inspector-panel">
           <!-- Top 16:9 Banner -->
           <div class="inspector-banner" id="inspector-banner">
@@ -126,25 +146,6 @@
           </div>
         </div>
       </aside>
-
-      <!-- Right column: Section header + Cards Grid -->
-      <section class="servers-catalog-col">
-        <!-- Section Title: Serveurs officiels Modey -->
-        <div class="servers-section-heading">
-          <div class="heading-icon-badge">
-            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>
-          </div>
-          <div class="heading-text">
-            <h2>Serveurs officiels Modey</h2>
-            <p>Des mondes uniques, créés et gérés par l'équipe Modey.</p>
-          </div>
-        </div>
-
-        <!-- Cards Grid -->
-        <div class="servers-cards-grid" id="servers-cards-grid">
-          <!-- Dynamically rendered server cards -->
-        </div>
-      </section>
     </div>
   </div>
 </main>

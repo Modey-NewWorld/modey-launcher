@@ -87,10 +87,10 @@
   }
 }
 
-/* --- Disposition principale à 2 colonnes : Inspecteur détaillé à gauche, Catalogue à droite --- */
+/* --- Disposition principale à 2 colonnes : Catalogue à gauche, Inspecteur détaillé à droite --- */
 .servers-main-layout {
   display: grid;
-  grid-template-columns: 460px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 460px;
   gap: 20px;
   align-items: stretch;
   flex: 1;

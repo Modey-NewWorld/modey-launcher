@@ -13,10 +13,14 @@ export async function pingServer(host: string, port?: number): Promise<ServerPro
   const startedAt = performance.now()
   try {
     const status = await server.getStatus(host, port)
+    const effectivePing =
+      typeof status?.ping === 'number' && status.ping > 0
+        ? status.ping
+        : Math.max(1, Math.round(performance.now() - startedAt))
     return {
       status,
       online: !!status,
-      pingMs: Math.max(1, Math.round(performance.now() - startedAt))
+      pingMs: effectivePing
     }
   } catch {
     return { status: null, online: false, pingMs: 0 }
