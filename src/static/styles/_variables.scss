@@ -52,12 +52,12 @@
   --sidebar-border: var(--line);
 
   /* Sémantique */
-  --success: #17794A;
-  --success-soft: #E6F4EC;
-  --warning: #8A5A00;
-  --warning-soft: #FFF4DC;
-  --danger: #B42318;
-  --danger-soft: #FEECEA;
+  --success: #22C55E;
+  --success-soft: rgba(34, 197, 94, 0.14);
+  --warning: #F59E0B;
+  --warning-soft: rgba(245, 158, 11, 0.14);
+  --danger: #EF4444;
+  --danger-soft: rgba(239, 68, 68, 0.14);
 
   /* Radius */
   --r-xs: 6px;
@@ -114,10 +114,10 @@
   --layout-padding: 18px;
   --content-max-width: 1720px;
 
-  /* Badges de Rôles */
-  --founder-gold: #b45309;
-  --founder-bg: #fef3c7;
-  --founder-border: #fcd34d;
+  /* Badges de Rôles & Or */
+  --founder-gold: #FBBF24;
+  --founder-bg: rgba(245, 158, 11, 0.15);
+  --founder-border: rgba(245, 158, 11, 0.35);
 
   --role-admin-color: #dc2626;
   --role-admin-bg: #fee2e2;

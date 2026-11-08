@@ -1552,7 +1552,7 @@
 
         .solar-icon {
           font-size: 14px;
-          color: var(--founder-gold, #b45309);
+          color: var(--founder-gold, #FBBF24);
         }
       }
 
@@ -1618,8 +1618,8 @@
           .party-role-tag {
             font-size: 10px;
             font-weight: 700;
-            color: #b45309;
-            background: #fef3c7;
+            color: var(--founder-gold);
+            background: var(--founder-bg); border: 1px solid var(--founder-border);
             padding: 1px 6px;
             border-radius: 4px;
             text-transform: uppercase;
@@ -2123,8 +2123,8 @@
           .party-role-tag {
             font-size: 10px;
             font-weight: 700;
-            color: #b45309;
-            background: #fef3c7;
+            color: var(--founder-gold);
+            background: var(--founder-bg); border: 1px solid var(--founder-border);
             padding: 1px 6px;
             border-radius: 4px;
             text-transform: uppercase;
