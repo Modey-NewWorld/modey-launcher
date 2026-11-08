@@ -89,12 +89,30 @@
                     </button>
                   </div>
                 </div>
-                <p class="muted">Active ou désactive des améliorations visuelles et animations en jeu (animations dynamiques, shaders légers, détails sonores ou interface personnalisée) sans impacter la compatibilité multijoueur du serveur.</p>
-                
-                <div id="optional-mods-list-container" class="optional-mods-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; margin-top:8px;">
-                  <div class="optional-mods-placeholder" style="grid-column:1 / -1; background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:18px; text-align:center; color:var(--ink-500); font-size:13px;">
-                    <div style="margin-bottom:8px;"><svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg></div>
-                    <div>Chargement des mods facultatifs disponibles...</div>
+                <p class="muted">Active ou désactive des améliorations visuelles, sonores ou d'ergonomie en jeu (shaders, animations dynamiques, audio immersif) sans impacter la compatibilité multijoueur du serveur.</p>
+
+                <div class="optional-mods-browser">
+                  <!-- Sidebar: liste et recherche -->
+                  <div class="opt-mods-sidebar">
+                    <div class="opt-mods-search-bar">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-magnifier-linear"></use></svg>
+                      <input type="text" id="opt-mods-search-input" placeholder="Filtrer les mods..." autocomplete="off" spellcheck="false" />
+                    </div>
+                    <div id="optional-mods-list-container" class="opt-mods-items-list">
+                      <div class="optional-mods-placeholder" style="background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:18px; text-align:center; color:var(--ink-500); font-size:13px;">
+                        <div style="margin-bottom:8px;"><svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg></div>
+                        <div>Chargement des mods facultatifs...</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Inspecteur / Présentation riche -->
+                  <div class="opt-mods-inspector" id="optional-mod-inspector">
+                    <div class="opt-mods-inspector-empty">
+                      <svg class="solar-icon solar-bold" style="font-size:36px; color:var(--ink-400); margin-bottom:8px;" aria-hidden="true"><use href="#solar-box-bold"></use></svg>
+                      <div style="font-weight:600; color:var(--ink-700); margin-bottom:4px;">Sélectionnez un mod</div>
+                      <div style="font-size:12px; color:var(--ink-500); max-width:320px; line-height:1.5;">Choisissez un mod dans la liste pour découvrir sa présentation, ses captures d'écran, GIFs et spécifications techniques.</div>
+                    </div>
                   </div>
                 </div>
               </section>
