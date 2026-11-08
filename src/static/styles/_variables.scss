@@ -28,12 +28,12 @@
   --line-subtle: rgba(0, 0, 0, 0.05);
   --bg-subtle: #F1F5F9;
 
-  /* Accent unique (Bleu électrique et éclatant en thème clair) */
-  --accent: #2563EB;
-  --accent-strong: #1D4ED8;
-  --accent-soft: #EFF6FF;
+  /* Accent unique (Bleu éclatant identique en thème clair et sombre) */
+  --accent: #3B82F6;
+  --accent-strong: #2563EB;
+  --accent-soft: rgba(59, 130, 246, 0.12);
   --accent-ink: #1D4ED8;
-  --accent-ring: rgba(37, 99, 235, 0.35);
+  --accent-ring: rgba(59, 130, 246, 0.35);
 
   /* Aliases compat primary */
   --primary: var(--accent);
@@ -168,7 +168,7 @@
 
   /* Accent en sombre (bleu lumineux et éclatant sur fond sombre) */
   --accent: #3B82F6;
-  --accent-strong: #60A5FA;
+  --accent-strong: #2563EB;
   --accent-soft: rgba(59, 130, 246, 0.16);
   --accent-ink: #93C5FD;
   --accent-ring: rgba(59, 130, 246, 0.4);
