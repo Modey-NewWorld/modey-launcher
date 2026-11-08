@@ -4,7 +4,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import logger from 'electron-log/main'
 import { IPC } from '../ipc-channels'
-import { AUTH_API_URL } from '../const'
+import { AUTH_API_URL, AUTH_SERVER_URL } from '../const'
 
 export function normalizeSkinUrl(url: string | null | undefined): string {
   if (!url) return ''
@@ -108,7 +108,7 @@ export function registerSkinHandlers() {
       // Mettre à jour l'auth server pour supprimer le skin custom (revient à Steve par défaut)
       try {
         const token = (skin as any)?.account?.accessToken
-        const url = (skin as any)?.account?.meta?.url
+        const url = (skin as any)?.account?.meta?.url || AUTH_SERVER_URL
         if (token && url) {
           await fetch(`${url}/minecraft/profile/skins`, {
             method: 'DELETE',
@@ -144,7 +144,55 @@ export function registerSkinHandlers() {
       ])
     }
 
-    // Cas 2 : Sélection d'un skin personnalisé déjà présent dans le casier ou import
+    // Cas 2 : Sélection d'un skin existant dans le casier par URL
+    if (typeof source === 'string' && (source.startsWith('http://') || source.startsWith('https://'))) {
+      const activeUrl = normalizeSkinUrl(source)
+      try {
+        const token = (skin as any)?.account?.accessToken
+        const url = (skin as any)?.account?.meta?.url || AUTH_SERVER_URL
+        if (token && url) {
+          const res = await fetch(`${url}/minecraft/profile/skins/active`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ url: activeUrl, variant: _model || 'classic' })
+          })
+          if (!res.ok) {
+            const errBody: any = await res.json().catch(() => ({}))
+            const msg = errBody?.errorMessage || errBody?.error || 'Erreur activation skin'
+            return { error: msg, errorMessage: msg }
+          }
+        }
+      } catch (err: any) {
+        logger.error('Failed to activate existing skin on auth-server:', err)
+        return { error: err.message, errorMessage: err.message }
+      }
+
+      if (skin) {
+        ;(skin as any).skins = [
+          {
+            id: activeUrl,
+            url: activeUrl,
+            state: 'active',
+            variant: _model || 'classic'
+          }
+        ]
+        ;(skin as any).cached = true
+      }
+
+      return await getSkins(true, [
+        {
+          id: 'active_skin',
+          url: activeUrl,
+          state: 'active',
+          variant: _model || 'classic'
+        }
+      ])
+    }
+
+    // Cas 3 : Import d'un nouveau skin (fichier binaire ou data URL)
     let skinSource: string | Blob
     if (source instanceof ArrayBuffer) {
       skinSource = new Blob([source], { type: 'image/png' })
@@ -156,7 +204,7 @@ export function registerSkinHandlers() {
     }
 
     try {
-      await skin.updateSkin(skinSource, 'classic')
+      await skin.updateSkin(skinSource, _model || 'classic')
     } catch (err: any) {
       logger.error('Failed to update skin:', err)
       const message = err?.response?.data?.errorMessage || err?.message || 'Erreur lors de la mise à jour du skin'
@@ -165,7 +213,7 @@ export function registerSkinHandlers() {
 
     const fetched = ((await skin.getSkin()) as ISkin[])
     const activeFromServer = fetched.find((s) => s.state === 'active') || fetched[0]
-    const activeUrl = activeFromServer ? activeFromServer.url : (typeof source === 'string' ? source : '')
+    const activeUrl = normalizeSkinUrl(activeFromServer ? activeFromServer.url : (typeof source === 'string' ? source : ''))
     const customSkinId = 'skin_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6)
 
     const newSkins = [
@@ -173,7 +221,7 @@ export function registerSkinHandlers() {
         id: customSkinId,
         url: activeUrl,
         state: 'active' as const,
-        variant: 'classic' as const
+        variant: (_model || 'classic') as 'classic' | 'slim'
       }
     ]
 
@@ -198,7 +246,7 @@ export function registerSkinHandlers() {
       // Supprimer le fichier de skin sur le serveur Auth / Yggdrasil
       try {
         const token = (skin as any)?.account?.accessToken
-        const url = (skin as any)?.account?.meta?.url
+        const url = (skin as any)?.account?.meta?.url || AUTH_SERVER_URL
         if (token && url) {
           // On passe l'identifiant / URL du fichier pour que le serveur le supprime sur disque
           await fetch(`${url}/minecraft/profile/skins?url=${encodeURIComponent(target?.url || '')}`, {
@@ -261,6 +309,18 @@ export function registerSkinHandlers() {
     }
 
     try {
+      const token = (skin as any)?.account?.accessToken
+      const url = (skin as any)?.account?.meta?.url || AUTH_SERVER_URL
+      if (token && url) {
+        await fetch(`${url}/minecraft/profile/capes/active`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ url: id })
+        }).catch(() => {})
+      }
       await skin.switchCape(id)
       return skin.getCape()
     } catch (err: any) {
@@ -278,6 +338,14 @@ export function registerSkinHandlers() {
     }
 
     try {
+      const token = (skin as any)?.account?.accessToken
+      const url = (skin as any)?.account?.meta?.url || AUTH_SERVER_URL
+      if (token && url) {
+        await fetch(`${url}/minecraft/profile/capes/active`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => {})
+      }
       await skin.hideCape()
       return skin.getCape()
     } catch (err: any) {
@@ -292,14 +360,49 @@ export function registerSkinHandlers() {
  */
 async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[] = []) {
   let serverActiveUrl: string | null = null
+  let serverWardrobe: (ISkin & { name?: string })[] = []
 
   if (!skipFetch && skin) {
     try {
-      const data = (await skin.getSkin()) as ISkin[]
-      const active = data.find((s) => s.state === 'active')
-      if (active) serverActiveUrl = normalizeSkinUrl(active.url)
+      const account = (skin as any)?.account
+      const token = account?.accessToken
+      const authUrl = account?.meta?.url || AUTH_SERVER_URL
+      if (token && authUrl) {
+        const res = await fetch(`${authUrl}/minecraft/profile/skins`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const body: any = await res.json()
+          if (Array.isArray(body?.skins)) {
+            for (const s of body.skins) {
+              const normUrl = normalizeSkinUrl(s.url)
+              if (!normUrl) continue
+              if (s.state === 'ACTIVE') {
+                serverActiveUrl = normUrl
+              }
+              serverWardrobe.push({
+                id: s.id || ('skin_' + Math.random().toString(36).substring(2, 8)),
+                url: normUrl,
+                name: s.name,
+                state: s.state === 'ACTIVE' ? 'active' : 'inactive',
+                variant: (s.variant === 'SLIM' ? 'slim' : 'classic') as 'classic' | 'slim'
+              })
+            }
+          }
+        }
+      }
     } catch (err) {
-      logger.warn('Failed to get server skins:', err)
+      logger.warn('Failed to fetch server wardrobe skins:', err)
+    }
+
+    if (!serverActiveUrl) {
+      try {
+        const data = (await skin.getSkin()) as ISkin[]
+        const active = data.find((s) => s.state === 'active')
+        if (active) serverActiveUrl = normalizeSkinUrl(active.url)
+      } catch (err) {
+        logger.warn('Failed to get server skins:', err)
+      }
     }
   }
 
@@ -327,12 +430,28 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
           state: effectiveActiveUrl
             ? (normUrl === effectiveActiveUrl ? 'active' : 'inactive')
             : (s.state === 'active' ? 'active' : 'inactive'),
-          variant: 'classic' as const
+          variant: (s.variant === 'slim' ? 'slim' : 'classic') as 'classic' | 'slim'
         })
       }
     }
   } catch (err) {
     logger.warn('Failed to read skins from cache:', err)
+  }
+
+  // Synchroniser et fusionner avec le casier officiel distant
+  for (const srvSkin of serverWardrobe) {
+    const existing = localCache.find((s) => s.url === srvSkin.url)
+    if (existing) {
+      if (!existing.name && srvSkin.name) existing.name = srvSkin.name
+      if (effectiveActiveUrl) {
+        existing.state = existing.url === effectiveActiveUrl ? 'active' : 'inactive'
+      }
+    } else {
+      localCache.push({
+        ...srvSkin,
+        state: effectiveActiveUrl ? (srvSkin.url === effectiveActiveUrl ? 'active' : 'inactive') : srvSkin.state
+      })
+    }
   }
 
   // Injecter les skins fournis en paramètre s'ils ne sont pas déjà dans le cache

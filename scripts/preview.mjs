@@ -23,7 +23,7 @@ const STUB = `
   const noop = () => Promise.resolve(null)
   const anyFn = new Proxy(noop, { get: () => anyFn })
   window.api = new Proxy({
-    app: { getVersion: () => Promise.resolve('26.1.3') },
+    app: { getVersion: () => Promise.resolve('26.1.4') },
     auth: { getSavedSession: () => Promise.resolve(null) },
     profiles: { getActive: () => Promise.resolve(null), getAll: () => Promise.resolve([]) }
   }, { get: (target, prop) => target[prop] || anyFn })

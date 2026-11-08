@@ -8,6 +8,7 @@ import { IPC } from '../ipc-channels'
 import { instancePathFor } from './files'
 import { ADMINTOOL_URL } from '../const'
 import { readLocalServerConfig, writeLocalServerConfig } from './settings'
+import { fetchServerManifest } from './manifestCache'
 
 export interface IOptionalModItem {
   id: string
@@ -237,14 +238,7 @@ export function registerOptionalModsHandlers() {
       if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
       // Récupérer le manifest distant
-      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`).catch(() => null)
-      if (!resp || !resp.ok) return []
-      let data: any = {}
-      try {
-        data = await resp.json()
-      } catch {
-        return []
-      }
+      const data: any = (await fetchServerManifest(ADMINTOOL_URL, cleanSlug)) || {}
       const remoteOptionalMods: any[] = Array.isArray(data.optionalMods) ? data.optionalMods : []
 
       // Purger immédiatement les mods orphelins et vérifier les hashs
@@ -324,14 +318,8 @@ export function registerOptionalModsHandlers() {
         if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
         // Chercher l'URL de téléchargement
-        const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`).catch(() => null)
-        if (!resp || !resp.ok) return { success: false, error: 'Impossible de joindre le serveur de distribution.' }
-        let data: any = {}
-        try {
-          data = await resp.json()
-        } catch {
-          return { success: false, error: 'Réponse invalide du serveur de distribution.' }
-        }
+        const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
+        if (!data) return { success: false, error: 'Impossible de joindre le serveur de distribution.' }
         const mod = (data.optionalMods || []).find((m: any) => m.id === modId || m.name === modId)
         if (!mod || !mod.url) return { success: false, error: 'Mod optionnel introuvable dans le catalogue.' }
 
@@ -439,16 +427,10 @@ export function registerOptionalModsHandlers() {
         if (enable) {
           if (fs.existsSync(disabledPath)) {
             // Contrôler le SHA1 du fichier désactivé avant de le réactiver
-            const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`).catch(() => null)
-            let modMeta: any = null
-            if (resp && resp.ok) {
-              try {
-                const data = await resp.json()
-                modMeta = (data.optionalMods || []).find(
-                  (m: any) => m.id === modId || m.name === modId || m.name === cleanName
-                )
-              } catch (_) {}
-            }
+            const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
+            const modMeta = (data?.optionalMods || []).find(
+              (m: any) => m.id === modId || m.name === modId || m.name === cleanName
+            )
             if (modMeta && modMeta.sha1) {
               const localSha1 = computeFileSha1(disabledPath)
               if (localSha1 && localSha1 !== modMeta.sha1.toLowerCase()) {
@@ -465,9 +447,8 @@ export function registerOptionalModsHandlers() {
             await fsp.rename(disabledPath, activePath)
           } else if (!fs.existsSync(activePath)) {
             // Si le mod n'est pas présent, le télécharger officiellement
-            const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`)
-            if (!resp.ok) return { success: false, error: 'Impossible de joindre le serveur pour télécharger le mod.' }
-            const data = await resp.json()
+            const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
+            if (!data) return { success: false, error: 'Impossible de joindre le serveur pour télécharger le mod.' }
             const mod = (data.optionalMods || []).find(
               (m: any) => m.id === modId || m.name === modId || m.name === cleanName
             )

@@ -4,6 +4,7 @@ import type { Account } from 'eml-lib'
 import type { IGameSettings } from '../settings'
 import { readLocalServerConfig, writeLocalServerConfig } from '../settings'
 import { instancePathFor } from '../files'
+import { fetchServerManifest } from '../manifestCache'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL, AUTH_SERVER_URL, getSystemJava21Path, DEFAULT_MC_VERSION, DEFAULT_LOADER, DEFAULT_LOADER_VERSION } from '../../const'
 import fs from 'node:fs'
@@ -17,6 +18,44 @@ import { withPortableAppData } from '../../portable'
 import { pruneOrphanedOptionalMods } from '../optionalMods'
 
 export { killMinecraft } from './process'
+
+// Détection intelligente du dernier rapport de crash récent pour diagnostic
+function detectRecentCrashDetails(profileSlug: string): string | null {
+  try {
+    const crashDir = path.join(instancePathFor(profileSlug), 'crash-reports')
+    if (!fs.existsSync(crashDir)) return null
+    const files = fs.readdirSync(crashDir)
+      .filter((f) => f.endsWith('.txt'))
+      .map((f) => {
+        const fullPath = path.join(crashDir, f)
+        return { name: f, fullPath, mtime: fs.statSync(fullPath).mtimeMs }
+      })
+      .sort((a, b) => b.mtime - a.mtime)
+
+    if (files.length === 0) return null
+    const latest = files[0]
+    // Si le rapport a été généré il y a moins de 2 minutes
+    if (Date.now() - latest.mtime < 120000) {
+      const content = fs.readFileSync(latest.fullPath, 'utf8')
+      const issues: string[] = []
+      const lines = content.split('\n')
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (trimmed.startsWith('Failure message:')) {
+          issues.push(trimmed.replace(/^Failure message:\s*/, ''))
+        }
+      }
+      if (issues.length > 0) {
+        return issues.join('\n• ')
+      }
+      const descMatch = content.match(/Description:\s*([^\r\n]+)/)
+      if (descMatch && !descMatch[1].includes('Mod loading failures')) {
+        return descMatch[1]
+      }
+    }
+  } catch (_) {}
+  return null
+}
 
 export function registerLauncherHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle(IPC.game.kill, () => {
@@ -506,7 +545,8 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
           mainWindow.focus()
         }
 
-        mainWindow.webContents.send(IPC.game.launchClose, code)
+        const crashDetails = code !== 0 && code !== null ? detectRecentCrashDetails(profileSlug) : null
+        mainWindow.webContents.send(IPC.game.launchClose, crashDetails ? { code, details: crashDetails } : code)
       })
 
       try {
@@ -532,11 +572,10 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       const instDir = instancePathFor(cleanSlug)
       logger.info(`[Integrity] Début de la vérification des fichiers pour : ${cleanSlug}`)
 
-      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`).catch(() => null)
-      if (!resp || !resp.ok) {
+      const manifest = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
+      if (!manifest) {
         return { success: false, error: 'Impossible de joindre le serveur de distribution pour vérifier les fichiers.' }
       }
-      const manifest = await resp.json()
 
       // Purger également les mods facultatifs orphelins retirés du serveur
       try {

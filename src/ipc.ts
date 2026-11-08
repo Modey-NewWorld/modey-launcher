@@ -89,7 +89,7 @@ declare global {
         launchLaunch: (callback: (value: LauncherEvents['launch_launch'][0]) => void) => void
         launched: (callback: () => void) => void
 
-        launchClose: (callback: (code: number | null) => void) => void
+        launchClose: (callback: (payload: number | { code: number; details?: string } | null) => void) => void
         verifyIntegrity: (slug: string) => Promise<{ success: boolean; total?: number; valid?: number; repaired?: number; error?: string }>
       }
       settings: {
@@ -200,7 +200,7 @@ export const game = {
   launchClean: (callback: () => void) => window.api.game.launchClean(callback),
   launchLaunch: (callback: (value: LauncherEvents['launch_launch'][0]) => void) => window.api.game.launchLaunch(callback),
   launched: (callback: () => void) => window.api.game.launched(callback),
-  launchClose: (callback: (code: number | null) => void) => window.api.game.launchClose(callback),
+  launchClose: (callback: (payload: number | { code: number; details?: string } | null) => void) => window.api.game.launchClose(callback),
   verifyIntegrity: async (slug: string) => await window.api.game.verifyIntegrity(slug)
 }
 

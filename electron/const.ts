@@ -18,4 +18,4 @@ export function getSystemJava21Path(customPath?: string): string {
 // Versions et loader par défaut (fallback si non fournis par le profil serveur)
 export const DEFAULT_MC_VERSION = '1.21.1'
 export const DEFAULT_LOADER = 'neoforge'
-export const DEFAULT_LOADER_VERSION = '21.1.169'
+export const DEFAULT_LOADER_VERSION = '21.1.265'

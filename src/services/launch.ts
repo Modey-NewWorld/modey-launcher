@@ -217,7 +217,10 @@ export function bindLaunch(launchUi: LaunchUi) {
     progress.setLabel('Minecraft est lancé — Connexion au serveur...')
   })
 
-  game.launchClose(async (code: number | null) => {
+  game.launchClose(async (payload: any) => {
+    const code: number | null = typeof payload === 'number' ? payload : (payload?.code ?? null)
+    const details: string | undefined = typeof payload === 'object' && payload ? payload.details : undefined
+
     isLaunching = false
     progress.setIndeterminate(false)
     progress.hide()
@@ -228,11 +231,16 @@ export function bindLaunch(launchUi: LaunchUi) {
 
     if (code !== 0 && code !== null) {
       const errCode = code === -1 ? 'ERR_LAUNCH_PROCESS_FAIL' : `ERR_GAME_EXIT_${code}`
-      logger.warn(`Minecraft arrêt inattendu : ${errCode} (code ${code})`)
-      const msg =
+      logger.warn(`Minecraft arrêt inattendu : ${errCode} (code ${code})${details ? ` | Détails: ${details}` : ''}`)
+      let msg =
         code === -1
           ? `[ERR_LAUNCH_FAILED] Impossible d'initialiser le moteur de jeu Minecraft.\nVeuillez vérifier la configuration Java et vos logs.`
           : `[${errCode}] Minecraft s'est arrêté de manière inattendue (Code de sortie : ${code}).\nConsultez les fichiers logs si le problème persiste.`
+
+      if (details) {
+        msg = `[${errCode}] Problème détecté lors du chargement des mods :\n• ${details}\n\nVérifiez vos mods optionnels ou consultez les rapports de crash.`
+      }
+
       await Dialog.show(msg, [{ text: 'Compris', type: 'ok' }])
     }
   })
