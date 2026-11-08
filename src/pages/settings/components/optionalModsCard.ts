@@ -2,7 +2,15 @@ import { optionalMods } from '../../../ipc'
 import type { IOptionalModItem } from '../../../../electron/handlers/optionalMods'
 import { Dialog } from '../../../components/dialog'
 import { fetchModDetails, formatCategoryLabel, type IModDetails } from '../../../services/modrinth'
-import { renderMarkdownToHtml } from '../../../components/newsModal'
+import {
+  enableWithDependencies,
+  disableWithDependents,
+  installWithDependencies,
+  resolveDependents,
+  resolveRequiredDependencies,
+  indexAllModsProjects
+} from '../../../services/modDependencies'
+import { renderRichMarkdown } from '../../../utils/markdown'
 import logger from 'electron-log/renderer'
 
 const el = (id: string) => document.getElementById(id)
@@ -47,7 +55,7 @@ function formatDownloads(count?: number): string {
   return `${count}`
 }
 
-function cleanModDisplayName(rawName?: string): string {
+export function cleanModDisplayName(rawName?: string): string {
   if (!rawName) return 'Mod Optionnel'
   return rawName
     .replace(/\.jar$/i, '')
@@ -112,7 +120,10 @@ export async function refreshOptionalMods(slug: string) {
       return
     }
 
-    // Sélection par défaut : conserver le mod actuellement actif ou sélectionner le premier
+    // Indexer les projets Modrinth en arrière-plan pour la résolution des dépendances
+    indexAllModsProjects(cachedMods).catch(() => {})
+
+    // Conserver la sélection active si possible
     if (!selectedModId || !cachedMods.some((m) => m.id === selectedModId)) {
       selectedModId = cachedMods[0].id
     }
@@ -227,37 +238,54 @@ function renderSidebarList() {
       inspectSelectedMod()
     })
 
-    // Action rapide Téléchargement
+    // Action rapide Téléchargement avec dépendances automatiques
     const dlBtn = card.querySelector<HTMLButtonElement>('.opt-icon-btn--download')
     dlBtn?.addEventListener('click', async (e) => {
       e.stopPropagation()
       dlBtn.disabled = true
       dlBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>'
-      try {
-        const res = await optionalMods.install(currentSlug, mod.id)
-        if (!res.success) {
-          await Dialog.show(res.error || "Impossible d'installer le mod.", [{ text: 'OK', type: 'ok' }])
-        }
-      } catch (err) {
-        logger.error('Install error:', err)
+      const res = await installWithDependencies(currentSlug, mod, cachedMods)
+      if (!res.success) {
+        await Dialog.show(res.error || "Impossible d'installer le mod.", [{ text: 'OK', type: 'ok' }])
       }
       await refreshOptionalMods(currentSlug)
     })
 
-    // Action rapide Toggle
+    // Action rapide Toggle avec gestion des dépendances
     const toggleBtn = card.querySelector<HTMLButtonElement>('.opt-toggle-switch')
     toggleBtn?.addEventListener('click', async (e) => {
       e.stopPropagation()
       toggleBtn.disabled = true
       toggleBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>'
-      try {
-        const res = await optionalMods.toggle(currentSlug, mod.id, !mod.isEnabled)
+
+      if (!mod.isEnabled) {
+        // Activation avec dépendances
+        const res = await enableWithDependencies(currentSlug, mod, cachedMods)
         if (!res.success) {
-          await Dialog.show(res.error || "Impossible d'activer/désactiver le mod.", [{ text: 'OK', type: 'ok' }])
+          await Dialog.show(res.error || "Impossible d'activer le mod.", [{ text: 'OK', type: 'ok' }])
         }
-      } catch (err) {
-        logger.error('Toggle error:', err)
+      } else {
+        // Désactivation : vérifier si d'autres mods actifs en dépendent
+        const dependents = await resolveDependents(mod, cachedMods)
+        const activeDeps = dependents.filter((d) => d.isEnabled)
+
+        if (activeDeps.length > 0) {
+          const names = activeDeps.map((d) => cleanModDisplayName(d.name)).join(', ')
+          const confirm = await Dialog.show(
+            `Les mods suivants dépendent de "${displayName}" :\n- ${names}\n\nSi vous désactivez ce mod, ils seront également mis en pause pour éviter tout crash en jeu. Continuer ?`,
+            [
+              { text: 'Annuler', type: 'cancel' },
+              { text: 'Désactiver tout', type: 'ok' }
+            ]
+          )
+          if (!confirm) {
+            await refreshOptionalMods(currentSlug)
+            return
+          }
+        }
+        await disableWithDependents(currentSlug, mod, cachedMods)
       }
+
       await refreshOptionalMods(currentSlug)
     })
 
@@ -294,7 +322,7 @@ async function inspectSelectedMod() {
   const cleanName = cleanModDisplayName(mod.name)
   const sizeStr = formatBytes(mod.size)
 
-  // Affiche un état d'attente fluide dans l'inspecteur
+  // État de chargement initial dans l'inspecteur
   inspector.innerHTML = `
     <div class="opt-inspector-content">
       <div class="opt-inspector-header">
@@ -315,21 +343,30 @@ async function inspectSelectedMod() {
       <div class="opt-inspector-body">
         <div class="opt-inspector-loading-strip">
           <svg class="solar-icon solar-bold spin" style="font-size:18px; color:var(--accent);" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
-          <span>Chargement de la fiche détaillée depuis Modrinth...</span>
+          <span>Chargement de la fiche détaillée et des dépendances...</span>
         </div>
       </div>
     </div>
   `
 
-  const details = await fetchModDetails(mod.name, mod.sha1)
+  const [details, requiredDeps, dependents] = await Promise.all([
+    fetchModDetails(mod.name, mod.sha1),
+    resolveRequiredDependencies(mod, cachedMods),
+    resolveDependents(mod, cachedMods)
+  ])
 
-  // Si l'utilisateur a changé de mod pendant le fetch, abandonner
+  // Si l'utilisateur a changé de sélection entre-temps, abandonner
   if (selectedModId !== mod.id) return
 
-  renderFullInspector(mod, details)
+  renderFullInspector(mod, details, requiredDeps, dependents)
 }
 
-function renderFullInspector(mod: IOptionalModItem, details: IModDetails | null) {
+function renderFullInspector(
+  mod: IOptionalModItem,
+  details: IModDetails | null,
+  requiredDeps: IOptionalModItem[],
+  dependents: IOptionalModItem[]
+) {
   const inspector = el('optional-mod-inspector')
   if (!inspector) return
 
@@ -340,10 +377,11 @@ function renderFullInspector(mod: IOptionalModItem, details: IModDetails | null)
   // Actions HTML
   let actionButtonsHtml = ''
   if (!mod.isInstalled) {
+    const depNotice = requiredDeps.length > 0 ? ` (+ ${requiredDeps.length} dép.)` : ''
     actionButtonsHtml = `
       <button type="button" class="btn btn-primary opt-btn-inspector-install">
         <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg>
-        <span>Installer ce mod</span>
+        <span>Installer ce mod${depNotice}</span>
       </button>
     `
   } else {
@@ -368,6 +406,86 @@ function renderFullInspector(mod: IOptionalModItem, details: IModDetails | null)
   const categoryChips = (details?.categories || [])
     .map((c) => `<span class="opt-tag-chip">${formatCategoryLabel(c)}</span>`)
     .join('')
+
+  // Dépendances requises
+  let dependenciesSectionHtml = ''
+  if (requiredDeps.length > 0 || dependents.length > 0) {
+    let reqItemsHtml = ''
+    if (requiredDeps.length > 0) {
+      reqItemsHtml = `
+        <div class="opt-dep-group">
+          <div class="opt-dep-group-title">
+            <svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-link-bold"></use></svg>
+            Dépendances obligatoires (${requiredDeps.length}) :
+          </div>
+          <div class="opt-dep-chips-list">
+            ${requiredDeps
+              .map((dep) => {
+                const depName = cleanModDisplayName(dep.name)
+                const isReady = dep.isInstalled && dep.isEnabled
+                const isInstalledPaused = dep.isInstalled && !dep.isEnabled
+                const badgeClass = isReady ? 'is-ok' : isInstalledPaused ? 'is-paused' : 'is-missing'
+                const statusLabel = isReady ? 'Actif' : isInstalledPaused ? 'En pause' : 'Non installé'
+                const iconHref = isReady
+                  ? '#solar-check-bold'
+                  : isInstalledPaused
+                    ? '#solar-power-bold'
+                    : '#solar-download-bold'
+                return `
+                  <button type="button" class="opt-dep-chip ${badgeClass}" data-goto-mod="${dep.id}" title="Cliquer pour afficher ce mod">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="${iconHref}"></use></svg>
+                    <span class="opt-dep-name">${escapeHtml(depName)}</span>
+                    <span class="opt-dep-status">${statusLabel}</span>
+                  </button>
+                `
+              })
+              .join('')}
+          </div>
+          <div class="opt-dep-hint">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg>
+            <span>L'activation de ce mod installe et active automatiquement ses dépendances nécessaires.</span>
+          </div>
+        </div>
+      `
+    }
+
+    let depByItemsHtml = ''
+    if (dependents.length > 0) {
+      depByItemsHtml = `
+        <div class="opt-dep-group" style="margin-top:10px;">
+          <div class="opt-dep-group-title">
+            <svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>
+            Requis par d'autres mods (${dependents.length}) :
+          </div>
+          <div class="opt-dep-chips-list">
+            ${dependents
+              .map((d) => {
+                const dName = cleanModDisplayName(d.name)
+                const dClass = d.isEnabled ? 'is-ok' : 'is-paused'
+                return `
+                  <button type="button" class="opt-dep-chip ${dClass}" data-goto-mod="${d.id}" title="Cliquer pour afficher ce mod">
+                    <span class="opt-dep-name">${escapeHtml(dName)}</span>
+                    <span class="opt-dep-status">${d.isEnabled ? 'Actif' : 'En pause'}</span>
+                  </button>
+                `
+              })
+              .join('')}
+          </div>
+        </div>
+      `
+    }
+
+    dependenciesSectionHtml = `
+      <div class="opt-inspector-section opt-dependencies-section">
+        <h4 class="opt-section-heading">
+          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>
+          Dépendances &amp; Compatibilité
+        </h4>
+        ${reqItemsHtml}
+        ${depByItemsHtml}
+      </div>
+    `
+  }
 
   // Galerie captures & GIFs
   let galleryHtml = ''
@@ -396,10 +514,10 @@ function renderFullInspector(mod: IOptionalModItem, details: IModDetails | null)
     `
   }
 
-  // Description & Markdown
+  // Présentation Markdown avec rendu enrichi (HTML + GFM)
   let contentHtml = ''
   if (details?.bodyHtml) {
-    contentHtml = renderMarkdownToHtml(details.bodyHtml)
+    contentHtml = renderRichMarkdown(details.bodyHtml)
   } else if (details?.description) {
     contentHtml = `<p class="opt-lead-desc">${escapeHtml(details.description)}</p>`
   } else {
@@ -469,6 +587,9 @@ function renderFullInspector(mod: IOptionalModItem, details: IModDetails | null)
         </div>
       </div>
 
+      <!-- Dépendances & Relations -->
+      ${dependenciesSectionHtml}
+
       <!-- Galerie visuelle -->
       ${galleryHtml}
 
@@ -501,7 +622,7 @@ function renderFullInspector(mod: IOptionalModItem, details: IModDetails | null)
           </div>
           <div class="opt-tech-row">
             <span class="opt-tech-label">Empreinte SHA-1 :</span>
-            <span class="opt-tech-val code opt-sha1" title="${mod.sha1}">${mod.sha1.slice(0, 16)}...</span>
+            <span class="opt-tech-val code opt-sha1" title="${mod.sha1}">${mod.sha1 ? mod.sha1.slice(0, 16) + '...' : 'Non disponible'}</span>
           </div>
           <div class="opt-tech-row">
             <span class="opt-tech-label">Statut d'activation :</span>
@@ -522,37 +643,66 @@ function renderFullInspector(mod: IOptionalModItem, details: IModDetails | null)
     </div>
   `
 
-  // Écouteurs pour les boutons d'actions de l'inspecteur
+  // Clic sur les jetons de dépendances pour naviguer vers le mod
+  inspector.querySelectorAll<HTMLButtonElement>('[data-goto-mod]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-goto-mod')
+      if (targetId && cachedMods.some((m) => m.id === targetId)) {
+        selectedModId = targetId
+        renderSidebarList()
+        inspectSelectedMod()
+      }
+    })
+  })
+
+  // Installation avec dépendances
   const installBtn = inspector.querySelector<HTMLButtonElement>('.opt-btn-inspector-install')
   installBtn?.addEventListener('click', async () => {
     installBtn.disabled = true
     installBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Installation en cours...'
-    try {
-      const res = await optionalMods.install(currentSlug, mod.id)
-      if (!res.success) {
-        await Dialog.show(res.error || "Impossible d'installer le mod.", [{ text: 'OK', type: 'ok' }])
-      }
-    } catch (err) {
-      logger.error('Install error:', err)
+    const res = await installWithDependencies(currentSlug, mod, cachedMods)
+    if (!res.success) {
+      await Dialog.show(res.error || "Impossible d'installer le mod.", [{ text: 'OK', type: 'ok' }])
     }
     await refreshOptionalMods(currentSlug)
   })
 
+  // Activation / Désactivation intelligente avec dépendances
   const toggleBtn = inspector.querySelector<HTMLButtonElement>('.opt-btn-inspector-toggle')
   toggleBtn?.addEventListener('click', async () => {
     toggleBtn.disabled = true
     toggleBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Mise à jour...'
-    try {
-      const res = await optionalMods.toggle(currentSlug, mod.id, !mod.isEnabled)
+
+    if (!mod.isEnabled) {
+      // Activer le mod et toutes ses dépendances requises
+      const res = await enableWithDependencies(currentSlug, mod, cachedMods)
       if (!res.success) {
-        await Dialog.show(res.error || "Impossible d'activer/désactiver le mod.", [{ text: 'OK', type: 'ok' }])
+        await Dialog.show(res.error || "Impossible d'activer le mod.", [{ text: 'OK', type: 'ok' }])
       }
-    } catch (err) {
-      logger.error('Toggle error:', err)
+    } else {
+      // Désactiver le mod et alerter si d'autres mods en dépendent
+      const activeDependents = dependents.filter((d) => d.isEnabled)
+      if (activeDependents.length > 0) {
+        const names = activeDependents.map((d) => cleanModDisplayName(d.name)).join(', ')
+        const confirm = await Dialog.show(
+          `Les mods suivants dépendent de "${cleanName}" :\n- ${names}\n\nSi vous désactivez ce mod, ils seront également mis en pause pour éviter tout crash au lancement du jeu. Continuer ?`,
+          [
+            { text: 'Annuler', type: 'cancel' },
+            { text: 'Désactiver tout', type: 'ok' }
+          ]
+        )
+        if (!confirm) {
+          await refreshOptionalMods(currentSlug)
+          return
+        }
+      }
+      await disableWithDependents(currentSlug, mod, cachedMods)
     }
+
     await refreshOptionalMods(currentSlug)
   })
 
+  // Désinstallation
   const delBtn = inspector.querySelector<HTMLButtonElement>('.opt-btn-inspector-delete')
   delBtn?.addEventListener('click', async () => {
     const confirm = await Dialog.show(

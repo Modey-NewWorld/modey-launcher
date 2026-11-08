@@ -5,6 +5,13 @@ export interface IModGalleryItem {
   description?: string
 }
 
+export interface IModDependency {
+  projectId: string
+  versionId?: string | null
+  fileName?: string | null
+  dependencyType: 'required' | 'optional' | 'incompatible' | 'embedded'
+}
+
 export interface IModDetails {
   id: string
   slug: string
@@ -20,9 +27,21 @@ export interface IModDetails {
   sourceUrl?: string
   wikiUrl?: string
   discordUrl?: string
+  dependencies: IModDependency[]
 }
 
 const modCache = new Map<string, IModDetails | null>()
+const projectToModMap = new Map<string, string>() // projectId/slug -> mod.id
+
+export function registerModProjectMapping(modId: string, projectIdOrSlug: string) {
+  if (projectIdOrSlug) {
+    projectToModMap.set(projectIdOrSlug.toLowerCase(), modId)
+  }
+}
+
+export function getModIdByProject(projectIdOrSlug: string): string | undefined {
+  return projectToModMap.get(projectIdOrSlug.toLowerCase())
+}
 
 export const CATEGORY_LABELS_FR: Record<string, string> = {
   adventure: 'Aventure',
@@ -73,6 +92,7 @@ export async function fetchModDetails(fileName: string, sha1?: string): Promise<
 
   try {
     let projectId: string | null = null
+    let versionDeps: IModDependency[] = []
 
     // 1. Essai par empreinte SHA1 (précis à 100%)
     if (sha1 && sha1.length === 40) {
@@ -84,6 +104,14 @@ export async function fetchModDetails(fileName: string, sha1?: string): Promise<
           const versionData = await hashRes.json()
           if (versionData?.project_id) {
             projectId = versionData.project_id
+          }
+          if (Array.isArray(versionData?.dependencies)) {
+            versionDeps = versionData.dependencies.map((d: any) => ({
+              projectId: d.project_id,
+              versionId: d.version_id,
+              fileName: d.file_name,
+              dependencyType: d.dependency_type || 'required'
+            }))
           }
         }
       } catch (_) {}
@@ -123,6 +151,28 @@ export async function fetchModDetails(fileName: string, sha1?: string): Promise<
 
     const data = await projRes.json()
 
+    // 4. Si pas de dépendances issues de la version SHA-1, essayer l'endpoint dependencies du projet
+    if (versionDeps.length === 0) {
+      try {
+        const depRes = await fetch(`https://api.modrinth.com/v2/project/${projectId}/dependencies`, {
+          headers: { 'User-Agent': 'ModeyLauncher/26.1 (contact@flowcrea.fr)' }
+        })
+        if (depRes.ok) {
+          const depData = await depRes.json()
+          if (Array.isArray(depData?.projects)) {
+            for (const p of depData.projects) {
+              if (p?.id) {
+                versionDeps.push({
+                  projectId: p.id,
+                  dependencyType: 'required'
+                })
+              }
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
     // Galerie
     const gallery: IModGalleryItem[] = Array.isArray(data.gallery)
       ? data.gallery.map((g: any) => ({
@@ -147,7 +197,8 @@ export async function fetchModDetails(fileName: string, sha1?: string): Promise<
       modrinthUrl: `https://modrinth.com/mod/${data.slug || projectId}`,
       sourceUrl: data.source_url || undefined,
       wikiUrl: data.wiki_url || undefined,
-      discordUrl: data.discord_url || undefined
+      discordUrl: data.discord_url || undefined,
+      dependencies: versionDeps
     }
 
     modCache.set(cacheKey, details)

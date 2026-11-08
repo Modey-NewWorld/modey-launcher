@@ -1365,6 +1365,118 @@
     }
   }
 
+  /* Dependencies Section */
+  .opt-dependencies-section {
+    background: var(--bg-hover);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 16px;
+
+    .opt-dep-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .opt-dep-group-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-700);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        svg {
+          font-size: 14px;
+        }
+      }
+
+      .opt-dep-chips-list {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .opt-dep-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          border-radius: 6px;
+          border: 1px solid var(--line);
+          background: var(--bg-surface);
+          cursor: pointer;
+          font-size: 11.5px;
+          transition: all 0.15s ease;
+
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+          }
+
+          svg {
+            font-size: 12px;
+          }
+
+          .opt-dep-name {
+            font-weight: 600;
+          }
+
+          .opt-dep-status {
+            font-size: 10px;
+            opacity: 0.85;
+            padding: 1px 4px;
+            border-radius: 3px;
+          }
+
+          &.is-ok {
+            background: var(--success-soft);
+            color: var(--success);
+            border-color: var(--success-soft);
+
+            .opt-dep-status {
+              background: rgba(34, 197, 94, 0.15);
+            }
+          }
+
+          &.is-paused {
+            background: var(--warning-soft);
+            color: var(--warning);
+            border-color: var(--warning-soft);
+
+            .opt-dep-status {
+              background: rgba(245, 158, 11, 0.15);
+            }
+          }
+
+          &.is-missing {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border-color: var(--danger-soft);
+
+            .opt-dep-status {
+              background: rgba(239, 68, 68, 0.15);
+            }
+          }
+        }
+      }
+
+      .opt-dep-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--ink-500);
+        margin-top: 2px;
+
+        svg {
+          font-size: 13px;
+          color: var(--accent);
+          flex-shrink: 0;
+        }
+      }
+    }
+  }
+
   /* Markdown body */
   .opt-mod-markdown {
     font-size: 13px;
@@ -1425,9 +1537,40 @@
 
     img {
       max-width: 100%;
-      border-radius: 8px;
-      margin: 8px 0;
-      border: 1px solid var(--line);
+      height: auto;
+      border-radius: 6px;
+      vertical-align: middle;
+
+      &[src*="shields.io"],
+      &[src*="badge"] {
+        display: inline-block;
+        margin: 2px 4px;
+        border: none;
+        vertical-align: middle;
+      }
+    }
+
+    center, p[align="center"] {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 12.5px;
+
+      th, td {
+        border: 1px solid var(--line);
+        padding: 6px 10px;
+        text-align: left;
+      }
+
+      th {
+        background: var(--bg-hover);
+        font-weight: 600;
+        color: var(--ink-900);
+      }
     }
 
     blockquote {
