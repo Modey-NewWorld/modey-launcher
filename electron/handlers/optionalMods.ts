@@ -19,6 +19,7 @@ export interface IOptionalModItem {
   isInstalled: boolean
   isEnabled: boolean
   category?: 'mods' | 'shaderpacks' | 'resourcepacks' | string
+  version?: string
 }
 
 function sanitizeFileName(filename: string): string {
@@ -302,7 +303,8 @@ export function registerOptionalModsHandlers() {
           size: rem.size,
           isInstalled,
           isEnabled,
-          category: 'mods'
+          category: 'mods',
+          version: rem.version || undefined
         })
       }
 

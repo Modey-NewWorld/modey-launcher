@@ -28,6 +28,10 @@ export interface IModDetails {
   wikiUrl?: string
   discordUrl?: string
   dependencies: IModDependency[]
+  versionNumber?: string
+  versionName?: string
+  gameVersions?: string[]
+  loaders?: string[]
 }
 
 const modCache = new Map<string, IModDetails | null>()
@@ -70,6 +74,21 @@ export function formatCategoryLabel(cat: string): string {
   return CATEGORY_LABELS_FR[normalized] || (cat.charAt(0).toUpperCase() + cat.slice(1))
 }
 
+export function formatModVersion(version?: string): string {
+  if (!version) return ''
+  let v = version.trim()
+  // Supprime les crochets de prefixe type [NEOFORGE] [1.21.1]
+  v = v.replace(/^\[[^\]]+\]\s*/g, '').trim()
+  // Supprime les prefixes comme "NeoForge - 1.21 - "
+  v = v.replace(/^(neoforge|fabric|forge)\s*[-_:]\s*(\d+(\.\d+)*\s*[-_:]\s*)?/i, '').trim()
+  // Extrait la version sémantique principale si format composite (ex: v21.1.1-1.21.1-NeoForge)
+  const m = v.match(/^v?(\d+(\.\d+)+(\+[a-zA-Z0-9_\-]+)?)/i)
+  if (m) {
+    return m[1]
+  }
+  return v.replace(/^v/i, '')
+}
+
 export function cleanModQuery(rawName?: string): string {
   if (!rawName) return ''
   let clean = rawName.replace(/\.jar$/i, '')
@@ -93,6 +112,10 @@ export async function fetchModDetails(fileName: string, sha1?: string): Promise<
   try {
     let projectId: string | null = null
     let versionDeps: IModDependency[] = []
+    let versionNumber: string | undefined
+    let versionName: string | undefined
+    let gameVersions: string[] | undefined
+    let loaders: string[] | undefined
 
     // 1. Essai par empreinte SHA1 (précis à 100%)
     if (sha1 && sha1.length === 40) {
@@ -104,6 +127,18 @@ export async function fetchModDetails(fileName: string, sha1?: string): Promise<
           const versionData = await hashRes.json()
           if (versionData?.project_id) {
             projectId = versionData.project_id
+          }
+          if (versionData?.version_number) {
+            versionNumber = versionData.version_number
+          }
+          if (versionData?.name) {
+            versionName = versionData.name
+          }
+          if (Array.isArray(versionData?.game_versions)) {
+            gameVersions = versionData.game_versions
+          }
+          if (Array.isArray(versionData?.loaders)) {
+            loaders = versionData.loaders
           }
           if (Array.isArray(versionData?.dependencies)) {
             versionDeps = versionData.dependencies.map((d: any) => ({
@@ -137,6 +172,28 @@ export async function fetchModDetails(fileName: string, sha1?: string): Promise<
     if (!projectId) {
       modCache.set(cacheKey, null)
       return null
+    }
+
+    // 2.bis Récupération de la version si non obtenue par le SHA-1
+    if (!versionNumber) {
+      try {
+        const vRes = await fetch(`https://api.modrinth.com/v2/project/${projectId}/version?limit=1`, {
+          headers: { 'User-Agent': 'ModeyLauncher/26.1 (contact@flowcrea.fr)' }
+        })
+        if (vRes.ok) {
+          const vList = await vRes.json()
+          if (Array.isArray(vList) && vList.length > 0) {
+            versionNumber = vList[0].version_number
+            versionName = vList[0].name
+            if (!gameVersions && Array.isArray(vList[0].game_versions)) {
+              gameVersions = vList[0].game_versions
+            }
+            if (!loaders && Array.isArray(vList[0].loaders)) {
+              loaders = vList[0].loaders
+            }
+          }
+        }
+      } catch (_) {}
     }
 
     // 3. Récupération des informations complètes du projet Modrinth
@@ -198,7 +255,11 @@ export async function fetchModDetails(fileName: string, sha1?: string): Promise<
       sourceUrl: data.source_url || undefined,
       wikiUrl: data.wiki_url || undefined,
       discordUrl: data.discord_url || undefined,
-      dependencies: versionDeps
+      dependencies: versionDeps,
+      versionNumber,
+      versionName,
+      gameVersions,
+      loaders
     }
 
     modCache.set(cacheKey, details)

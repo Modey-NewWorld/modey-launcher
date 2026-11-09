@@ -1,7 +1,7 @@
 import { optionalMods } from '../../../ipc'
 import type { IOptionalModItem } from '../../../../electron/handlers/optionalMods'
 import { Dialog } from '../../../components/dialog'
-import { fetchModDetails, formatCategoryLabel, type IModDetails } from '../../../services/modrinth'
+import { fetchModDetails, formatCategoryLabel, formatModVersion, type IModDetails } from '../../../services/modrinth'
 import {
   enableWithDependencies,
   disableWithDependents,
@@ -391,6 +391,8 @@ function renderFullInspector(
   const cleanName = details?.title || cleanModDisplayName(mod.name)
   const sizeStr = formatBytes(mod.size)
   const dls = formatDownloads(details?.downloads)
+  const rawVersion = mod.version || details?.versionNumber || details?.versionName || ''
+  const cleanVersion = formatModVersion(rawVersion)
 
   // Actions HTML
   let actionButtonsHtml = ''
@@ -592,6 +594,7 @@ function renderFullInspector(
           <div class="opt-inspector-main-info">
             <h2 class="opt-inspector-title">${escapeHtml(cleanName)}</h2>
             <div class="opt-inspector-meta-row">
+              ${cleanVersion ? `<span class="opt-inspector-version-badge" title="Version ${escapeHtml(rawVersion || cleanVersion)}"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-tag-bold"></use></svg> v${escapeHtml(cleanVersion)}</span>` : ''}
               ${details?.author ? `<span class="opt-inspector-author"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg> ${escapeHtml(details.author)}</span>` : ''}
               ${dls ? `<span class="opt-inspector-dls"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-download-bold"></use></svg> ${dls} téléchargements</span>` : ''}
               <span class="opt-inspector-filesize">${sizeStr}</span>
@@ -638,6 +641,30 @@ function renderFullInspector(
             <span class="opt-tech-label">Fichier :</span>
             <span class="opt-tech-val code">${escapeHtml(mod.name)}</span>
           </div>
+          <div class="opt-tech-row">
+            <span class="opt-tech-label">Version du mod :</span>
+            <span class="opt-tech-val code opt-version">${escapeHtml(cleanVersion ? `v${cleanVersion}` : (rawVersion || 'Détectée automatiquement'))}</span>
+          </div>
+          ${
+            details?.gameVersions && details.gameVersions.length > 0
+              ? `
+            <div class="opt-tech-row">
+              <span class="opt-tech-label">Version Minecraft :</span>
+              <span class="opt-tech-val">${escapeHtml(details.gameVersions.join(', '))}</span>
+            </div>
+          `
+              : ''
+          }
+          ${
+            details?.loaders && details.loaders.length > 0
+              ? `
+            <div class="opt-tech-row">
+              <span class="opt-tech-label">Mod Loader :</span>
+              <span class="opt-tech-val">${escapeHtml(details.loaders.map((l) => l.charAt(0).toUpperCase() + l.slice(1)).join(', '))}</span>
+            </div>
+          `
+              : ''
+          }
           <div class="opt-tech-row">
             <span class="opt-tech-label">Empreinte SHA-1 :</span>
             <span class="opt-tech-val code opt-sha1" title="${mod.sha1}">${mod.sha1 ? mod.sha1.slice(0, 16) + '...' : 'Non disponible'}</span>
