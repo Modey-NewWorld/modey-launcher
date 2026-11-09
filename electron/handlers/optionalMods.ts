@@ -115,7 +115,6 @@ export function pruneOrphanedOptionalMods(
 
   // 1. Map des mods optionnels autorisés avec leur hash officiel
   const validModsMap = new Map<string, { id: string; name: string; sha1: string }>()
-  const validModsBySha1 = new Map<string, { id: string; name: string; sha1: string }>()
   const validOptionalFileNames = new Set<string>()
   const validOptionalModIds = new Set<string>()
 
@@ -132,10 +131,6 @@ export function pruneOrphanedOptionalMods(
     validModsMap.set(cleanFname, info)
     validModsMap.set(modId, info)
     validModsMap.set(cleanModId, info)
-
-    if (sha1) {
-      validModsBySha1.set(sha1, info)
-    }
 
     if (fname) {
       validOptionalFileNames.add(fname)
@@ -181,22 +176,14 @@ export function pruneOrphanedOptionalMods(
 
         const filePath = path.join(modsDir, file)
         const baseName = file.replace(/\.disabled$/i, '')
-        let modInfo = validModsMap.get(baseName)
-
-        // Si le nom exact ne correspond pas directement, vérifier par l'empreinte SHA-1
-        if (!modInfo && validModsBySha1.size > 0) {
-          const localSha1 = computeFileSha1(filePath)
-          if (localSha1 && validModsBySha1.has(localSha1)) {
-            modInfo = validModsBySha1.get(localSha1)
-          }
-        }
+        const modInfo = validModsMap.get(baseName)
 
         if (!modInfo) {
-          // Ce mod n'est ni officiel ni dans la liste optionnelle approuvée par le serveur : SUPPRESSION
+          // Nom différent ou non reconnu par le serveur : SUPPRESSION IMMÉDIATE (même si le SHA-1 est identique)
           try {
             fs.unlinkSync(filePath)
             deletedFromMods.push(file)
-            logger.info(`[Prune OptionalMods] Supprimé de mods/ (mod orphelin ou supprimé du serveur) : ${file}`)
+            logger.info(`[Prune OptionalMods] Supprimé de mods/ (nom non reconnu par le serveur) : ${file}`)
           } catch (delErr) {
             logger.warn(`[Prune OptionalMods] Échec suppression mods/${file}:`, delErr)
           }
