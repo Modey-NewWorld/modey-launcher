@@ -79,16 +79,22 @@ export async function refreshOptionalMods(slug: string) {
   if (isLoading) return
   isLoading = true
 
+  // Sauvegarder la position de défilement actuelle pour éviter tout saut
+  const savedScrollTop = container.scrollTop
+
   if (badge) {
     badge.innerText = 'Chargement...'
   }
 
-  container.innerHTML = `
-    <div class="optional-mods-placeholder" style="background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:24px 16px; text-align:center; color:var(--ink-500); font-size:13px;">
-      <svg class="solar-icon solar-bold spin" style="font-size:24px; color:var(--accent); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
-      <div>Recherche des mods facultatifs pour ${slug}...</div>
-    </div>
-  `
+  // Ne pas vider la liste si on a déjà des cartes affichées afin d'éviter le flash et le saut de scroll
+  if (cachedMods.length === 0) {
+    container.innerHTML = `
+      <div class="optional-mods-placeholder" style="background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:24px 16px; text-align:center; color:var(--ink-500); font-size:13px;">
+        <svg class="solar-icon solar-bold spin" style="font-size:24px; color:var(--accent); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
+        <div>Recherche des mods facultatifs pour ${slug}...</div>
+      </div>
+    `
+  }
 
   try {
     const list: IOptionalModItem[] = await optionalMods.list(slug)
@@ -128,7 +134,7 @@ export async function refreshOptionalMods(slug: string) {
       selectedModId = cachedMods[0].id
     }
 
-    renderSidebarList()
+    renderSidebarList(savedScrollTop)
     inspectSelectedMod()
   } catch (err) {
     if (thisSeq !== requestSeq) return
@@ -155,9 +161,11 @@ export async function refreshOptionalMods(slug: string) {
   }
 }
 
-function renderSidebarList() {
+function renderSidebarList(preserveScrollTop?: number) {
   const container = el('optional-mods-list-container')
   if (!container) return
+
+  const targetScrollTop = preserveScrollTop !== undefined ? preserveScrollTop : container.scrollTop
 
   const filtered = cachedMods.filter((mod) => {
     if (!filterQuery) return true
@@ -233,8 +241,11 @@ function renderSidebarList() {
     card.addEventListener('click', (e) => {
       const target = e.target as HTMLElement
       if (target.closest('.opt-mod-card-action')) return
+      if (selectedModId === mod.id) return
       selectedModId = mod.id
-      renderSidebarList()
+      container.querySelectorAll('.opt-mod-card').forEach((c) => {
+        c.classList.toggle('is-selected', (c as HTMLElement).dataset.modId === mod.id)
+      })
       inspectSelectedMod()
     })
 
@@ -301,6 +312,13 @@ function renderSidebarList() {
       }
     })
   }
+
+  container.scrollTop = targetScrollTop
+  requestAnimationFrame(() => {
+    if (container) {
+      container.scrollTop = targetScrollTop
+    }
+  })
 }
 
 async function inspectSelectedMod() {
@@ -649,7 +667,14 @@ function renderFullInspector(
       const targetId = btn.getAttribute('data-goto-mod')
       if (targetId && cachedMods.some((m) => m.id === targetId)) {
         selectedModId = targetId
-        renderSidebarList()
+        const listContainer = el('optional-mods-list-container')
+        if (listContainer) {
+          listContainer.querySelectorAll('.opt-mod-card').forEach((c) => {
+            c.classList.toggle('is-selected', (c as HTMLElement).dataset.modId === targetId)
+          })
+          const targetCard = listContainer.querySelector<HTMLElement>(`[data-mod-id="${targetId}"]`)
+          targetCard?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        }
         inspectSelectedMod()
       }
     })
