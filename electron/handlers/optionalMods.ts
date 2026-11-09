@@ -18,6 +18,7 @@ export interface IOptionalModItem {
   size: number
   isInstalled: boolean
   isEnabled: boolean
+  category?: 'mods' | 'shaderpacks' | 'resourcepacks' | string
 }
 
 function sanitizeFileName(filename: string): string {
@@ -239,65 +240,117 @@ export function registerOptionalModsHandlers() {
 
       // Récupérer le manifest distant
       const data: any = (await fetchServerManifest(ADMINTOOL_URL, cleanSlug)) || {}
-      const remoteOptionalMods: any[] = Array.isArray(data.optionalMods) ? data.optionalMods : []
+      const optData = data.optional || {}
+      const remoteOptionalMods: any[] = Array.isArray(optData.mods)
+        ? optData.mods
+        : (Array.isArray(data.optionalMods) ? data.optionalMods : [])
+      const remoteOptionalShaders: any[] = Array.isArray(optData.shaderpacks) ? optData.shaderpacks : []
+      const remoteOptionalResources: any[] = Array.isArray(optData.resourcepacks) ? optData.resourcepacks : []
 
       // Purger immédiatement les mods orphelins et vérifier les hashs
       pruneOrphanedOptionalMods(cleanSlug, remoteOptionalMods, data.files || [])
 
-      // Lire la configuration locale pour savoir quels mods sont activés
+      // Lire la configuration locale pour savoir quels éléments sont activés
       const localCfg = readLocalServerConfig(cleanSlug)
       const optionalModsStates: Record<string, boolean> = localCfg?.optionalMods || {}
       const filesInMods = fs.existsSync(modsDir) ? fs.readdirSync(modsDir) : []
 
-      const result: IOptionalModItem[] = remoteOptionalMods
-        .filter((rem) => rem && (rem.name || rem.path || rem.id))
-        .map((rem) => {
-          const fileName = rem.name || rem.path || `${rem.id}.jar`
-          const disabledFileName = `${fileName}.disabled`
-          const modId = rem.id || fileName.replace(/\.jar$/i, '')
+      const result: IOptionalModItem[] = []
 
-          const isActivePresent = filesInMods.includes(fileName)
-          const isDisabledPresent = filesInMods.includes(disabledFileName)
-          const isInstalled = isActivePresent || isDisabledPresent
+      // 1. Mods optionnels
+      for (const rem of remoteOptionalMods) {
+        if (!rem || (!rem.name && !rem.path && !rem.id)) continue
+        const fileName = rem.name || rem.path || `${rem.id}.jar`
+        const disabledFileName = `${fileName}.disabled`
+        const modId = rem.id || fileName.replace(/\.jar$/i, '')
 
-          // Déterminer l'état actif (config explicite prioritaire, sinon fichier actif présent)
-          const explicitState =
-            optionalModsStates[modId] !== undefined
-              ? optionalModsStates[modId]
-              : optionalModsStates[fileName] !== undefined
-                ? optionalModsStates[fileName]
-                : optionalModsStates[disabledFileName]
+        const isActivePresent = filesInMods.includes(fileName)
+        const isDisabledPresent = filesInMods.includes(disabledFileName)
+        const isInstalled = isActivePresent || isDisabledPresent
 
-          const isEnabled = explicitState !== undefined ? explicitState === true : isActivePresent
+        const explicitState =
+          optionalModsStates[modId] !== undefined
+            ? optionalModsStates[modId]
+            : optionalModsStates[fileName] !== undefined
+              ? optionalModsStates[fileName]
+              : optionalModsStates[disabledFileName]
 
-          // Si le mod est installé, s'assurer que le nom sur disque reflète l'état activé/désactivé
-          if (isInstalled) {
-            const activePath = path.join(modsDir, fileName)
-            const disabledPath = path.join(modsDir, disabledFileName)
+        const isEnabled = explicitState !== undefined ? explicitState === true : isActivePresent
 
-            if (isEnabled && isDisabledPresent && !isActivePresent) {
-              try {
-                fs.renameSync(disabledPath, activePath)
-                logger.info(`[OptionalMods] Renommé ${disabledFileName} -> ${fileName} (activé)`)
-              } catch (_) {}
-            } else if (!isEnabled && isActivePresent && !isDisabledPresent) {
-              try {
-                fs.renameSync(activePath, disabledPath)
-                logger.info(`[OptionalMods] Renommé ${fileName} -> ${disabledFileName} (désactivé)`)
-              } catch (_) {}
-            }
+        if (isInstalled) {
+          const activePath = path.join(modsDir, fileName)
+          const disabledPath = path.join(modsDir, disabledFileName)
+
+          if (isEnabled && isDisabledPresent && !isActivePresent) {
+            try {
+              fs.renameSync(disabledPath, activePath)
+              logger.info(`[OptionalMods] Renommé ${disabledFileName} -> ${fileName} (activé)`)
+            } catch (_) {}
+          } else if (!isEnabled && isActivePresent && !isDisabledPresent) {
+            try {
+              fs.renameSync(activePath, disabledPath)
+              logger.info(`[OptionalMods] Renommé ${fileName} -> ${disabledFileName} (désactivé)`)
+            } catch (_) {}
           }
+        }
 
-          return {
-            id: rem.id,
-            name: rem.name,
-            url: rem.url,
-            sha1: rem.sha1,
-            size: rem.size,
-            isInstalled,
-            isEnabled
-          }
+        result.push({
+          id: rem.id,
+          name: rem.name,
+          url: rem.url,
+          sha1: rem.sha1,
+          size: rem.size,
+          isInstalled,
+          isEnabled,
+          category: 'mods'
         })
+      }
+
+      // 2. Shaders optionnels
+      const shadersDir = path.join(instDir, 'shaderpacks')
+      const filesInShaders = fs.existsSync(shadersDir) ? fs.readdirSync(shadersDir) : []
+      for (const rem of remoteOptionalShaders) {
+        if (!rem || (!rem.name && !rem.id)) continue
+        const fileName = rem.name || `${rem.id}.zip`
+        const shaderId = rem.id || fileName.replace(/\.zip$/i, '')
+        const isInstalled = filesInShaders.includes(fileName)
+        const explicitState = optionalModsStates[shaderId] !== undefined ? optionalModsStates[shaderId] : optionalModsStates[fileName]
+        const isEnabled = explicitState !== undefined ? explicitState === true : isInstalled
+
+        result.push({
+          id: rem.id,
+          name: rem.name,
+          url: rem.url,
+          sha1: rem.sha1,
+          size: rem.size,
+          isInstalled,
+          isEnabled,
+          category: 'shaderpacks'
+        })
+      }
+
+      // 3. Resourcepacks optionnels
+      const resourceDir = path.join(instDir, 'resourcepacks')
+      const filesInResources = fs.existsSync(resourceDir) ? fs.readdirSync(resourceDir) : []
+      for (const rem of remoteOptionalResources) {
+        if (!rem || (!rem.name && !rem.id)) continue
+        const fileName = rem.name || `${rem.id}.zip`
+        const resId = rem.id || fileName.replace(/\.zip$/i, '')
+        const isInstalled = filesInResources.includes(fileName)
+        const explicitState = optionalModsStates[resId] !== undefined ? optionalModsStates[resId] : optionalModsStates[fileName]
+        const isEnabled = explicitState !== undefined ? explicitState === true : isInstalled
+
+        result.push({
+          id: rem.id,
+          name: rem.name,
+          url: rem.url,
+          sha1: rem.sha1,
+          size: rem.size,
+          isInstalled,
+          isEnabled,
+          category: 'resourcepacks'
+        })
+      }
 
       return result
     } catch (err) {
@@ -317,14 +370,27 @@ export function registerOptionalModsHandlers() {
 
         if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
-        // Chercher l'URL de téléchargement
+        // Chercher l'URL de téléchargement parmi mods, shaders et packs
         const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
         if (!data) return { success: false, error: 'Impossible de joindre le serveur de distribution.' }
-        const mod = (data.optionalMods || []).find((m: any) => m.id === modId || m.name === modId)
-        if (!mod || !mod.url) return { success: false, error: 'Mod optionnel introuvable dans le catalogue.' }
 
-        const cleanName = sanitizeFileName(mod.name || `${modId}.jar`)
-        const targetActivePath = path.join(modsDir, cleanName)
+        const optData = data.optional || {}
+        const allOptional = [
+          ...(Array.isArray(optData.mods) ? optData.mods : (data.optionalMods || [])),
+          ...(Array.isArray(optData.shaderpacks) ? optData.shaderpacks : []),
+          ...(Array.isArray(optData.resourcepacks) ? optData.resourcepacks : [])
+        ]
+
+        const mod = allOptional.find((m: any) => m.id === modId || m.name === modId)
+        if (!mod || !mod.url) return { success: false, error: 'Élément optionnel introuvable dans le catalogue.' }
+
+        const category = mod.category || (mod.name?.endsWith('.zip') ? (mod.path?.includes('shader') ? 'shaderpacks' : 'resourcepacks') : 'mods')
+        const targetDir = path.join(instDir, category === 'shaderpacks' ? 'shaderpacks' : (category === 'resourcepacks' ? 'resourcepacks' : 'mods'))
+        if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true })
+
+        const defaultExt = category === 'mods' ? '.jar' : '.zip'
+        const cleanName = sanitizeFileName(mod.name || (modId.includes('.') ? modId : `${modId}${defaultExt}`))
+        const targetActivePath = path.join(targetDir, cleanName)
         const disabledPath = `${targetActivePath}.disabled`
 
         // Télécharger le fichier
@@ -381,12 +447,19 @@ export function registerOptionalModsHandlers() {
         const instDir = instancePathFor(cleanSlug)
         const modsDir = path.join(instDir, 'mods')
 
-        const cleanName = sanitizeFileName(modId.endsWith('.jar') ? modId : `${modId}.jar`)
-        const activePath = path.join(modsDir, cleanName)
-        const disabledPath = `${activePath}.disabled`
+        const cleanName = sanitizeFileName(modId)
+        const possiblePaths = [
+          path.join(modsDir, cleanName.endsWith('.jar') ? cleanName : `${cleanName}.jar`),
+          path.join(modsDir, `${cleanName.endsWith('.jar') ? cleanName : `${cleanName}.jar`}.disabled`),
+          path.join(instDir, 'shaderpacks', cleanName.endsWith('.zip') ? cleanName : `${cleanName}.zip`),
+          path.join(instDir, 'resourcepacks', cleanName.endsWith('.zip') ? cleanName : `${cleanName}.zip`)
+        ]
 
-        if (fs.existsSync(activePath)) await fsp.unlink(activePath)
-        if (fs.existsSync(disabledPath)) await fsp.unlink(disabledPath)
+        for (const p of possiblePaths) {
+          if (fs.existsSync(p)) {
+            try { await fsp.unlink(p) } catch (_) {}
+          }
+        }
 
         // Mettre à jour server-settings.json
         const currentCfg = readLocalServerConfig(cleanSlug) || {}
