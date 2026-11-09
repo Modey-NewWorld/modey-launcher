@@ -23,7 +23,8 @@ export interface IOptionalModItem {
 }
 
 function sanitizeFileName(filename: string): string {
-  return path.basename(filename).replace(/[^a-zA-Z0-9_\-\.\+]/g, '_')
+  // Conserve les espaces, parenthèses, crochets, etc. Supprime uniquement les caractères interdits sur Windows/macOS/Linux: < > : " / \ | ? *
+  return path.basename(filename).replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim()
 }
 
 /**
@@ -114,6 +115,7 @@ export function pruneOrphanedOptionalMods(
 
   // 1. Map des mods optionnels autorisés avec leur hash officiel
   const validModsMap = new Map<string, { id: string; name: string; sha1: string }>()
+  const validModsBySha1 = new Map<string, { id: string; name: string; sha1: string }>()
   const validOptionalFileNames = new Set<string>()
   const validOptionalModIds = new Set<string>()
 
@@ -121,18 +123,31 @@ export function pruneOrphanedOptionalMods(
     if (!m) continue
     const fname = m.name || m.path || (m.id ? `${m.id}.jar` : '')
     const modId = m.id || fname.replace(/\.jar$/i, '')
+    const cleanFname = sanitizeFileName(fname)
+    const cleanModId = sanitizeFileName(modId)
     const sha1 = (m.sha1 || '').toLowerCase()
-    const info = { id: modId, name: fname, sha1 }
+    const info = { id: modId, name: cleanFname, sha1 }
+
     validModsMap.set(fname, info)
+    validModsMap.set(cleanFname, info)
     validModsMap.set(modId, info)
+    validModsMap.set(cleanModId, info)
+
+    if (sha1) {
+      validModsBySha1.set(sha1, info)
+    }
+
     if (fname) {
       validOptionalFileNames.add(fname)
       validOptionalFileNames.add(`${fname}.disabled`)
+      validOptionalFileNames.add(cleanFname)
+      validOptionalFileNames.add(`${cleanFname}.disabled`)
       validOptionalFileNames.add(path.basename(fname))
       validOptionalFileNames.add(`${path.basename(fname)}.disabled`)
     }
     if (modId) {
       validOptionalModIds.add(modId)
+      validOptionalModIds.add(cleanModId)
     }
   }
 
@@ -166,7 +181,15 @@ export function pruneOrphanedOptionalMods(
 
         const filePath = path.join(modsDir, file)
         const baseName = file.replace(/\.disabled$/i, '')
-        const modInfo = validModsMap.get(baseName)
+        let modInfo = validModsMap.get(baseName)
+
+        // Si le nom exact ne correspond pas directement, vérifier par l'empreinte SHA-1
+        if (!modInfo && validModsBySha1.size > 0) {
+          const localSha1 = computeFileSha1(filePath)
+          if (localSha1 && validModsBySha1.has(localSha1)) {
+            modInfo = validModsBySha1.get(localSha1)
+          }
+        }
 
         if (!modInfo) {
           // Ce mod n'est ni officiel ni dans la liste optionnelle approuvée par le serveur : SUPPRESSION
@@ -262,35 +285,46 @@ export function registerOptionalModsHandlers() {
       for (const rem of remoteOptionalMods) {
         if (!rem || (!rem.name && !rem.path && !rem.id)) continue
         const fileName = rem.name || rem.path || `${rem.id}.jar`
+        const cleanFileName = sanitizeFileName(fileName)
         const disabledFileName = `${fileName}.disabled`
+        const cleanDisabledFileName = `${cleanFileName}.disabled`
         const modId = rem.id || fileName.replace(/\.jar$/i, '')
+        const cleanModId = sanitizeFileName(modId)
 
-        const isActivePresent = filesInMods.includes(fileName)
-        const isDisabledPresent = filesInMods.includes(disabledFileName)
+        const isActivePresent = filesInMods.includes(fileName) || filesInMods.includes(cleanFileName)
+        const isDisabledPresent = filesInMods.includes(disabledFileName) || filesInMods.includes(cleanDisabledFileName)
         const isInstalled = isActivePresent || isDisabledPresent
 
         const explicitState =
           optionalModsStates[modId] !== undefined
             ? optionalModsStates[modId]
-            : optionalModsStates[fileName] !== undefined
-              ? optionalModsStates[fileName]
-              : optionalModsStates[disabledFileName]
+            : optionalModsStates[cleanModId] !== undefined
+              ? optionalModsStates[cleanModId]
+              : optionalModsStates[fileName] !== undefined
+                ? optionalModsStates[fileName]
+                : optionalModsStates[cleanFileName] !== undefined
+                  ? optionalModsStates[cleanFileName]
+                  : optionalModsStates[disabledFileName] !== undefined
+                    ? optionalModsStates[disabledFileName]
+                    : optionalModsStates[cleanDisabledFileName]
 
         const isEnabled = explicitState !== undefined ? explicitState === true : isActivePresent
 
         if (isInstalled) {
-          const activePath = path.join(modsDir, fileName)
-          const disabledPath = path.join(modsDir, disabledFileName)
+          const actualActiveName = filesInMods.includes(fileName) ? fileName : cleanFileName
+          const actualDisabledName = filesInMods.includes(disabledFileName) ? disabledFileName : cleanDisabledFileName
+          const activePath = path.join(modsDir, actualActiveName)
+          const disabledPath = path.join(modsDir, actualDisabledName)
 
           if (isEnabled && isDisabledPresent && !isActivePresent) {
             try {
               fs.renameSync(disabledPath, activePath)
-              logger.info(`[OptionalMods] Renommé ${disabledFileName} -> ${fileName} (activé)`)
+              logger.info(`[OptionalMods] Renommé ${actualDisabledName} -> ${actualActiveName} (activé)`)
             } catch (_) {}
           } else if (!isEnabled && isActivePresent && !isDisabledPresent) {
             try {
               fs.renameSync(activePath, disabledPath)
-              logger.info(`[OptionalMods] Renommé ${fileName} -> ${disabledFileName} (désactivé)`)
+              logger.info(`[OptionalMods] Renommé ${actualActiveName} -> ${actualDisabledName} (désactivé)`)
             } catch (_) {}
           }
         }
@@ -383,7 +417,15 @@ export function registerOptionalModsHandlers() {
           ...(Array.isArray(optData.resourcepacks) ? optData.resourcepacks : [])
         ]
 
-        const mod = allOptional.find((m: any) => m.id === modId || m.name === modId)
+        const cleanModId = sanitizeFileName(modId).toLowerCase()
+        const rawModId = modId.toLowerCase()
+        const mod = allOptional.find((m: any) => {
+          if (!m) return false
+          const mid = (m.id || '').toLowerCase()
+          const mname = (m.name || '').toLowerCase()
+          const mCleanName = sanitizeFileName(m.name || '').toLowerCase()
+          return mid === rawModId || mid === cleanModId || mname === rawModId || mCleanName === cleanModId
+        })
         if (!mod || !mod.url) return { success: false, error: 'Élément optionnel introuvable dans le catalogue.' }
 
         const category = mod.category || (mod.name?.endsWith('.zip') ? (mod.path?.includes('shader') ? 'shaderpacks' : 'resourcepacks') : 'mods')
@@ -395,8 +437,8 @@ export function registerOptionalModsHandlers() {
         const targetActivePath = path.join(targetDir, cleanName)
         const disabledPath = `${targetActivePath}.disabled`
 
-        // Télécharger le fichier
-        const fileResp = await fetch(mod.url).catch(() => null)
+        // Télécharger le fichier (encodage de l'URL pour gérer les espaces éventuels)
+        const fileResp = await fetch(encodeURI(mod.url)).catch(() => null)
         if (!fileResp || !fileResp.ok) {
           return { success: false, error: `Erreur téléchargement (${fileResp ? fileResp.status : 'réseau'})` }
         }
@@ -429,6 +471,7 @@ export function registerOptionalModsHandlers() {
         if (!currentCfg.optionalMods) currentCfg.optionalMods = {}
         currentCfg.optionalMods[mod.id] = true
         currentCfg.optionalMods[cleanName] = true
+        if (mod.name) currentCfg.optionalMods[mod.name] = true
         writeLocalServerConfig(cleanSlug, currentCfg)
 
         logger.info(`[OptionalMods] Mod installé, certifié SHA1 et activé : ${cleanName} sur ${cleanSlug}`)
@@ -451,9 +494,13 @@ export function registerOptionalModsHandlers() {
 
         const cleanName = sanitizeFileName(modId)
         const possiblePaths = [
+          path.join(modsDir, modId.endsWith('.jar') ? modId : `${modId}.jar`),
+          path.join(modsDir, `${modId.endsWith('.jar') ? modId : `${modId}.jar`}.disabled`),
           path.join(modsDir, cleanName.endsWith('.jar') ? cleanName : `${cleanName}.jar`),
           path.join(modsDir, `${cleanName.endsWith('.jar') ? cleanName : `${cleanName}.jar`}.disabled`),
+          path.join(instDir, 'shaderpacks', modId.endsWith('.zip') ? modId : `${modId}.zip`),
           path.join(instDir, 'shaderpacks', cleanName.endsWith('.zip') ? cleanName : `${cleanName}.zip`),
+          path.join(instDir, 'resourcepacks', modId.endsWith('.zip') ? modId : `${modId}.zip`),
           path.join(instDir, 'resourcepacks', cleanName.endsWith('.zip') ? cleanName : `${cleanName}.zip`)
         ]
 
@@ -468,6 +515,7 @@ export function registerOptionalModsHandlers() {
         if (currentCfg.optionalMods) {
           delete currentCfg.optionalMods[modId]
           delete currentCfg.optionalMods[cleanName]
+          delete currentCfg.optionalMods[`${modId}.disabled`]
           delete currentCfg.optionalMods[`${cleanName}.disabled`]
           writeLocalServerConfig(cleanSlug, currentCfg)
         }
@@ -495,17 +543,43 @@ export function registerOptionalModsHandlers() {
 
         if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
-        const cleanName = sanitizeFileName(modId.endsWith('.jar') ? modId : `${modId}.jar`)
-        const activePath = path.join(modsDir, cleanName)
-        const disabledPath = `${activePath}.disabled`
+        const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
+        const optData = data?.optional || {}
+        const allOptional = [
+          ...(Array.isArray(optData.mods) ? optData.mods : (data?.optionalMods || [])),
+          ...(Array.isArray(optData.shaderpacks) ? optData.shaderpacks : []),
+          ...(Array.isArray(optData.resourcepacks) ? optData.resourcepacks : [])
+        ]
+        const cleanModId = sanitizeFileName(modId).toLowerCase()
+        const rawModId = modId.toLowerCase()
+        const modMeta = allOptional.find((m: any) => {
+          if (!m) return false
+          const mid = (m.id || '').toLowerCase()
+          const mname = (m.name || '').toLowerCase()
+          const mCleanName = sanitizeFileName(m.name || '').toLowerCase()
+          return mid === rawModId || mid === cleanModId || mname === rawModId || mCleanName === cleanModId
+        })
+
+        const rawFileName = modMeta?.name || (modId.endsWith('.jar') ? modId : `${modId}.jar`)
+        const cleanName = sanitizeFileName(rawFileName)
+
+        const candidates = [rawFileName, cleanName]
+        let activePath = path.join(modsDir, cleanName)
+        let disabledPath = `${activePath}.disabled`
+
+        for (const c of candidates) {
+          const act = path.join(modsDir, c)
+          const dis = `${act}.disabled`
+          if (fs.existsSync(act) || fs.existsSync(dis)) {
+            activePath = act
+            disabledPath = dis
+            break
+          }
+        }
 
         if (enable) {
           if (fs.existsSync(disabledPath)) {
             // Contrôler le SHA1 du fichier désactivé avant de le réactiver
-            const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
-            const modMeta = (data?.optionalMods || []).find(
-              (m: any) => m.id === modId || m.name === modId || m.name === cleanName
-            )
             if (modMeta && modMeta.sha1) {
               const localSha1 = computeFileSha1(disabledPath)
               if (localSha1 && localSha1 !== modMeta.sha1.toLowerCase()) {
@@ -522,20 +596,15 @@ export function registerOptionalModsHandlers() {
             await fsp.rename(disabledPath, activePath)
           } else if (!fs.existsSync(activePath)) {
             // Si le mod n'est pas présent, le télécharger officiellement
-            const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
-            if (!data) return { success: false, error: 'Impossible de joindre le serveur pour télécharger le mod.' }
-            const mod = (data.optionalMods || []).find(
-              (m: any) => m.id === modId || m.name === modId || m.name === cleanName
-            )
-            if (!mod || !mod.url) return { success: false, error: 'Mod optionnel introuvable sur le serveur.' }
+            if (!modMeta || !modMeta.url) return { success: false, error: 'Mod optionnel introuvable sur le serveur.' }
 
-            const fileResp = await fetch(mod.url)
+            const fileResp = await fetch(encodeURI(modMeta.url))
             if (!fileResp.ok) return { success: false, error: 'Échec du téléchargement du mod officiel.' }
             const arrayBuf = await fileResp.arrayBuffer()
             const buffer = Buffer.from(arrayBuf)
-            if (mod.sha1) {
+            if (modMeta.sha1) {
               const hash = crypto.createHash('sha1').update(buffer).digest('hex').toLowerCase()
-              if (hash !== mod.sha1.toLowerCase()) {
+              if (hash !== modMeta.sha1.toLowerCase()) {
                 return { success: false, error: 'Erreur d’intégrité SHA1 sur le fichier téléchargé.' }
               }
             }
@@ -558,6 +627,7 @@ export function registerOptionalModsHandlers() {
         if (!currentCfg.optionalMods) currentCfg.optionalMods = {}
         currentCfg.optionalMods[modId] = enable
         currentCfg.optionalMods[cleanName] = enable
+        if (modMeta?.name) currentCfg.optionalMods[modMeta.name] = enable
         writeLocalServerConfig(cleanSlug, currentCfg)
 
         logger.info(
