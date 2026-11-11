@@ -1,10 +1,10 @@
 import { ipcMain, BrowserWindow } from 'electron'
-import { Launcher } from 'eml-lib'
+import { Launcher, CrashReport } from 'eml-lib'
 import type { Account } from 'eml-lib'
 import type { IGameSettings } from '../settings'
 import { readLocalServerConfig, writeLocalServerConfig } from '../settings'
 import { instancePathFor } from '../files'
-import { fetchServerManifest } from '../manifestCache'
+import { fetchServerManifest, resolveUpdaterUrl } from '../manifestCache'
 import logger from 'electron-log/main'
 import { ADMINTOOL_URL, AUTH_SERVER_URL, getSystemJava21Path, DEFAULT_MC_VERSION, DEFAULT_LOADER, DEFAULT_LOADER_VERSION } from '../../const'
 import fs from 'node:fs'
@@ -71,9 +71,9 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       if (!fs.existsSync(modsDir)) return { hasExtra: false, extraMods: [] }
 
       const localFiles = fs.readdirSync(modsDir).filter((f: string) => f.endsWith('.jar') || f.endsWith('.jar.disabled'))
-      const resp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${cleanSlug}`)
-      if (!resp.ok) return { hasExtra: false, extraMods: [] }
-      const data = await resp.json()
+      const updaterUrl = await resolveUpdaterUrl(AUTH_SERVER_URL, cleanSlug)
+      const data = await fetchServerManifest(ADMINTOOL_URL, cleanSlug, updaterUrl)
+      if (!data) return { hasExtra: false, extraMods: [] }
 
       // Nettoyer les mods orphelins et vérifier les hashs SHA1
       pruneOrphanedOptionalMods(cleanSlug, data.optionalMods || [], data.files || [])
@@ -106,16 +106,32 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       minecraftVersion?: string
       loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
       loaderVersion?: string
+      updaterUrl?: string
+      isCustomServer?: boolean
       forceClean?: boolean
     }) => {
-      const { account, settings, profileSlug, serverIp, serverPort, minecraftVersion, loaderType, loaderVersion, forceClean } = payload
+      const {
+        account,
+        settings,
+        profileSlug,
+        serverIp,
+        serverPort,
+        minecraftVersion,
+        loaderType,
+        loaderVersion,
+        updaterUrl,
+        isCustomServer,
+        forceClean
+      } = payload
+
+      let serverInfo: any = null
 
       // Garde-fou strict : vérifier si le serveur cible est restreint (maintenance, comingSoon, désactivé)
       try {
         const metaResp = await fetch(`${AUTH_SERVER_URL}/api/modey/launcher`).catch(() => null)
         if (metaResp && metaResp.ok) {
           const metaData = await metaResp.json()
-          const serverInfo = metaData?.servers?.[profileSlug]
+          serverInfo = metaData?.servers?.[profileSlug] || null
           if (serverInfo) {
             const isRestricted = serverInfo.status === 'comingSoon' || serverInfo.status === 'maintenance' || serverInfo.enabled === false || serverInfo.maintenanceEnabled === true
             if (isRestricted) {
@@ -173,9 +189,9 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
       let actionTimer: ReturnType<typeof setTimeout> | null = null
 
-      const targetMcVersion = minecraftVersion || DEFAULT_MC_VERSION
-      const targetLoaderType = loaderType || DEFAULT_LOADER
-      const targetLoaderVersion = loaderVersion || DEFAULT_LOADER_VERSION
+      let targetMcVersion = minecraftVersion || DEFAULT_MC_VERSION
+      let targetLoaderType = loaderType || DEFAULT_LOADER
+      let targetLoaderVersion = loaderVersion || DEFAULT_LOADER_VERSION
 
       // Arguments JVM personnalisés par serveur
       const serverJvmArgs = settings.serverSettings?.[profileSlug]?.jvmArgs ?? localDiskCfg?.jvmArgs
@@ -199,18 +215,46 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         useDefaultJvmArgs: useDefaultJvmArgs
       })
 
-      logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M, Res: ${effectiveRes.fullscreen ? 'fullscreen' : `${effectiveRes.width}x${effectiveRes.height}`}]`)
+      const effectiveCustomUpdaterUrl = (updaterUrl && updaterUrl.trim())
+        ? updaterUrl.trim()
+        : (serverInfo?.updaterUrl ? String(serverInfo.updaterUrl).trim() : '')
+      const effectiveModpackUrl = effectiveCustomUpdaterUrl || (isCustomServer ? undefined : `${ADMINTOOL_URL}/api/files-updater/${profileSlug}`)
 
-      // 1. Récupérer le manifest distant du serveur
+      // 1. Récupérer le manifest distant du serveur (décentralisé ou centralisé selon effectiveModpackUrl)
       let updaterManifest: any = null
-      try {
-        const updaterResp = await fetch(`${ADMINTOOL_URL}/api/files-updater/${profileSlug}`).catch(() => null)
-        if (updaterResp && updaterResp.ok) {
-          updaterManifest = await updaterResp.json()
+      if (effectiveModpackUrl) {
+        try {
+          updaterManifest = await fetchServerManifest(ADMINTOOL_URL, profileSlug, effectiveCustomUpdaterUrl || undefined).catch(() => null)
+        } catch (manifestErr) {
+          logger.warn('Failed to fetch manifest from server:', manifestErr)
         }
-      } catch (manifestErr) {
-        logger.warn('Failed to fetch manifest from server:', manifestErr)
       }
+
+      // 1.b Aligner Minecraft / Loader / LoaderVersion sur la vérité en direct du serveur (/server-meta ou manifest)
+      let liveServerMeta: any = null
+      const metaBaseUrl = effectiveCustomUpdaterUrl
+        ? effectiveCustomUpdaterUrl.replace(/\/files-updater\/?$/i, '').replace(/\/+$/, '')
+        : (isCustomServer && host ? `http://${host}:3008` : '')
+      if (metaBaseUrl) {
+        try {
+          const ctrl = new AbortController()
+          const timer = setTimeout(() => ctrl.abort(), 1200)
+          const metaResp = await fetch(`${metaBaseUrl}/server-meta`, { signal: ctrl.signal })
+          clearTimeout(timer)
+          if (metaResp.ok) {
+            liveServerMeta = await metaResp.json().catch(() => null)
+          }
+        } catch (_) {}
+      }
+
+      const authoritativeMc = liveServerMeta?.minecraftVersion || updaterManifest?.minecraftVersion || serverInfo?.minecraftVersion
+      const authoritativeLoader = liveServerMeta?.loader || updaterManifest?.loader || serverInfo?.loader
+      const authoritativeLoaderVer = liveServerMeta?.loaderVersion || updaterManifest?.loaderVersion || serverInfo?.loaderVersion
+      if (authoritativeMc) targetMcVersion = String(authoritativeMc)
+      if (authoritativeLoader) targetLoaderType = String(authoritativeLoader) as any
+      if (authoritativeLoaderVer) targetLoaderVersion = String(authoritativeLoaderVer)
+
+      logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M, Res: ${effectiveRes.fullscreen ? 'fullscreen' : `${effectiveRes.width}x${effectiveRes.height}`}]`)
 
       // Purger immédiatement les mods supprimés du serveur (orphelins)
       if (updaterManifest) {
@@ -366,7 +410,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
               loader: targetLoaderType as any,
               version: targetLoaderVersion
             },
-            modpackUrl: `${ADMINTOOL_URL}/api/files-updater/${profileSlug}`,
+            ...(effectiveModpackUrl ? { modpackUrl: effectiveModpackUrl } : {}),
             args: gameArgs
           }
         },
@@ -493,8 +537,10 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       })
 
       forward('launch_install_loader', IPC.game.launchInstallLoader)
-      launcher.on('launch_install_loader', (loader) => {
-        logger.log(`Installing loader ${loader.type} ${loader.loaderVersion}...`)
+      launcher.on('launch_install_loader', (loader: any) => {
+        const lType = loader?.loader?.loader || loader?.type || 'loader'
+        const lVer = loader?.loader?.version || loader?.loaderVersion || ''
+        logger.log(`Installing loader ${lType} ${lVer}...`)
       })
 
       launcher.on('launch_extract_natives', () => {
@@ -523,12 +569,27 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         mainWindow.webContents.send(IPC.game.launchClean)
       })
 
-      launcher.on('launch_launch', (info) => {
-        logger.log(`Launching Minecraft ${info.version} (${info.type}${info.loaderVersion ? ` ${info.loaderVersion}` : ''})...`)
+      launcher.on('launch_launch', (info: any) => {
+        const mcVer = info?.minecraft?.version || info?.version || ''
+        const ldr = info?.minecraft?.loader?.type || info?.type || ''
+        const ldrVer = info?.minecraft?.loader?.version || info?.loaderVersion || ''
+        logger.log(`Launching Minecraft ${mcVer} (${ldr}${ldrVer ? ` ${ldrVer}` : ''})...`)
         mainWindow.webContents.send(IPC.game.launchLaunch, info)
 
         actionTimer = schedulePostLaunchAction(mainWindow, settings.launcherAction)
         mainWindow.webContents.send(IPC.game.launched)
+      })
+
+      ;(launcher as any).on('launch_crash', (crashData: any) => {
+        logger.warn('[Launcher Crash] Plantage détecté, transmission du rapport anonymisé au serveur...')
+        try {
+          const reporter = new CrashReport(ADMINTOOL_URL)
+          void reporter.send(launcher, crashData).catch((err: any) => {
+            logger.warn('[CrashReport] Impossible d\'acheminer le rapport :', err?.message || err)
+          })
+        } catch (repErr) {
+          logger.warn('[CrashReport] Erreur envoi rapport:', repErr)
+        }
       })
 
       launcher.on('launch_close', (code: number | null) => {
@@ -572,7 +633,8 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       const instDir = instancePathFor(cleanSlug)
       logger.info(`[Integrity] Début de la vérification des fichiers pour : ${cleanSlug}`)
 
-      const manifest = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
+      const updaterUrl = await resolveUpdaterUrl(AUTH_SERVER_URL, cleanSlug)
+      const manifest = await fetchServerManifest(ADMINTOOL_URL, cleanSlug, updaterUrl)
       if (!manifest) {
         return { success: false, error: 'Impossible de joindre le serveur de distribution pour vérifier les fichiers.' }
       }

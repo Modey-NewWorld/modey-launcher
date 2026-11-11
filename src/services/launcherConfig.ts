@@ -3,7 +3,7 @@ import freeBuildDefault from '../../config/free-build-profile.json'
 
 export const FALLBACK_MC_VERSION = '1.21.1'
 export const FALLBACK_LOADER = 'neoforge'
-export const FALLBACK_LOADER_VERSION = '21.1.169'
+export const FALLBACK_LOADER_VERSION = '21.1.265'
 
 export interface ServerMeta {
   name: string
