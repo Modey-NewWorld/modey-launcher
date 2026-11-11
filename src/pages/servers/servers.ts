@@ -178,7 +178,8 @@ function buildServersList(): ServerItem[] {
     const location = p.location || p.modey?.location || meta?.location || 'Europe (France)'
     const description = p.description || p.modey?.description || meta?.teaser?.description || p.teaser?.description || p.subtitle || ''
     const isAthena = slug === 'athena' || p.id === 'modey-athena' || p.name === 'Athéna'
-    const isOfficial = Boolean((p as any).isOfficial ?? (p as any).is_official ?? isAthena)
+    const isBuiltInOfficial = isAthena || slug === 'free-build'
+    const isOfficial = Boolean((p as any).isOfficial ?? (p as any).is_official ?? isBuiltInOfficial)
     const isVerified = Boolean((p as any).isVerified ?? (p as any).is_verified ?? isOfficial)
     const defaultBanner = isAthena ? cardAthena : bgAthena
     const defaultDetail = isAthena ? inspectorAthena : bgAthena
@@ -220,56 +221,60 @@ function buildServersList(): ServerItem[] {
     })
   }
 
-  // 2. Serveurs configurés dans launcherConfig mais non encore chargés dans homeState
+  // 2. Secours hors-ligne uniquement pour les mondes officiels intégrés (jamais d'anciens serveurs tiers en cache)
   const isStaff = checkIsAdmin()
-  for (const [slug, meta] of Object.entries(allConfigs)) {
-    if (processedSlugs.has(slug)) continue
-    processedSlugs.add(slug)
+  if (allProfiles.length === 0) {
+    for (const slug of ['athena', 'free-build']) {
+      const meta = allConfigs[slug]
+      if (!meta || processedSlugs.has(slug)) continue
+      processedSlugs.add(slug)
 
-    const vis = ((meta as any).visibility || 'PUBLIC').toUpperCase()
-    const isComingSoon = meta.status === 'comingSoon'
-    if ((vis === 'HIDDEN' || (!meta.enabled && !isComingSoon)) && !isStaff) {
-      continue
+      const vis = ((meta as any).visibility || 'PUBLIC').toUpperCase()
+      const isComingSoon = meta.status === 'comingSoon'
+      if ((vis === 'HIDDEN' || (!meta.enabled && !isComingSoon)) && !isStaff) {
+        continue
+      }
+
+      const version = meta.minecraftVersion || '1.21.1'
+      const tags = meta.tags || []
+      const isAthena = slug === 'athena'
+      const isBuiltInOfficial = isAthena || slug === 'free-build'
+      const defaultBanner = isAthena ? cardAthena : bgAthena
+      const defaultDetail = isAthena ? inspectorAthena : bgAthena
+      const normalizeImg = (u?: string) => (u && u.startsWith('/')) ? `${BRAND.apiUrl}${u}` : u
+      const banner = normalizeImg(meta.bannerUrl) || defaultBanner
+      const detailBanner = normalizeImg(meta.bannerUrl) || defaultDetail
+
+      const iconUrl = normalizeImg(meta.iconUrl)
+      const iconName = meta.launcherIcon || (isComingSoon ? 'box' : 'server')
+      const iconSvg = resolveServerIconSvg(iconUrl, iconName, iconName === 'crown')
+
+      const cachedPing = pingLiveCache[slug]
+
+      list.push({
+        id: slug,
+        slug,
+        name: meta.name || slug,
+        iconSvg,
+        subtitle: `Europe (FR) • ${version}`,
+        location: meta.location || 'Europe (France)',
+        version,
+        pingMs: cachedPing?.pingMs ?? null,
+        playersOnline: cachedPing?.playersOnline ?? null,
+        playersMax: cachedPing?.playersMax ?? null,
+        online: cachedPing?.online ?? false,
+        isComingSoon,
+        isProtected: vis === 'PROTECTED' || Boolean((meta as any).requiresPassword),
+        requiresPassword: Boolean((meta as any).requiresPassword || vis === 'PROTECTED'),
+        description: meta.teaser?.description || '',
+        tags,
+        bannerUrl: banner,
+        detailBannerUrl: detailBanner,
+        websiteUrl: meta.mapUrl || BRAND.websiteUrl,
+        isOfficial: Boolean((meta as any).isOfficial ?? isBuiltInOfficial),
+        isVerified: Boolean((meta as any).isVerified ?? isBuiltInOfficial)
+      })
     }
-
-    const version = meta.minecraftVersion || '1.21.1'
-    const tags = meta.tags || []
-    const isAthena = slug === 'athena'
-    const defaultBanner = isAthena ? cardAthena : bgAthena
-    const defaultDetail = isAthena ? inspectorAthena : bgAthena
-    const normalizeImg = (u?: string) => (u && u.startsWith('/')) ? `${BRAND.apiUrl}${u}` : u
-    const banner = normalizeImg(meta.bannerUrl) || defaultBanner
-    const detailBanner = normalizeImg(meta.bannerUrl) || defaultDetail
-
-    const iconUrl = normalizeImg(meta.iconUrl)
-    const iconName = meta.launcherIcon || (isComingSoon ? 'box' : 'server')
-    const iconSvg = resolveServerIconSvg(iconUrl, iconName, iconName === 'crown')
-
-    const cachedPing = pingLiveCache[slug]
-
-    list.push({
-      id: slug,
-      slug,
-      name: meta.name || slug,
-      iconSvg,
-      subtitle: `Europe (FR) • ${version}`,
-      location: meta.location || 'Europe (France)',
-      version,
-      pingMs: cachedPing?.pingMs ?? null,
-      playersOnline: cachedPing?.playersOnline ?? null,
-      playersMax: cachedPing?.playersMax ?? null,
-      online: cachedPing?.online ?? false,
-      isComingSoon,
-      isProtected: vis === 'PROTECTED' || Boolean((meta as any).requiresPassword),
-      requiresPassword: Boolean((meta as any).requiresPassword || vis === 'PROTECTED'),
-      description: meta.teaser?.description || '',
-      tags,
-      bannerUrl: banner,
-      detailBannerUrl: detailBanner,
-      websiteUrl: meta.mapUrl || BRAND.websiteUrl,
-      isOfficial: Boolean((meta as any).isOfficial ?? isAthena),
-      isVerified: Boolean((meta as any).isVerified ?? isAthena)
-    })
   }
 
   // 3. Serveurs personnalisés ajoutés par le joueur (IP + port + mot de passe optionnel)
@@ -651,7 +656,7 @@ function renderCards() {
   const servers = getFilteredAndSortedServers(allServers)
 
   const officialServers = servers.filter((s) => s.isOfficial && !s.isCustom)
-  const communityServers = servers.filter((s) => !s.isOfficial && !s.isCustom)
+  const communityServers = servers.filter((s) => !s.isOfficial && Boolean(s.isVerified) && !s.isCustom)
   const customServers = servers.filter((s) => Boolean(s.isCustom))
 
   if (officialServers.length === 0) {

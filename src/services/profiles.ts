@@ -56,7 +56,7 @@ export async function fetchProfiles(): Promise<any[]> {
     }
   }
   if (Object.keys(updates).length > 0) {
-    launcherConfig.updateServers(updates)
+    launcherConfig.replaceServers(updates)
   }
   return list
 }

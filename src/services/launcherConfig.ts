@@ -30,6 +30,9 @@ export interface ServerMeta {
   minecraftVersion: string
   loader: string
   loaderVersion: string
+  visibility?: string
+  isOfficial?: boolean
+  isVerified?: boolean
   accessMode?: string
   maintenanceEnabled?: boolean
   bypassRoles?: string[]
@@ -54,6 +57,9 @@ class LauncherConfigService {
         port: athenaDefault.server?.port || 25565,
         status: 'live',
         enabled: true,
+        isOfficial: true,
+        isVerified: true,
+        visibility: 'PUBLIC',
         autoBlockIfOffline: true,
         maintenanceMessage: '',
         bannerUrl: '',
@@ -74,6 +80,9 @@ class LauncherConfigService {
         port: freeBuildDefault.server?.port || 0,
         status: 'comingSoon',
         enabled: false,
+        isOfficial: true,
+        isVerified: true,
+        visibility: 'PUBLIC',
         autoBlockIfOffline: true,
         maintenanceMessage: freeBuildDefault.statusLabel || 'Serveur non actif — Arrive bientôt',
         bannerUrl: '',
@@ -125,6 +134,15 @@ class LauncherConfigService {
 
   public updateServers(servers: Record<string, ServerMeta>) {
     this.cache = { ...this.cache, ...servers }
+    this.saveToStorage()
+  }
+
+  /**
+   * Remplace le cache local par la liste autoritative renvoyée par l'API Modey
+   * afin de purger immédiatement les anciens serveurs supprimés ou masqués.
+   */
+  public replaceServers(servers: Record<string, ServerMeta>) {
+    this.cache = { ...servers }
     this.saveToStorage()
   }
 
