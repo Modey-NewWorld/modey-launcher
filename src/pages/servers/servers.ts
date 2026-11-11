@@ -1121,6 +1121,39 @@ export function initServers(hooks: { onSelectProfile: (profile: any) => void }) 
       }
 
       const probe = await pingServer(host, port).catch(() => null)
+      if (!standaloneMeta && !probe?.online) {
+        if (errBox) {
+          errBox.textContent = 'Aucun serveur actif détecté à cette adresse. Assurez-vous que le serveur est bien démarré avant de l\'ajouter.'
+          errBox.style.display = 'block'
+        }
+        return
+      }
+
+      if (!standaloneMeta) {
+        if (errBox) {
+          errBox.textContent = 'Ce serveur n\'utilise pas la protection Modey (port 3008 / mot de passe obligatoire requis pour tout ajout manuel).'
+          errBox.style.display = 'block'
+        }
+        return
+      }
+
+      if (!standaloneMeta.requiresPassword) {
+        if (errBox) {
+          errBox.textContent = 'Ce serveur privé/local n\'a pas de mot de passe configuré. Activez-le côté serveur (modey-server password) avant de l\'ajouter.'
+          errBox.style.display = 'block'
+        }
+        return
+      }
+
+      if (!password.trim()) {
+        if (errBox) {
+          errBox.textContent = 'Veuillez saisir le mot de passe d\'accès du serveur (obligatoire même en local).'
+          errBox.style.display = 'block'
+        }
+        passInput?.focus()
+        return
+      }
+
       const detectedVer = standaloneMeta?.minecraftVersion
         || String(probe?.status?.version || '').match(/\d+\.\d+(?:\.\d+)?/)?.[0]
         || '1.21.1'
