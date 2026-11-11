@@ -19,6 +19,149 @@ import { pruneOrphanedOptionalMods } from '../optionalMods'
 
 export { killMinecraft } from './process'
 
+const MODRINTH_PRESET_SLUGS: Record<string, string[]> = {
+  'fabric-opti': ['fabric-api', 'sodium', 'lithium', 'ferrite-core'],
+  'fabric-shaders': ['fabric-api', 'sodium', 'lithium', 'ferrite-core', 'iris']
+}
+
+function needsIndiumForMc(mcVersion: string): boolean {
+  const parts = String(mcVersion || '').trim().split('.').map((n) => parseInt(n, 10) || 0)
+  return parts[0] === 1 && (parts[1] || 0) < 21
+}
+
+function getPresetStatePath(instDir: string): string {
+  return path.join(instDir, '.modey-client-preset.json')
+}
+
+function clearPreviousPresetFiles(instDir: string, modsDir: string): void {
+  const statePath = getPresetStatePath(instDir)
+  if (!fs.existsSync(statePath)) return
+  try {
+    const prev = JSON.parse(fs.readFileSync(statePath, 'utf8'))
+    const files: string[] = Array.isArray(prev?.files) ? prev.files : []
+    for (const f of files) {
+      const p = path.join(modsDir, path.basename(f))
+      if (fs.existsSync(p)) {
+        try { fs.unlinkSync(p) } catch {}
+      }
+    }
+    fs.unlinkSync(statePath)
+  } catch {}
+}
+
+/**
+ * Synchronise un preset client Fabric léger (Optimisation / Shaders) directement depuis Modrinth CDN
+ * sans jamais héberger de mods tiers côté Modey.
+ */
+async function applyClientPresetFromModrinth(
+  profileSlug: string,
+  presetId: string,
+  mcVersion: string
+): Promise<{ loader: string; loaderVersion: string; ignoredPaths: string[] } | null> {
+  const baseSlugs = MODRINTH_PRESET_SLUGS[presetId]
+  const cleanSlug = profileSlug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+  const instDir = instancePathFor(cleanSlug)
+  const modsDir = path.join(instDir, 'mods')
+
+  if (!baseSlugs) {
+    clearPreviousPresetFiles(instDir, modsDir)
+    return null
+  }
+
+  // Résoudre la version stable Fabric Loader depuis meta.fabricmc.net
+  let fabricLoaderVer = ''
+  try {
+    const loaderResp = await fetch(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(mcVersion)}`)
+    if (loaderResp.ok) {
+      const loaders: any[] = await loaderResp.json()
+      const stable = loaders.find((l: any) => l?.loader?.stable) || loaders[0]
+      if (stable?.loader?.version) fabricLoaderVer = String(stable.loader.version)
+    }
+  } catch (err) {
+    logger.warn('[ClientPreset] Impossible de résoudre Fabric Loader:', err)
+  }
+  if (!fabricLoaderVer) return null
+
+  const slugs = [...baseSlugs]
+  if (presetId === 'fabric-shaders' && needsIndiumForMc(mcVersion)) {
+    slugs.push('indium')
+  }
+
+  if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
+
+  // Nettoyer d'abord les anciens fichiers si le joueur change de preset (ex: fabric-shaders -> fabric-opti)
+  let previousFiles: string[] = []
+  const statePath = getPresetStatePath(instDir)
+  if (fs.existsSync(statePath)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(statePath, 'utf8'))
+      if (prev?.preset && prev.preset !== presetId) {
+        clearPreviousPresetFiles(instDir, modsDir)
+      } else if (Array.isArray(prev?.files)) {
+        previousFiles = prev.files
+      }
+    } catch {}
+  }
+
+  const installedFiles: string[] = []
+  for (const slug of slugs) {
+    try {
+      const qUrl = `https://api.modrinth.com/v2/project/${encodeURIComponent(slug)}/version?loaders=${encodeURIComponent(JSON.stringify(['fabric']))}&game_versions=${encodeURIComponent(JSON.stringify([mcVersion]))}`
+      const vResp = await fetch(qUrl, { headers: { 'User-Agent': 'ModeyLauncher/1.0' } })
+      if (!vResp.ok) continue
+      const versions: any[] = await vResp.json()
+      const chosen = versions.find((v) => v?.version_type === 'release') || versions[0]
+      const primaryFile = chosen?.files?.find((f: any) => f.primary) || chosen?.files?.[0]
+      if (!primaryFile?.url || !primaryFile?.filename) continue
+
+      const destPath = path.join(modsDir, path.basename(primaryFile.filename))
+      const expectedSha1 = String(primaryFile.hashes?.sha1 || '').toLowerCase()
+      let valid = false
+      if (fs.existsSync(destPath)) {
+        if (expectedSha1) {
+          const actual = crypto.createHash('sha1').update(fs.readFileSync(destPath)).digest('hex').toLowerCase()
+          valid = actual === expectedSha1
+        } else {
+          valid = true
+        }
+      }
+      if (!valid) {
+        const dl = await fetch(primaryFile.url)
+        if (dl.ok) {
+          const buf = Buffer.from(await dl.arrayBuffer())
+          fs.writeFileSync(destPath, buf)
+          logger.info(`[ClientPreset] Modrinth installé pour '${presetId}': ${primaryFile.filename}`)
+        }
+      }
+      if (fs.existsSync(destPath)) {
+        installedFiles.push(path.basename(primaryFile.filename))
+      }
+    } catch (modErr) {
+      logger.warn(`[ClientPreset] Échec Modrinth pour '${slug}':`, modErr)
+    }
+  }
+
+  // Nettoyer les éventuels fichiers d'un ancien preset qui ne font plus partie de la sélection
+  for (const oldFile of previousFiles) {
+    if (!installedFiles.includes(oldFile)) {
+      const oldPath = path.join(modsDir, path.basename(oldFile))
+      if (fs.existsSync(oldPath)) {
+        try { fs.unlinkSync(oldPath) } catch {}
+      }
+    }
+  }
+
+  try {
+    fs.writeFileSync(statePath, JSON.stringify({ preset: presetId, mcVersion, files: installedFiles }, null, 2))
+  } catch {}
+
+  return {
+    loader: 'fabric',
+    loaderVersion: fabricLoaderVer,
+    ignoredPaths: installedFiles.map((f) => `mods/${f}`)
+  }
+}
+
 // Détection intelligente du dernier rapport de crash récent pour diagnostic
 function detectRecentCrashDetails(profileSlug: string): string | null {
   try {
@@ -212,7 +355,10 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         optionalMods: settings.serverSettings?.[profileSlug]?.optionalMods || localDiskCfg?.optionalMods || {},
         resolution: effectiveRes,
         jvmArgs: serverJvmArgs,
-        useDefaultJvmArgs: useDefaultJvmArgs
+        useDefaultJvmArgs: useDefaultJvmArgs,
+        ...(settings.serverSettings?.[profileSlug]?.clientPreset || localDiskCfg?.clientPreset
+          ? { clientPreset: settings.serverSettings?.[profileSlug]?.clientPreset || localDiskCfg?.clientPreset }
+          : {})
       })
 
       const effectiveCustomUpdaterUrl = (updaterUrl && updaterUrl.trim())
@@ -254,6 +400,34 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       if (authoritativeLoader) targetLoaderType = String(authoritativeLoader) as any
       if (authoritativeLoaderVer) targetLoaderVersion = String(authoritativeLoaderVer)
 
+      // PaperMC est un moteur serveur : le client Minecraft reste Vanilla sauf preset client choisi
+      if (String(targetLoaderType || '').toLowerCase() === 'paper') {
+        targetLoaderType = 'vanilla' as any
+        targetLoaderVersion = ''
+      }
+
+      // Preset client léger choisi par le joueur (uniquement quand autorisé sur un serveur sans mods obligatoires)
+      const serverClientCfg = liveServerMeta?.clientConfig || updaterManifest?.clientConfig || serverInfo?.clientConfig || {
+        allowClientChoice: Boolean(liveServerMeta?.allowClientChoice ?? updaterManifest?.allowClientChoice ?? serverInfo?.clientConfig?.allowClientChoice),
+        defaultClientPreset: liveServerMeta?.defaultClientPreset || updaterManifest?.defaultClientPreset || serverInfo?.clientConfig?.defaultClientPreset || 'vanilla'
+      }
+      const allowClientChoice = Boolean(serverClientCfg?.allowClientChoice)
+      const chosenClientPreset = settings.serverSettings?.[profileSlug]?.clientPreset || localDiskCfg?.clientPreset || ''
+      const effectiveClientPreset = allowClientChoice
+        ? (chosenClientPreset && chosenClientPreset !== 'auto' ? chosenClientPreset : (serverClientCfg?.defaultClientPreset || 'vanilla'))
+        : ''
+
+      let clientPresetIgnoredPaths: string[] = []
+      if (allowClientChoice && String(targetLoaderType).toLowerCase() === 'vanilla') {
+        const presetResult = await applyClientPresetFromModrinth(profileSlug, effectiveClientPreset, targetMcVersion)
+        if (presetResult) {
+          targetLoaderType = presetResult.loader as any
+          targetLoaderVersion = presetResult.loaderVersion
+          clientPresetIgnoredPaths = presetResult.ignoredPaths
+          logger.info(`[ClientPreset] Preset actif pour ${profileSlug}: ${effectiveClientPreset} (${targetLoaderType} ${targetLoaderVersion})`)
+        }
+      }
+
       logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M, Res: ${effectiveRes.fullscreen ? 'fullscreen' : `${effectiveRes.width}x${effectiveRes.height}`}]`)
 
       // Purger immédiatement les mods supprimés du serveur (orphelins)
@@ -269,14 +443,18 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         }
       }
 
-      // Synchroniser et contrôler l'intégrité SHA1 des mods optionnels autorisés directement dans mods/
+      // Synchroniser et contrôler l'intégrité SHA1 des mods optionnels autorisés (uniquement s'il y a des mods ou un loader moddé)
       const remoteApprovedMods: any[] = Array.isArray(updaterManifest?.optionalMods) ? updaterManifest.optionalMods : []
+      const hasRemoteMods = remoteApprovedMods.length > 0 ||
+        (Array.isArray(updaterManifest?.files) && updaterManifest.files.some((f: any) => String(f?.path || f?.fullRelPath || '').toLowerCase().startsWith('mods/')))
+      const shouldPrepareModsDir = String(targetLoaderType).toLowerCase() !== 'vanilla' || hasRemoteMods
 
-      try {
-        const cleanSlug = profileSlug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
-        const instDir = instancePathFor(cleanSlug)
-        const modsDir = path.join(instDir, 'mods')
-        if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
+      if (shouldPrepareModsDir) {
+        try {
+          const cleanSlug = profileSlug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+          const instDir = instancePathFor(cleanSlug)
+          const modsDir = path.join(instDir, 'mods')
+          if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
         const optModsConfig = settings.serverSettings?.[profileSlug]?.optionalMods || localDiskCfg?.optionalMods || {}
 
@@ -350,8 +528,9 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
             }
           }
         }
-      } catch (optSyncErr) {
-        logger.warn('[Launcher Sync] Erreur lors de la synchronisation des mods optionnels avant lancement:', optSyncErr)
+        } catch (optSyncErr) {
+          logger.warn('[Launcher Sync] Erreur lors de la synchronisation des mods optionnels avant lancement:', optSyncErr)
+        }
       }
 
       // 2. Règles d'exclusion de nettoyage décidées par le serveur
@@ -373,6 +552,10 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         'config/fancymenu/',
         'config/drippyloadingscreen/'
       ]
+
+      for (const presetPath of clientPresetIgnoredPaths) {
+        if (!serverCleaningIgnored.includes(presetPath)) serverCleaningIgnored.push(presetPath)
+      }
 
       if (updaterManifest) {
         if (Array.isArray(updaterManifest.cleaningIgnored)) {

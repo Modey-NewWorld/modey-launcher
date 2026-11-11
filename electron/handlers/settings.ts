@@ -36,6 +36,7 @@ export interface IServerGameSettings {
   }
   jvmArgs?: string
   useDefaultJvmArgs?: boolean
+  clientPreset?: string
 }
 
 export interface IGameSettings {

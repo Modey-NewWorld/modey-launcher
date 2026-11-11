@@ -75,6 +75,7 @@ interface CustomServerEntry {
   bannerUrl?: string
   iconUrl?: string
   updaterUrl?: string
+  clientConfig?: any
   createdAt: number
 }
 
@@ -308,6 +309,7 @@ function buildServersList(): ServerItem[] {
         description: c.description,
         tags: c.tags,
         isCustomServer: true,
+        ...(c.clientConfig ? { clientConfig: c.clientConfig } : {}),
         modey: {
           name: c.name || c.ip,
           ip: c.ip,
@@ -317,8 +319,9 @@ function buildServersList(): ServerItem[] {
           autoBlockIfOffline: false,
           updaterUrl: c.updaterUrl,
           minecraftVersion: mcVer,
-          loader: c.loader || 'vanilla',
-          loaderVersion: c.loaderVersion || ''
+          loader: String(c.loader || 'vanilla').toLowerCase() === 'paper' ? 'vanilla' : (c.loader || 'vanilla'),
+          loaderVersion: c.loaderVersion || '',
+          ...(c.clientConfig ? { clientConfig: c.clientConfig } : {})
         }
       }
     })
@@ -343,13 +346,26 @@ async function probeLiveServers() {
       if (meta) {
         const nextName = (c.name && c.name !== c.ip && c.name !== 'localhost') ? c.name : (meta.name || c.name)
         const nextVer = meta.minecraftVersion || c.version
-        const nextLoader = meta.loader || c.loader
+        const nextLoaderRaw = meta.loader || c.loader
+        const nextLoader = String(nextLoaderRaw || '').toLowerCase() === 'paper' ? 'vanilla' : nextLoaderRaw
         const nextLoaderVer = meta.loaderVersion || c.loaderVersion
         const nextUpdater = meta.updaterUrl || c.updaterUrl
         const nextDesc = meta.description || c.description
         const nextTags = Array.isArray(meta.tags) && meta.tags.length > 0 ? meta.tags : c.tags
         const nextBanner = meta.bannerUrl || c.bannerUrl
         const nextIcon = meta.iconUrl || c.iconUrl
+        const nextClientCfg = meta.clientConfig || (meta.allowClientChoice !== undefined || meta.serverLoader ? {
+          serverLoader: meta.serverLoader,
+          serverLoaderVersion: meta.serverLoaderVersion,
+          mode: meta.clientMode,
+          loader: nextLoader,
+          loaderVersion: nextLoaderVer,
+          allowClientChoice: Boolean(meta.allowClientChoice),
+          availableClientPresets: meta.availableClientPresets || [],
+          defaultClientPreset: meta.defaultClientPreset || 'vanilla',
+          hasClientMods: Boolean(meta.hasClientMods)
+        } : undefined)
+        const clientCfgChanged = nextClientCfg && JSON.stringify(nextClientCfg) !== JSON.stringify(c.clientConfig || null)
         if (
           nextName !== c.name ||
           nextVer !== c.version ||
@@ -358,7 +374,8 @@ async function probeLiveServers() {
           nextUpdater !== c.updaterUrl ||
           nextDesc !== c.description ||
           nextBanner !== c.bannerUrl ||
-          nextIcon !== c.iconUrl
+          nextIcon !== c.iconUrl ||
+          clientCfgChanged
         ) {
           c.name = nextName
           c.version = nextVer
@@ -369,6 +386,7 @@ async function probeLiveServers() {
           if (nextTags) c.tags = nextTags
           if (nextBanner) c.bannerUrl = nextBanner
           if (nextIcon) c.iconUrl = nextIcon
+          if (nextClientCfg) c.clientConfig = nextClientCfg
           customDirty = true
         }
       }
@@ -955,6 +973,19 @@ export function initServers(hooks: { onSelectProfile: (profile: any) => void }) 
       const id = cleanSlug
 
       const list = loadCustomServers().filter((c) => c.id !== id)
+      const rawMetaLoader = standaloneMeta?.loader
+      const normalizedMetaLoader = String(rawMetaLoader || '').toLowerCase() === 'paper' ? 'vanilla' : rawMetaLoader
+      const resolvedClientCfg = standaloneMeta?.clientConfig || (standaloneMeta?.allowClientChoice !== undefined || standaloneMeta?.serverLoader ? {
+        serverLoader: standaloneMeta.serverLoader,
+        serverLoaderVersion: standaloneMeta.serverLoaderVersion,
+        mode: standaloneMeta.clientMode,
+        loader: normalizedMetaLoader || 'vanilla',
+        loaderVersion: standaloneMeta.loaderVersion || '',
+        allowClientChoice: Boolean(standaloneMeta.allowClientChoice),
+        availableClientPresets: standaloneMeta.availableClientPresets || [],
+        defaultClientPreset: standaloneMeta.defaultClientPreset || 'vanilla',
+        hasClientMods: Boolean(standaloneMeta.hasClientMods)
+      } : undefined)
       list.push({
         id,
         slug: cleanSlug,
@@ -963,8 +994,9 @@ export function initServers(hooks: { onSelectProfile: (profile: any) => void }) 
         port,
         ...(password ? { password } : {}),
         version: detectedVer,
-        ...(standaloneMeta?.loader ? { loader: standaloneMeta.loader } : {}),
+        ...(normalizedMetaLoader ? { loader: normalizedMetaLoader } : {}),
         ...(standaloneMeta?.loaderVersion ? { loaderVersion: standaloneMeta.loaderVersion } : {}),
+        ...(resolvedClientCfg ? { clientConfig: resolvedClientCfg } : {}),
         ...(standaloneMeta?.description || cleanMotd ? { description: standaloneMeta?.description || cleanMotd } : {}),
         ...(Array.isArray(standaloneMeta?.tags) ? { tags: standaloneMeta.tags } : {}),
         ...(standaloneMeta?.bannerUrl ? { bannerUrl: standaloneMeta.bannerUrl } : {}),

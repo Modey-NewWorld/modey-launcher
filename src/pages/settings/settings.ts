@@ -381,6 +381,38 @@ export async function applyServerSelection(targetSlug: string) {
     if (jvmInput) {
       jvmInput.value = currentSettings.serverSettings?.[targetSlug]?.jvmArgs || ''
     }
+
+    // Hydrater le profil client (Optimisation / Shaders) si autorisé par le serveur
+    const presetCard = el('server-client-preset-card') as HTMLElement | null
+    const presetSelect = el('server-client-preset-select') as HTMLSelectElement | null
+    const presetHint = el('server-client-preset-hint') as HTMLElement | null
+    const currentProfile = allKnownProfiles.find((p) => p.slug === targetSlug)
+    const clientCfg = currentProfile?.clientConfig || currentProfile?.modey?.clientConfig
+    const effectiveLoader = String(clientCfg?.loader || currentProfile?.modey?.loader || currentProfile?.loader || '').toLowerCase()
+    const allowClientChoice = Boolean(clientCfg?.allowClientChoice) || effectiveLoader === 'vanilla'
+    if (presetCard && presetSelect) {
+      presetCard.style.display = allowClientChoice ? '' : 'none'
+      const allowedList: string[] = Array.isArray(clientCfg?.availableClientPresets) && clientCfg.availableClientPresets.length > 0
+        ? clientCfg.availableClientPresets
+        : ['vanilla', 'fabric-opti', 'fabric-shaders']
+      Array.from(presetSelect.options).forEach((opt) => {
+        if (opt.value === 'auto') {
+          opt.hidden = false
+        } else {
+          opt.hidden = !allowedList.includes(opt.value)
+        }
+      })
+      const savedPreset = currentSettings.serverSettings?.[targetSlug]?.clientPreset || 'auto'
+      presetSelect.value = savedPreset
+      if (presetHint && clientCfg?.defaultClientPreset) {
+        const labels: Record<string, string> = {
+          vanilla: 'Vanilla pur',
+          'fabric-opti': 'Fabric Optimisation',
+          'fabric-shaders': 'Fabric Shaders'
+        }
+        presetHint.innerText = `Ce serveur autorise le choix du profil client (défaut serveur : ${labels[clientCfg.defaultClientPreset] || clientCfg.defaultClientPreset}). Téléchargement direct depuis Modrinth au lancement.`
+      }
+    }
   }
 }
 
@@ -463,8 +495,10 @@ async function initUIListeners() {
   // Contrôles spécifiques au serveur sélectionné
   const serverResSelect = el('server-resolution-select') as HTMLSelectElement | null
   const serverJvmArgs = el('server-jvm-args') as HTMLInputElement | null
+  const serverPresetSelect = el('server-client-preset-select') as HTMLSelectElement | null
   serverResSelect?.addEventListener('change', saveSettingsDebounced)
   serverJvmArgs?.addEventListener('input', saveSettingsDebounced)
+  serverPresetSelect?.addEventListener('change', saveSettingsDebounced)
 
   // Actions de Maintenance & Diagnostics
   const serverRepairBtn = el('server-repair-btn') as HTMLButtonElement | null
@@ -585,6 +619,7 @@ async function saveSettings() {
     const srvMax = parseFloat(serverMaxInput?.value || String(maxRam))
     const serverResSelect = el('server-resolution-select') as HTMLSelectElement | null
     const jvmInput = el('server-jvm-args') as HTMLInputElement | null
+    const serverPresetSelect = el('server-client-preset-select') as HTMLSelectElement | null
 
     let parsedResolution: { width: number; height: number; fullscreen: boolean } | undefined
     if (serverResSelect && serverResSelect.value !== 'default') {
@@ -598,6 +633,7 @@ async function saveSettings() {
     }
 
     const jvmArgsVal = jvmInput?.value?.trim() || ''
+    const presetVal = serverPresetSelect?.value || 'auto'
 
     const existingCfg = newSettings.serverSettings![currentSelectedTarget] || {}
     const shouldPersistMemory = serverMemoryTouched || existingCfg.memory != null
@@ -607,6 +643,12 @@ async function saveSettings() {
       resolution: parsedResolution,
       jvmArgs: jvmArgsVal,
       useDefaultJvmArgs: true
+    }
+
+    if (presetVal && presetVal !== 'auto') {
+      nextCfg.clientPreset = presetVal
+    } else {
+      delete nextCfg.clientPreset
     }
 
     if (shouldPersistMemory) {

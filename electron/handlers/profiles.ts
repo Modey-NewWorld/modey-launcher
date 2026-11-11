@@ -152,8 +152,14 @@ export function registerProfilesHandlers() {
         const hasIp = Boolean(p.ip || (p as any).server?.host || (p as any).host || isAthena)
         const hasPort = Boolean(p.port || (p as any).server?.port || isAthena)
         const resolvedUpdaterUrl = String(p.updaterUrl || meta?.updaterUrl || '').trim() || undefined
+        const resolvedClientConfig = p.clientConfig || meta?.clientConfig || undefined
+        const normalizedClientLoader = String(p.loader || meta?.loader || 'neoforge').toLowerCase() === 'paper'
+          ? 'vanilla'
+          : (p.loader || meta?.loader || 'neoforge')
         return {
           ...p,
+          loader: normalizedClientLoader,
+          clientConfig: resolvedClientConfig,
           updaterUrl: resolvedUpdaterUrl,
           bannerUrl: normalizedProfileBanner || meta?.bannerUrl || '',
           iconUrl: normalizedProfileIcon || meta?.iconUrl || '',
@@ -169,8 +175,9 @@ export function registerProfilesHandlers() {
             iconUrl: normalizedProfileIcon || '',
             launcherIcon: p.launcherIcon || 'cube',
             minecraftVersion: p.minecraftVersion || '1.21.1',
-            loader: p.loader || 'neoforge',
+            loader: normalizedClientLoader,
             loaderVersion: p.loaderVersion || '',
+            ...(resolvedClientConfig ? { clientConfig: resolvedClientConfig } : {}),
             tags: Array.isArray(p.tags) ? p.tags : [],
             teaser: p.teaser || (p.description ? { description: p.description } : null)
           }

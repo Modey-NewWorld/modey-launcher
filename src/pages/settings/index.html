@@ -78,6 +78,22 @@
               </section>
 
               <!-- Catégorie: Contenu -->
+              <!-- Carte 0 : Profil client léger (Serveurs Vanilla / Paper) -->
+              <section class="settings-card settings-card--wide" id="server-client-preset-card" data-cat="content" style="display:none;">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>&nbsp;&nbsp;Profil client (Optimisation &amp; Shaders)</h3>
+                </div>
+                <div class="select-wrapper">
+                  <select id="server-client-preset-select">
+                    <option value="auto">Par défaut du serveur</option>
+                    <option value="vanilla">Vanilla pur (Aucun mod client)</option>
+                    <option value="fabric-opti">Fabric Optimisation (Sodium + Lithium + FerriteCore)</option>
+                    <option value="fabric-shaders">Fabric Shaders &amp; Optimisation (+ Iris Shaders)</option>
+                  </select>
+                </div>
+                <p class="muted" id="server-client-preset-hint">Ce serveur permet de personnaliser ton client Minecraft (optimisation FPS ou Shaders). Les mods légers sont téléchargés directement depuis Modrinth au lancement.</p>
+              </section>
+
               <!-- Carte 1 : Liste des mods facultatifs -->
               <section class="settings-card opt-mods-card opt-mods-card--list" id="server-optional-mods-card" data-cat="content">
                 <div class="settings-card-head" style="display:flex; justify-content:space-between; align-items:center;">
