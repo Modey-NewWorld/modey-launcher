@@ -6,9 +6,9 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import { IPC } from '../ipc-channels'
 import { instancePathFor } from './files'
-import { ADMINTOOL_URL } from '../const'
+import { ADMINTOOL_URL, AUTH_SERVER_URL } from '../const'
 import { readLocalServerConfig, writeLocalServerConfig } from './settings'
-import { fetchServerManifest } from './manifestCache'
+import { fetchServerManifest, resolveUpdaterUrl } from './manifestCache'
 
 export interface IOptionalModItem {
   id: string
@@ -249,8 +249,9 @@ export function registerOptionalModsHandlers() {
 
       if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
-      // Récupérer le manifest distant
-      const data: any = (await fetchServerManifest(ADMINTOOL_URL, cleanSlug)) || {}
+      // Récupérer le manifest distant (décentralisé si configuré)
+      const updaterUrl = await resolveUpdaterUrl(AUTH_SERVER_URL, cleanSlug)
+      const data: any = (await fetchServerManifest(ADMINTOOL_URL, cleanSlug, updaterUrl)) || {}
       const optData = data.optional || {}
       const remoteOptionalMods: any[] = Array.isArray(optData.mods)
         ? optData.mods
@@ -394,7 +395,8 @@ export function registerOptionalModsHandlers() {
         if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
         // Chercher l'URL de téléchargement parmi mods, shaders et packs
-        const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
+        const updaterUrl = await resolveUpdaterUrl(AUTH_SERVER_URL, cleanSlug)
+        const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug, updaterUrl)
         if (!data) return { success: false, error: 'Impossible de joindre le serveur de distribution.' }
 
         const optData = data.optional || {}
@@ -530,7 +532,8 @@ export function registerOptionalModsHandlers() {
 
         if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true })
 
-        const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug)
+        const updaterUrl = await resolveUpdaterUrl(AUTH_SERVER_URL, cleanSlug)
+        const data: any = await fetchServerManifest(ADMINTOOL_URL, cleanSlug, updaterUrl)
         const optData = data?.optional || {}
         const allOptional = [
           ...(Array.isArray(optData.mods) ? optData.mods : (data?.optionalMods || [])),

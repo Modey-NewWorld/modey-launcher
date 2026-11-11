@@ -109,6 +109,8 @@ export async function startLaunch() {
     const mcVersion = profile?.modey?.minecraftVersion || profile?.version || FALLBACK_MC_VERSION
     const ldrType = (profile?.modey?.loader || profile?.loaderVersion?.type || FALLBACK_LOADER) as any
     const ldrVersion = profile?.modey?.loaderVersion || profile?.loaderVersion?.version || FALLBACK_LOADER_VERSION
+    const updaterUrl = profile?.updaterUrl || profile?.modey?.updaterUrl || ''
+    const isCustomServer = Boolean(profile?.isCustomServer)
 
     await game.launch({
       account: user,
@@ -119,6 +121,8 @@ export async function startLaunch() {
       minecraftVersion: mcVersion,
       loaderType: ldrType,
       loaderVersion: ldrVersion,
+      updaterUrl: updaterUrl || undefined,
+      isCustomServer,
       forceClean: forceClean
     })
   } catch (err) {

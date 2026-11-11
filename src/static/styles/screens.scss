@@ -27,9 +27,13 @@ div.update {
   left: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  align-items: safe center;
+  min-height: 100vh;
   width: 100vw;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(var(--titlebar-height, 36px) + 16px) 16px 16px;
+  box-sizing: border-box;
   background-color: var(--bg-base);
   color: var(--ink-900);
   transition: opacity 0.25s ease-out;

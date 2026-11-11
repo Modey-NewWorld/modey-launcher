@@ -36,6 +36,8 @@
 
 /* Colonne centrale scrollable */
 .modey-center-col {
+  container-type: inline-size;
+  container-name: home-center;
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -98,8 +100,8 @@
   box-shadow: 0 4px 20px var(--shadow-sm);
   border: 1px solid var(--line);
   padding: 22px 26px;
-  min-height: 275px;
-  height: clamp(275px, 34vh, 335px);
+  min-height: 220px;
+  height: clamp(220px, 32vh, 335px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -401,34 +403,91 @@
 /* --- Grille unifiée des cartes d'accueil --- */
 .home-cards-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr);
-  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 16px;
   flex: 1;
-  min-height: 380px;
+}
 
-  .resume-card {
-    grid-column: 1;
-    grid-row: 1;
+@container home-center (min-width: 900px) {
+  .home-cards-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    min-height: 380px;
+
+    .resume-card {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .discovery-card {
+      grid-column: 2;
+      grid-row: 1;
+      padding: 12px;
+    }
+
+    .news-card {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      height: 100%;
+      padding: 12px;
+    }
+
+    .history-card-section {
+      grid-column: 1 / span 2;
+      grid-row: 2;
+      padding: 12px;
+    }
   }
+}
 
-  .discovery-card {
-    grid-column: 2;
-    grid-row: 1;
-    padding: 12px;
+@container home-center (min-width: 580px) and (max-width: 899px) {
+  .home-cards-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    grid-auto-rows: auto;
+    min-height: 0;
+
+    .resume-card {
+      grid-column: 1;
+      grid-row: 1;
+      min-height: 190px;
+    }
+
+    .discovery-card {
+      grid-column: 1;
+      grid-row: 2;
+      min-height: 200px;
+      padding: 12px;
+    }
+
+    .news-card {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      min-height: 400px;
+      height: 100%;
+      padding: 12px;
+    }
+
+    .history-card-section {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      padding: 12px;
+    }
   }
+}
 
-  .news-card {
-    grid-column: 3;
-    grid-row: 1 / span 2;
-    height: 100%;
-    padding: 12px;
-  }
+@container home-center (max-width: 579px) {
+  .home-cards-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    min-height: 0;
 
-  .history-card-section {
-    grid-column: 1 / span 2;
-    grid-row: 2;
-    padding: 12px;
+    .resume-card,
+    .discovery-card,
+    .news-card,
+    .history-card-section {
+      grid-column: 1;
+      grid-row: auto;
+      padding: 12px;
+    }
   }
 }
 
@@ -1368,8 +1427,8 @@
   .discovery-row-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
+    gap: 10px;
+    padding: 8px 10px;
     border-radius: 10px;
     background: var(--bg-sunken);
     border: 1px solid var(--line);
@@ -1377,6 +1436,7 @@
     transition: all 0.15s ease;
     flex: 1;
     min-height: 0;
+    min-width: 0;
 
     &:hover {
       background: var(--bg-hover);
@@ -1385,30 +1445,35 @@
     }
 
     .discovery-row-icon {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
       border-radius: 8px;
       background: var(--accent-soft);
       color: var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 15px;
       flex-shrink: 0;
     }
 
     .discovery-row-content {
       flex: 1;
       min-width: 0;
+      overflow: hidden;
 
       .discovery-row-title {
-        font-size: 13.5px;
+        font-size: 13px;
         font-weight: 700;
         color: var(--ink-900);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .discovery-row-desc {
-        font-size: 11.5px;
+        font-size: 11px;
         color: var(--ink-500);
         margin-top: 1px;
         white-space: nowrap;
@@ -1418,11 +1483,13 @@
     }
 
     .discovery-row-badge {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
       padding: 3px 8px;
       border-radius: 6px;
       white-space: nowrap;
+      flex-shrink: 0;
+      margin-left: auto;
 
       &.badge-soon {
         background: var(--accent-soft);
@@ -1439,7 +1506,7 @@
 
 /* --- VOLET SOCIAL LATÉRAL DROIT --- */
 .home-social-col {
-  width: clamp(350px, 24vw, 380px);
+  width: clamp(340px, 24vw, 380px);
   flex-shrink: 0;
   height: 100%;
   min-height: 0;
@@ -2296,4 +2363,269 @@
 @keyframes pancarteScaleUp {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+
+/* --- Responsive Home Layout Breakpoints --- */
+
+/* 1. Palier intermédiaire large (1200px - 1359px) :
+   transition fluide pour réduire légèrement le volet latéral tout en préservant son confort visuel */
+@media (max-width: 1359px) and (min-width: 1200px) {
+  .home-social-col {
+    width: clamp(280px, 21vw, 330px);
+    gap: 14px;
+
+    .social-panel {
+      padding: 12px 14px;
+    }
+  }
+
+  .discord-cta-card {
+    height: 58px;
+    padding: 10px 14px;
+  }
+}
+
+/* 2. Palier intermédiaire compact (1080px - 1199px) :
+   sidebar rail + social col latéral plus étroit permettant de conserver tout le layout desktop sur un seul écran */
+@media (max-width: 1199px) and (min-width: 1080px) {
+  .modey-main {
+    padding: 14px 14px 0 14px;
+  }
+
+  .home-social-col {
+    width: clamp(240px, 19vw, 280px);
+    gap: 12px;
+
+    .social-panel {
+      padding: 10px 12px;
+
+      .social-panel-head {
+        margin-bottom: 8px;
+        h4 { font-size: 13px; }
+      }
+    }
+  }
+
+  .discord-cta-card {
+    height: 52px;
+    padding: 8px 12px;
+    gap: 10px;
+
+    .discord-info {
+      .discord-title { font-size: 12.5px; }
+      .discord-sub { font-size: 11px; }
+    }
+  }
+}
+
+/* 2. Palier empilé compact (< 1080px ou zoom 1.5 sur petite résolution) :
+   le rail social passe sous le contenu dans un footer compact 2 colonnes sans écraser la page */
+@media (max-width: 1079px) {
+  #view-home {
+    padding: 10px 0 10px 10px;
+  }
+
+  .modey-main {
+    padding: 10px 12px 0 12px;
+  }
+
+  .page-header {
+    margin-bottom: 10px;
+
+    h1 {
+      font-size: 22px;
+    }
+
+    p {
+      font-size: 12px;
+    }
+  }
+
+  .modey-hero {
+    padding: 16px 18px;
+
+    #hero-title {
+      font-size: 20px;
+    }
+
+    #hero-desc {
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .hero-badge {
+      font-size: 10.5px;
+      padding: 3px 9px;
+    }
+
+    .modey-hero-actions {
+      .hero-play {
+        height: 36px;
+        padding: 0 16px;
+        font-size: 13px;
+      }
+
+      .hero-icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .home-card {
+    padding: 10px 12px;
+
+    .home-card-head h3 {
+      font-size: 12.5px;
+    }
+  }
+
+  .modey-content-row {
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    gap: 14px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--accent-soft);
+      border-radius: 4px;
+    }
+  }
+
+  .modey-center-col {
+    height: auto;
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  /* Volet social empilé : reste compact en bas comme un footer social propre */
+  .home-social-col {
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding-top: 4px;
+    padding-bottom: 24px;
+
+    .social-panel {
+      min-height: 135px;
+      max-height: 160px;
+      flex: none;
+      padding: 10px 12px;
+
+      .social-panel-head {
+        margin-bottom: 8px;
+        h4 { font-size: 13px; }
+        .head-link { font-size: 11px; }
+      }
+
+      .friends-content-wrapper,
+      .notifs-content-wrapper {
+        height: 85px;
+        min-height: 85px;
+      }
+
+      .friends-blur-overlay,
+      .notifs-blur-overlay {
+        padding: 8px 10px;
+
+        .blur-soon-card {
+          gap: 5px;
+
+          .blur-soon-pill {
+            padding: 4px 12px;
+            font-size: 11px;
+          }
+
+          .blur-soon-text {
+            font-size: 11px;
+            line-height: 1.35;
+          }
+        }
+      }
+    }
+
+    .discord-cta-card {
+      grid-column: 1 / -1;
+      height: 48px;
+      padding: 8px 14px;
+      margin-top: 0;
+
+      .discord-icon svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .discord-info {
+        .discord-title { font-size: 12.5px; }
+        .discord-sub { font-size: 11px; }
+      }
+    }
+  }
+}
+
+/* 3. Palier très compact (< 680px) : pleine largeur avec hauteurs contenues */
+@media (max-width: 680px) {
+  #view-home {
+    padding: 6px 0 6px 6px;
+  }
+
+  .modey-main {
+    padding: 6px 8px 0 8px;
+  }
+
+  .page-header {
+    margin-bottom: 8px;
+
+    h1 {
+      font-size: 19px;
+    }
+
+    p {
+      font-size: 11px;
+    }
+  }
+
+  .home-social-col {
+    grid-template-columns: 1fr;
+    gap: 10px;
+
+    .social-panel {
+      min-height: 120px;
+      max-height: 140px;
+
+      .friends-content-wrapper,
+      .notifs-content-wrapper {
+        height: 75px;
+        min-height: 75px;
+      }
+    }
+  }
+}
+
+@media (max-height: 700px) {
+  .modey-hero {
+    min-height: 200px;
+    height: clamp(200px, 26vh, 230px);
+  }
+}
+
+@media (max-height: 560px) {
+  .modey-hero {
+    min-height: 180px !important;
+    height: 180px !important;
+    padding: 12px 16px !important;
+
+    .hero-gallery {
+      display: none !important;
+    }
+  }
 }

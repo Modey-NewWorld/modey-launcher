@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, nativeTheme, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, Menu, nativeTheme, shell, ipcMain, screen } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import { registerAuthHandlers } from './handlers/auth'
@@ -14,6 +14,8 @@ import { registerBootstrapHandlers } from './handlers/bootstraps'
 import logger from 'electron-log/main'
 import { registerProfilesHandlers } from './handlers/profiles'
 import { registerSkinHandlers } from './handlers/skin'
+import { Stats } from 'eml-lib'
+import { ADMINTOOL_URL } from './const'
 import { IPC } from './ipc-channels'
 import { initPortable, isPortable } from './portable'
 
@@ -23,6 +25,8 @@ import { initPortable, isPortable } from './portable'
 initPortable()
 
 const APP_TITLE = 'Modey Launcher'
+// Doit rester synchronisé avec --titlebar-height dans _variables.scss / main.scss
+const TITLEBAR_HEIGHT = 36
 const BG_COLOR_LIGHT = '#F0F4F8'
 const BG_COLOR_DARK = '#0B1017'
 const getInitialBgColor = () => (nativeTheme.shouldUseDarkColors ? BG_COLOR_DARK : BG_COLOR_LIGHT)
@@ -37,11 +41,18 @@ function createWindow() {
   const isWin = process.platform === 'win32'
   const isDark = nativeTheme.shouldUseDarkColors
 
+  const { workArea } = screen.getPrimaryDisplay()
+  const width = Math.min(1320, Math.floor(workArea.width * 0.94))
+  const height = Math.min(820, Math.floor(workArea.height * 0.94))
+  const minWidth = Math.min(1024, workArea.width)
+  const minHeight = Math.min(680, workArea.height)
+
   mainWindow = new BrowserWindow({
-    width: 1320,
-    height: 820,
-    minWidth: 1024,
-    minHeight: 680,
+    width,
+    height,
+    minWidth,
+    minHeight,
+    center: true,
     title: APP_TITLE,
     autoHideMenuBar: true,
     backgroundColor: getInitialBgColor(),
@@ -52,7 +63,7 @@ function createWindow() {
           titleBarOverlay: {
             color: '#00000000',
             symbolColor: isDark ? '#F1F5F9' : '#0F172A',
-            height: 36
+            height: TITLEBAR_HEIGHT
           }
         }
       : {}),
@@ -79,7 +90,7 @@ function createWindow() {
         mainWindow.setTitleBarOverlay({
           color: '#00000000',
           symbolColor: dark ? '#F1F5F9' : '#0F172A',
-          height: 36
+          height: TITLEBAR_HEIGHT
         })
       } catch (err) {
         console.warn('Failed to update titleBarOverlay:', err)
@@ -95,7 +106,7 @@ function createWindow() {
         mainWindow.setTitleBarOverlay({
           color: '#00000000',
           symbolColor: nativeTheme.shouldUseDarkColors ? '#F1F5F9' : '#0F172A',
-          height: 36
+          height: TITLEBAR_HEIGHT
         })
       } catch {}
     }
@@ -148,6 +159,9 @@ function createWindow() {
   // mainWindow.removeMenu()
 
   mainWindow.once('ready-to-show', () => {
+    try {
+      mainWindow?.webContents.setZoomFactor(getSavedUiScale())
+    } catch {}
     mainWindow?.show()
     mainWindow?.focus()
   })
@@ -264,6 +278,16 @@ app.whenReady().then(() => {
     registerSettingsHandlers()
     registerFilesHandlers()
     registerOptionalModsHandlers()
+  }
+
+  // Télémétrie anonyme Modey (Stats)
+  try {
+    const stats = new Stats(ADMINTOOL_URL, app.getVersion())
+    void stats.initialize().catch((err: any) => {
+      logger.warn('[Stats] Initialisation de télémétrie ignorée :', err?.message || err)
+    })
+  } catch (statsErr: any) {
+    logger.warn('[Stats] Erreur instanciation stats :', statsErr?.message || statsErr)
   }
 })
 

@@ -22,6 +22,11 @@
             <h2>Serveurs officiels Modey</h2>
             <p>Des mondes uniques, créés et gérés par l'équipe Modey.</p>
           </div>
+          <button type="button" class="btn-add-custom-server" id="btn-add-custom-server" title="Ajouter un serveur personnalisé ou privé (IP + mot de passe)" aria-label="Ajouter un serveur personnalisé">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
         </div>
 
         <!-- Cards Grid -->
@@ -146,6 +151,38 @@
           </div>
         </div>
       </aside>
+    </div>
+  </div>
+
+  <!-- Modale Ajout Serveur Personnalisé / Privé -->
+  <div class="custom-server-modal-backdrop" id="custom-server-modal" style="display:none;" aria-hidden="true">
+    <div class="custom-server-modal-card" role="dialog" aria-modal="true" aria-labelledby="custom-server-modal-title">
+      <div class="custom-server-modal-header">
+        <div>
+          <h3 id="custom-server-modal-title">Ajouter un serveur</h3>
+          <p>Accédez à un serveur privé Modey ou ajoutez un serveur personnalisé par IP.</p>
+        </div>
+        <button type="button" class="btn-modal-close" id="btn-custom-srv-close" aria-label="Fermer">&times;</button>
+      </div>
+      <form id="custom-server-form" class="custom-server-modal-body">
+        <div class="custom-srv-field">
+          <label for="custom-srv-address">Adresse IP / Domaine ou identifiant <span class="req">*</span></label>
+          <input type="text" id="custom-srv-address" placeholder="ex: play.monserveur.fr:25565 ou slug" autocomplete="off" required />
+        </div>
+        <div class="custom-srv-field">
+          <label for="custom-srv-password">Mot de passe (si serveur privé)</label>
+          <input type="password" id="custom-srv-password" placeholder="Laisser vide si serveur public" autocomplete="off" />
+        </div>
+        <div class="custom-srv-field">
+          <label for="custom-srv-name">Nom affiché (optionnel)</label>
+          <input type="text" id="custom-srv-name" placeholder="ex: Serveur Entre Amis" autocomplete="off" />
+        </div>
+        <div class="custom-srv-error" id="custom-srv-error" style="display:none;"></div>
+        <div class="custom-server-modal-footer">
+          <button type="button" class="btn-custom-cancel" id="btn-custom-srv-cancel">Annuler</button>
+          <button type="submit" class="btn-custom-submit" id="btn-custom-srv-submit">Ajouter</button>
+        </div>
+      </form>
     </div>
   </div>
 </main>

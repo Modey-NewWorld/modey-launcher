@@ -3,7 +3,7 @@ import type { RuntimeConfig } from '../electron/runtimeConfig'
 import type { IFilesInfo, IInstanceInfo } from '../electron/handlers/files'
 import type { IOptionalModItem } from '../electron/handlers/optionalMods'
 import type { IAuthResponse } from '../electron/handlers/auth'
-import type { Account, BootstrapsEvents, DownloaderEvents, IAvatar, IBackground, IBootstraps, ICape, IMaintenance, INews, IServerStatus, INewsCategory, LauncherEvents, ISkin } from 'eml-lib'
+import type { Account, BootstrapEvents, DownloaderEvents, IAvatar, IBackground, IBootstraps, ICape, IMaintenance, INews, IServerStatus, INewsCategory, LauncherEvents, ISkin } from 'eml-lib'
 
 declare global {
   interface Window {
@@ -35,6 +35,11 @@ declare global {
       }
       profiles: {
         get: () => Promise<any[]>
+        auth: (slug: string, password: string) => Promise<{ success: boolean; slug?: string; token?: string; error?: string }>
+        resolveCustom: (
+          query: string,
+          password?: string
+        ) => Promise<{ success: boolean; found?: boolean; requiresPassword?: boolean; slug?: string; token?: string; profile?: any; error?: string }>
       }
       server: {
         getStatus: (ip: string, port?: number) => Promise<IServerStatus | null>
@@ -55,7 +60,7 @@ declare global {
         downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) => void
         downloadError: (callback: (value: DownloaderEvents['download_error'][0]) => void) => void
         downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) => void
-        error: (callback: (value: BootstrapsEvents['bootstraps_error'][0]) => void) => void
+        error: (callback: (value: BootstrapEvents['bootstraps_error'][0]) => void) => void
       }
       game: {
         checkExtraMods: (profileSlug: string) => Promise<{ hasExtra: boolean; extraMods: string[] }>
@@ -68,6 +73,8 @@ declare global {
           minecraftVersion?: string
           loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
           loaderVersion?: string
+          updaterUrl?: string
+          isCustomServer?: boolean
           forceClean?: boolean
         }) => Promise<void>
 
@@ -146,7 +153,9 @@ export const skin = {
 }
 
 export const profiles = {
-  get: async () => await window.api.profiles.get()
+  get: async () => await window.api.profiles.get(),
+  auth: async (slug: string, password: string) => await window.api.profiles.auth(slug, password),
+  resolveCustom: async (query: string, password?: string) => await window.api.profiles.resolveCustom(query, password)
 }
 
 export const server = {
@@ -171,7 +180,7 @@ export const bootstraps = {
   install: async () => await window.api.bootstraps.install(),
   downloadProgress: (callback: (value: DownloaderEvents['download_progress'][0]) => void) => window.api.bootstraps.downloadProgress(callback),
   downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) => window.api.bootstraps.downloadEnd(callback),
-  error: (callback: (value: BootstrapsEvents['bootstraps_error'][0]) => void) => window.api.bootstraps.error(callback)
+  error: (callback: (value: BootstrapEvents['bootstraps_error'][0]) => void) => window.api.bootstraps.error(callback)
 }
 
 export const game = {
@@ -185,6 +194,8 @@ export const game = {
     minecraftVersion?: string
     loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
     loaderVersion?: string
+    updaterUrl?: string
+    isCustomServer?: boolean
     forceClean?: boolean
   }) => await window.api.game.launch(payload),
   launchComputeDownload: (callback: () => void) => window.api.game.launchComputeDownload(callback),

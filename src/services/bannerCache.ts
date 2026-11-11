@@ -1,4 +1,5 @@
 import defaultBannerUrl from '../static/images/bg.webp'
+import { BRAND } from '../config/brand'
 import logger from 'electron-log/renderer'
 
 const BANNER_URL_MAP_KEY = 'modey_banner_url_map'
@@ -19,19 +20,20 @@ class BannerCacheService {
     const fallback = defaultBannerUrl
     if (!remoteUrl) return fallback
 
+    const effectiveUrl = remoteUrl.startsWith('/') ? `${BRAND.apiUrl}${remoteUrl}` : remoteUrl
     const cachedDataUrl = this.getCachedImage(slug)
     const lastKnownRemoteUrl = this.getLastUrl(slug)
 
     // Si on a déjà l'image en cache et que l'URL distante est strictement identique, on réutilise le cache local
-    if (cachedDataUrl && lastKnownRemoteUrl === remoteUrl) {
+    if (cachedDataUrl && lastKnownRemoteUrl === effectiveUrl) {
       return cachedDataUrl
     }
 
     // Si l'URL a changé ou si on n'a pas encore l'image en cache, lancer le téléchargement en tâche de fond
-    this.downloadAndCache(slug, remoteUrl)
+    this.downloadAndCache(slug, effectiveUrl)
 
     // Renvoyer en attendant soit l'ancienne image en cache (transition fluide), soit l'URL distante / fallback
-    return cachedDataUrl || remoteUrl || fallback
+    return cachedDataUrl || effectiveUrl || fallback
   }
 
   private getCachedImage(slug: string): string | null {

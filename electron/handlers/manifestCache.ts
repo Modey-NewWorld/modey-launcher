@@ -12,22 +12,63 @@ interface CachedManifest {
 const memoryManifests = new Map<string, CachedManifest>()
 const inflightRequests = new Map<string, Promise<any>>()
 
+let cachedLauncherMeta: { servers: Record<string, any>; cachedAt: number } | null = null
+
 /**
- * Récupère le manifeste de distribution avec déduplication, cache 30s et ETag 304 Not Modified
+ * Résout l'URL Files-Updater personnalisée d'un serveur via /api/modey/launcher si disponible
  */
-export async function fetchServerManifest(adminToolUrl: string, slug: string): Promise<any> {
+export async function resolveUpdaterUrl(
+  authApiUrl: string,
+  slug: string,
+  explicitUpdaterUrl?: string
+): Promise<string | undefined> {
+  const direct = explicitUpdaterUrl && explicitUpdaterUrl.trim() ? explicitUpdaterUrl.trim() : ''
+  if (direct) return direct
+
   const cleanSlug = (slug || 'athena').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
   const now = Date.now()
 
+  if (!cachedLauncherMeta || now - cachedLauncherMeta.cachedAt > 15000) {
+    try {
+      const resp = await fetch(`${authApiUrl}/api/modey/launcher`)
+      if (resp.ok) {
+        const data = await resp.json()
+        if (data?.success && data?.servers) {
+          cachedLauncherMeta = { servers: data.servers, cachedAt: now }
+        }
+      }
+    } catch (_) {}
+  }
+
+  const srv = cachedLauncherMeta?.servers?.[cleanSlug]
+  const u = srv?.updaterUrl ? String(srv.updaterUrl).trim() : ''
+  return u || undefined
+}
+
+/**
+ * Récupère le manifeste de distribution avec déduplication, cache 30s et ETag 304 Not Modified
+ */
+export async function fetchServerManifest(
+  adminToolUrl: string,
+  slug: string,
+  customUpdaterUrl?: string
+): Promise<any> {
+  const cleanSlug = (slug || 'athena').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+  const targetUrl = (customUpdaterUrl && customUpdaterUrl.trim())
+    ? customUpdaterUrl.trim()
+    : `${adminToolUrl}/api/files-updater/${cleanSlug}`
+  const cacheKey = `${cleanSlug}::${targetUrl}`
+  const now = Date.now()
+
   // 1. Vérifier si un cache récent (< 30 secondes) est disponible
-  const cached = memoryManifests.get(cleanSlug)
+  const cached = memoryManifests.get(cacheKey)
   if (cached && now - cached.cachedAt < 30000) {
     return cached.data
   }
 
   // 2. Dédupliquer les requêtes parallèles identiques en cours de traitement
-  if (inflightRequests.has(cleanSlug)) {
-    return inflightRequests.get(cleanSlug)
+  if (inflightRequests.has(cacheKey)) {
+    return inflightRequests.get(cacheKey)
   }
 
   const promise = (async () => {
@@ -37,8 +78,7 @@ export async function fetchServerManifest(adminToolUrl: string, slug: string): P
         headers['If-None-Match'] = cached.etag
       }
 
-      const url = `${adminToolUrl}/api/files-updater/${cleanSlug}`
-      const resp = await fetch(url, { headers }).catch((err) => {
+      const resp = await fetch(targetUrl, { headers }).catch((err) => {
         logger.warn(`[ManifestCache] Erreur réseau lors de la récupération du manifeste (${cleanSlug}) :`, err)
         return null
       })
@@ -63,7 +103,7 @@ export async function fetchServerManifest(adminToolUrl: string, slug: string): P
       const newEtag = resp.headers.get('etag') || undefined
       const data = await resp.json()
 
-      memoryManifests.set(cleanSlug, {
+      memoryManifests.set(cacheKey, {
         data,
         etag: newEtag,
         cachedAt: Date.now()
@@ -75,11 +115,11 @@ export async function fetchServerManifest(adminToolUrl: string, slug: string): P
       if (cached) return cached.data
       throw err
     } finally {
-      inflightRequests.delete(cleanSlug)
+      inflightRequests.delete(cacheKey)
     }
   })()
 
-  inflightRequests.set(cleanSlug, promise)
+  inflightRequests.set(cacheKey, promise)
   return promise
 }
 
@@ -89,8 +129,13 @@ export async function fetchServerManifest(adminToolUrl: string, slug: string): P
 export function invalidateManifestCache(slug?: string): void {
   if (slug) {
     const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
-    memoryManifests.delete(cleanSlug)
+    for (const key of memoryManifests.keys()) {
+      if (key.startsWith(`${cleanSlug}::`)) {
+        memoryManifests.delete(key)
+      }
+    }
   } else {
     memoryManifests.clear()
   }
+  cachedLauncherMeta = null
 }

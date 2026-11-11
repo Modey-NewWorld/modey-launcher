@@ -4,7 +4,7 @@ import type { IGameSettings, ISystemInfo } from './handlers/settings'
 import type { IFilesInfo, IInstanceInfo } from './handlers/files'
 import type { IAuthResponse } from './handlers/auth'
 import type { RuntimeConfig } from './runtimeConfig'
-import type { Account, BootstrapsEvents, DownloaderEvents, IAvatar, IBackground, IBootstraps, ICape, IMaintenance, INews, IServerStatus, ISkin, LauncherEvents } from 'eml-lib'
+import type { Account, BootstrapEvents, DownloaderEvents, IAvatar, IBackground, IBootstraps, ICape, IMaintenance, INews, IServerStatus, ISkin, LauncherEvents } from 'eml-lib'
 
 console.log('Preload script loaded')
 
@@ -27,7 +27,14 @@ contextBridge.exposeInMainWorld('api', {
     logout: (): Promise<{ success: boolean }> => ipcRenderer.invoke(IPC.auth.logout)
   },
   profiles: {
-    get: (): Promise<any[]> => ipcRenderer.invoke(IPC.profiles.get)
+    get: (): Promise<any[]> => ipcRenderer.invoke(IPC.profiles.get),
+    auth: (slug: string, password: string): Promise<{ success: boolean; slug?: string; token?: string; error?: string }> =>
+      ipcRenderer.invoke(IPC.profiles.auth, slug, password),
+    resolveCustom: (
+      query: string,
+      password?: string
+    ): Promise<{ success: boolean; found?: boolean; requiresPassword?: boolean; slug?: string; token?: string; profile?: any; error?: string }> =>
+      ipcRenderer.invoke(IPC.profiles.resolveCustom, query, password)
   },
   game: {
     checkExtraMods: (profileSlug: string): Promise<{ hasExtra: boolean; extraMods: string[] }> =>
@@ -41,6 +48,8 @@ contextBridge.exposeInMainWorld('api', {
       minecraftVersion?: string
       loaderType?: 'neoforge' | 'forge' | 'fabric' | 'quilt' | 'vanilla'
       loaderVersion?: string
+      updaterUrl?: string
+      isCustomServer?: boolean
       forceClean?: boolean
     }) => {
       ipcRenderer.invoke(IPC.game.launch, payload)
@@ -104,7 +113,7 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.on(IPC.bootstraps.downloadProgress, (_event, value) => callback(value)),
     downloadEnd: (callback: (value: DownloaderEvents['download_end'][0]) => void) =>
       ipcRenderer.on(IPC.bootstraps.downloadEnd, (_event, value) => callback(value)),
-    error: (callback: (value: BootstrapsEvents['bootstraps_error'][0]) => void) =>
+    error: (callback: (value: BootstrapEvents['bootstraps_error'][0]) => void) =>
       ipcRenderer.on(IPC.bootstraps.error, (_event, value) => callback(value))
   },
   settings: {

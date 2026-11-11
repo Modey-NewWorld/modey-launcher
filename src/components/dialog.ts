@@ -90,12 +90,13 @@ class DialogSystem {
     })
   }
 
-  public async prompt(message: string, defaultValue = '', title?: string): Promise<string | null> {
+  public async prompt(message: string, defaultValue = '', title?: string, isPassword = false): Promise<string | null> {
     return new Promise<string | null>((resolve) => {
+      const inputType = isPassword ? 'password' : 'text'
       this.messageEl.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:12px; width:100%;">
           <span>${message}</span>
-          <input type="text" id="dialog-prompt-input" value="${defaultValue}" style="width:100%; padding:10px 12px; border:1px solid var(--line); background:var(--bg-surface); color:var(--ink-900); border-radius:8px; font-size:13px; font-family:inherit; outline:none;" />
+          <input type="${inputType}" id="dialog-prompt-input" value="${defaultValue}" placeholder="${isPassword ? 'Entrez le mot de passe...' : ''}" style="width:100%; padding:10px 12px; border:1px solid var(--line); background:var(--bg-surface); color:var(--ink-900); border-radius:8px; font-size:13px; font-family:inherit; outline:none;" />
         </div>
       `
       this.buttonsEl.innerHTML = ''

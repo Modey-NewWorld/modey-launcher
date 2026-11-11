@@ -24,7 +24,9 @@ export const IPC = {
     logout: 'auth:logout'
   },
   profiles: {
-    get: 'profiles:get'
+    get: 'profiles:get',
+    auth: 'profiles:auth',
+    resolveCustom: 'profiles:resolve-custom'
   },
   server: {
     status: 'server:status'

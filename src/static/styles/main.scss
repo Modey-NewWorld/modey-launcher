@@ -88,7 +88,7 @@ h4, label, .badge {
   top: 0;
   left: 0;
   right: 0;
-  height: 36px;
+  height: var(--titlebar-height, 36px);
   background: transparent;
   display: flex;
   z-index: 10000;
@@ -98,7 +98,27 @@ h4, label, .badge {
     flex: 1;
     height: 100%;
     -webkit-app-region: drag;
+    pointer-events: auto;
   }
+}
+
+/* --- Réservation Titlebar pour conteneurs principaux --- */
+.modey-main,
+.servers-scroll-container,
+.profile-scroll,
+.settings-scroll,
+#view-login {
+  padding-top: max(18px, calc(var(--titlebar-height) + 8px));
+}
+
+/* --- Centrage et largeur max pour très grands écrans --- */
+.settings-scroll,
+.servers-scroll-container,
+.profile-scroll,
+.modey-main {
+  max-width: var(--content-max-width, 1720px);
+  width: 100%;
+  margin-inline: auto;
 }
 
 a {

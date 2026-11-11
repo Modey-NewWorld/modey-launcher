@@ -307,7 +307,7 @@
 
     span {
       display: block;
-      font-size: clamp(9.4px, 0.9vw, 11.5px);
+      font-size: clamp(11px, 0.9vw, 12px);
       color: var(--ink-700);
       font-weight: 600;
       text-align: center;
@@ -332,7 +332,7 @@
       height: 26px;
       padding: 0;
       border-radius: 50%;
-      font-size: clamp(9.0px, 0.86vw, 11.0px);
+      font-size: clamp(11px, 0.86vw, 11.5px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -366,7 +366,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: clamp(10.2px, 0.98vw, 12.5px);
+  font-size: clamp(11px, 0.98vw, 12.5px);
   color: var(--ink-700);
   cursor: pointer;
 
@@ -406,7 +406,7 @@
     }
 
     span {
-      font-size: clamp(9.4px, 0.9vw, 11.5px);
+      font-size: clamp(11px, 0.9vw, 11.5px);
       color: var(--ink-400);
     }
   }
@@ -423,7 +423,7 @@
     gap: 10px;
     padding: 8px 0;
     border-bottom: 1px solid var(--line);
-    font-size: clamp(9.8px, 0.94vw, 12.0px);
+    font-size: clamp(11px, 0.94vw, 12.0px);
 
     &:last-child {
       border-bottom: none;
@@ -435,7 +435,7 @@
 
     code {
       font-family: var(--font-mono);
-      font-size: clamp(9.0px, 0.86vw, 11.0px);
+      font-size: clamp(11px, 0.86vw, 11.0px);
       color: var(--ink-700);
       background: var(--bg-sunken);
       padding: 3px 8px;
@@ -459,7 +459,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(9.0px, 0.86vw, 11.0px);
+      font-size: clamp(11px, 0.86vw, 11.0px);
 
       &:hover:not(:disabled) {
         color: var(--accent);
@@ -468,7 +468,7 @@
     }
 
     .tag {
-      font-size: clamp(9.0px, 0.86vw, 11.0px);
+      font-size: clamp(10px, 0.86vw, 11.0px);
       font-weight: 600;
       color: var(--ink-500);
       background: var(--bg-sunken);
@@ -491,7 +491,7 @@
   border-radius: 10px;
   padding: 10px;
   font-family: var(--font-ui);
-  font-size: clamp(10.2px, 0.98vw, 12.5px);
+  font-size: clamp(11px, 0.98vw, 12.5px);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -533,7 +533,7 @@
   }
 
   .studio-badge {
-    font-size: clamp(9.0px, 0.86vw, 11.0px);
+    font-size: clamp(10px, 0.86vw, 11.0px);
     font-weight: 600;
     color: var(--success);
     background: var(--success-soft);
@@ -557,7 +557,7 @@
     border: none;
     background: transparent;
     padding: 5px 14px;
-    font-size: clamp(9.4px, 0.9vw, 11.5px);
+    font-size: clamp(11px, 0.9vw, 11.5px);
     font-weight: 600;
     color: var(--ink-500);
     cursor: pointer;
@@ -576,12 +576,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  min-height: 440px;
+  min-height: 0;
 
   #skin-container {
     width: 100%;
     height: 100%;
-    min-height: 440px;
+    min-height: 0;
     display: block;
   }
 }
@@ -614,7 +614,7 @@
     background: var(--bg-surface);
     color: var(--ink-700);
     font-family: var(--font-ui);
-    font-size: clamp(9.8px, 0.94vw, 12.0px);
+    font-size: clamp(11px, 0.94vw, 12.0px);
     font-weight: 600;
     padding: 6px 14px;
     border-radius: 999px;
@@ -626,7 +626,7 @@
 
     &.zoom-btn {
       padding: 6px 10px;
-      font-size: clamp(9.0px, 0.86vw, 11.0px);
+      font-size: clamp(11px, 0.86vw, 11.0px);
     }
 
     &:hover {
@@ -644,14 +644,37 @@
 
 /* --- Responsive Profile Breakpoints --- */
 @media (max-width: 1120px) {
+  .profile-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
   .profile-layout-clean {
     grid-template-columns: 1fr !important;
+    height: auto;
+    min-height: 0;
+  }
+  .profile-left-col {
+    height: auto;
+    overflow: visible;
   }
   .full-studio-card {
     position: static !important;
-    height: 480px !important;
-    min-height: 480px !important;
+    height: clamp(300px, 48vh, 480px) !important;
+    min-height: 0 !important;
     order: -1 !important;
+  }
+}
+
+@media (max-height: 700px) {
+  .studio-canvas-container,
+  #skin-container {
+    min-height: 260px;
+  }
+}
+
+@media (max-height: 560px) {
+  .full-studio-card {
+    height: clamp(260px, 40vh, 320px) !important;
   }
 }
 

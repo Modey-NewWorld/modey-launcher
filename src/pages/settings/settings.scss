@@ -17,7 +17,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
   gap: 16px;
-  padding: 18px 18px 18px 18px;
+  padding: calc(var(--titlebar-height, 36px) + 8px) 18px 18px;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -353,10 +353,10 @@
   gap: 8px;
 
   .update-line-label {
-    font-size: clamp(10.7px, 1.02vw, 13.0px);
+    font-size: clamp(11px, 1.02vw, 13.0px);
     color: var(--ink-400);
   }
-
+ 
   strong {
     font-size: clamp(12.3px, 1.17vw, 15.0px);
     color: var(--ink-900);
@@ -393,7 +393,7 @@
   .settings-progress-meta {
     display: flex;
     justify-content: space-between;
-    font-size: clamp(10.2px, 0.98vw, 12.5px);
+    font-size: clamp(11px, 0.98vw, 12.5px);
     font-weight: 600;
     margin-top: 7px;
     color: var(--ink-700);
@@ -429,7 +429,7 @@
     }
 
     span {
-      font-size: clamp(10.2px, 0.98vw, 12.5px);
+      font-size: clamp(11px, 0.98vw, 12.5px);
       color: var(--ink-400);
       word-break: break-all;
     }
@@ -494,7 +494,7 @@
 }
 
 .muted {
-  font-size: clamp(10.7px, 1.02vw, 13.0px);
+  font-size: clamp(11px, 1.02vw, 13.0px);
   color: var(--ink-400);
   line-height: 1.55;
   margin: 0;
@@ -511,7 +511,7 @@
     gap: 2px;
 
     span {
-      font-size: clamp(10.7px, 1.02vw, 13.0px);
+      font-size: clamp(11px, 1.02vw, 13.0px);
       color: var(--ink-400);
     }
 
@@ -586,7 +586,7 @@
 
 .about-legal {
   p {
-    font-size: clamp(10.7px, 1.02vw, 13.0px);
+    font-size: clamp(11px, 1.02vw, 13.0px);
     color: var(--ink-500);
     line-height: 1.65;
     margin: 0 0 8px 0;
@@ -621,7 +621,7 @@
   ul {
     margin: 0;
     padding-left: 22px;
-    font-size: clamp(10.7px, 1.02vw, 13.0px);
+    font-size: clamp(11px, 1.02vw, 13.0px);
     color: var(--ink-500);
     line-height: 1.85;
 
@@ -642,7 +642,7 @@
   border-top: 1px solid var(--line);
 
   .muted {
-    font-size: clamp(10.7px, 1.02vw, 13.0px);
+    font-size: clamp(11px, 1.02vw, 13.0px);
     color: var(--ink-400);
     display: flex;
     align-items: center;
@@ -653,24 +653,10 @@
 @media (max-width: 1100px) {
   .settings-scroll {
     grid-template-columns: minmax(0, 1fr);
-    padding: 40px 18px 0 14px;
   }
 
   .about-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 900px) {
-  .settings-scroll {
-    padding: 40px 14px 0 14px;
-  }
-}
-
-/* --- Responsive Settings Breakpoints --- */
-@media (max-width: 1100px) {
-  .settings-scroll {
-    grid-template-columns: 1fr !important;
   }
 
   .settings-category-bar {
@@ -688,9 +674,15 @@
   }
 }
 
+@media (max-width: 900px) {
+  .settings-scroll {
+    padding: calc(var(--titlebar-height, 36px) + 8px) 14px 14px;
+  }
+}
+
 @media (min-width: 1750px) {
   .settings-scroll:not(.is-cat-content) {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -698,7 +690,7 @@
 .settings-nav {
   grid-column: 1 / -1;
   position: sticky;
-  top: 0;
+  top: var(--titlebar-height, 36px);
   z-index: 30;
   background: var(--bg-base);
   padding: 6px 0 10px;
@@ -862,7 +854,7 @@
   height: 100% !important;
   min-height: 0 !important;
   overflow-y: hidden !important;
-  padding: 18px 18px 0 18px !important;
+  padding: calc(var(--titlebar-height, 36px) + 8px) 18px 0 18px !important;
   align-items: stretch !important;
 
   /* Masquer le footer en mode contenu */
@@ -873,6 +865,11 @@
   @media (max-width: 960px) {
     grid-template-columns: 1fr !important;
     grid-template-rows: auto auto auto auto !important;
+    overflow-y: auto !important;
+  }
+
+  @media (max-height: 700px) {
+    height: auto !important;
     overflow-y: auto !important;
   }
 }
@@ -889,7 +886,12 @@
   overflow: hidden;
 
   @media (max-width: 960px) {
-    height: 480px !important;
+    height: clamp(320px, 52vh, 500px) !important;
+  }
+
+  @media (max-height: 700px) {
+    height: auto !important;
+    max-height: none !important;
   }
 
   .opt-mods-search-bar {
@@ -961,7 +963,7 @@
 
   @media (max-width: 960px) {
     height: auto !important;
-    min-height: 500px !important;
+    min-height: clamp(320px, 52vh, 500px) !important;
   }
 
   .opt-mods-inspector {

@@ -6,7 +6,7 @@ import { IPC } from '../ipc-channels'
 
 export function registerMaintenanceHandlers() {
   ipcMain.handle(IPC.maintenance.get, async () => {
-    const maintenance = new Maintenance(ADMINTOOL_URL)
+    const maintenance = new (Maintenance as any)(ADMINTOOL_URL)
 
     try {
       const status = await maintenance.getMaintenance()

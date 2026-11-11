@@ -1,6 +1,21 @@
 :root {
   color-scheme: light;
 
+  /* --- Grille des Breakpoints Responsive Modey ---
+   * Largeur :
+   * - >= 1280px : Desktop complet (sidebar 300px, rail social latéral)
+   * - 1120px-1279px : Sidebar rail 64px, contenu large
+   * - < 1120px : Sidebar rail 64px, rail social empilé sous le contenu
+   * - < 900px  : Mode compact, mono-colonne, paddings réduits
+   * - < 640px  : Mode ultra-compact, cartes 100%
+   * Hauteur :
+   * - max-height: 700px : Mode compact (hero ~220-240px, studio ~360px, bannière ~140px)
+   * - max-height: 560px : Mode ultra-compact (hero ~190px, studio ~300px, bannière ~120px, scroll principal)
+   */
+
+  /* Titlebar */
+  --titlebar-height: 36px;
+
   /* Surfaces (Thème Clair) */
   --bg-base: #F3F5F9;
   --bg-surface: #FFFFFF;

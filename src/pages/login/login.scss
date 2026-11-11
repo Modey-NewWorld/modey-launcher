@@ -1,9 +1,15 @@
 #view-login {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: safe center;
+  padding: calc(var(--titlebar-height, 36px) + 16px) 16px 16px;
+  box-sizing: border-box;
 }
 
 .login-card {
+  margin: auto;
   width: clamp(340px, 90vw, 440px);
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
@@ -29,7 +35,7 @@
 
   .subtitle {
     color: var(--text-muted);
-    font-size: clamp(10.7px, 1.02vw, 13.0px);
+    font-size: clamp(11px, 1.02vw, 13.0px);
     margin-bottom: 20px;
   }
 
@@ -62,7 +68,7 @@
       gap: 6px;
 
       label {
-        font-size: clamp(9.8px, 0.94vw, 12.0px);
+        font-size: clamp(11px, 0.94vw, 12.0px);
         font-weight: 500;
         color: var(--text-main);
         display: flex;
@@ -81,7 +87,7 @@
         background: var(--bg-surface-alt);
         border: 1px solid var(--accent-soft);
         color: var(--text-main);
-        font-size: clamp(10.7px, 1.02vw, 13.0px);
+        font-size: clamp(11px, 1.02vw, 13.0px);
         outline: none;
         transition: border-color 0.2s, box-shadow 0.2s;
         box-sizing: border-box;
@@ -105,7 +111,7 @@
       }
 
       .input-hint {
-        font-size: clamp(8.6px, 0.82vw, 10.5px);
+        font-size: clamp(11px, 0.82vw, 11px);
         color: var(--text-muted);
       }
     }
@@ -139,11 +145,30 @@
 
   .login-footer {
     margin-top: 18px;
-    font-size: clamp(9.0px, 0.86vw, 11.0px);
+    font-size: clamp(11px, 0.86vw, 11.0px);
     color: var(--text-muted);
 
     strong {
       color: var(--primary);
+    }
+  }
+}
+
+@media (max-height: 600px) {
+  .login-card {
+    padding: 16px 20px;
+
+    .logo {
+      width: 56px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      margin-bottom: 12px;
+    }
+
+    .login-custom-form {
+      gap: 10px;
     }
   }
 }

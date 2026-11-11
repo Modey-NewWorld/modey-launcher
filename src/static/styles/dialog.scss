@@ -15,6 +15,9 @@
   justify-content: center;
   align-items: center;
   animation: fadeInDialog 0.2s ease;
+  overflow-y: auto;
+  padding: calc(var(--titlebar-height, 36px) + 16px) 16px 16px;
+  box-sizing: border-box;
 
   .dialog-box {
     background: var(--bg-surface);
@@ -22,12 +25,16 @@
     border-radius: 14px;
     width: 90%;
     max-width: 420px;
+    max-height: calc(100vh - var(--titlebar-height, 36px) - 48px);
+    overflow-y: auto;
+    box-sizing: border-box;
     box-shadow: 0 10px 30px rgba(16, 27, 48, 0.22);
     border: 1px solid var(--line);
     animation: scaleInDialog 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex;
     flex-direction: column;
     gap: 14px;
+    margin: auto;
 
     h3 {
       margin: 0;
@@ -42,7 +49,7 @@
       margin: 0;
       color: var(--ink-700);
       line-height: 1.6;
-      font-size: clamp(10.2px, 0.98vw, 12.5px);
+      font-size: clamp(11px, 0.98vw, 12.5px);
       white-space: pre-line;
     }
 
@@ -51,6 +58,10 @@
       justify-content: flex-end;
       gap: 8px;
       margin-top: 4px;
+      position: sticky;
+      bottom: 0;
+      background: var(--bg-surface);
+      padding-top: 8px;
     }
   }
 }
