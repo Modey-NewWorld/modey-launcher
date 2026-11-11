@@ -32,25 +32,30 @@ export function registerProfilesHandlers() {
       if (!cleanQuery) {
         return { success: false, found: false, error: 'Adresse IP ou identifiant requis' }
       }
-      const resp = await fetch(`${AUTH_API_URL}/api/profiles/resolve-custom`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: cleanQuery, password: password || '' })
-      })
-      const data = await resp.json().catch(() => ({}))
-      if (resp.ok && data?.success) {
-        if (data.slug && data.token) {
-          unlockedProfileTokens.set(data.slug, data.token)
+      let data: any = {}
+      try {
+        const resp = await fetch(`${AUTH_API_URL}/api/profiles/resolve-custom`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: cleanQuery, password: password || '' })
+        })
+        data = await resp.json().catch(() => ({}))
+        if (resp.ok && data?.success) {
+          if (data.slug && data.token) {
+            unlockedProfileTokens.set(data.slug, data.token)
+          }
+          return data
         }
-        return data
-      }
-      if (data?.found && data?.requiresPassword) {
-        return {
-          success: false,
-          found: true,
-          requiresPassword: true,
-          error: data?.message || 'Mot de passe requis'
+        if (data?.found && data?.requiresPassword) {
+          return {
+            success: false,
+            found: true,
+            requiresPassword: true,
+            error: data?.message || 'Mot de passe requis'
+          }
         }
+      } catch (remoteErr: any) {
+        logger.warn('[Profile ResolveCustom] API centrale indisponible, test standalone :', remoteErr?.message || remoteErr)
       }
 
       // Fallback local/standalone : interroger /server-meta sur le Files-Updater (port 3008 par défaut)
@@ -59,39 +64,47 @@ export function registerProfilesHandlers() {
         ? cleanQuery.slice(0, colonIdx).trim()
         : cleanQuery
       if (probeHost && !probeHost.includes('/')) {
-        try {
+        const candidateHosts = probeHost.toLowerCase() === 'localhost'
+          ? ['127.0.0.1', 'localhost']
+          : [probeHost]
+        for (const h of candidateHosts) {
           const ctrl = new AbortController()
-          const timer = setTimeout(() => ctrl.abort(), 900)
-          const headers: Record<string, string> = {}
-          if (password && String(password).trim()) {
-            headers['X-Modey-Server-Password'] = String(password).trim()
-          }
-          const metaResp = await fetch(`http://${probeHost}:3008/server-meta`, { headers, signal: ctrl.signal })
-          clearTimeout(timer)
-          if (metaResp.ok) {
-            const metaJson = await metaResp.json().catch(() => null)
-            if (metaJson?.requiresPassword && !metaJson?.unlocked) {
-              return {
-                success: false,
-                found: true,
-                requiresPassword: true,
-                isStandalone: true,
-                passwordVersion: metaJson.passwordVersion || '',
-                standaloneMeta: metaJson,
-                error: password
-                  ? 'Mot de passe incorrect pour ce serveur privé.'
-                  : 'Ce serveur privé est protégé par un mot de passe.'
+          const timer = setTimeout(() => ctrl.abort(), 2000)
+          try {
+            const headers: Record<string, string> = {}
+            if (password && String(password).trim()) {
+              headers['X-Modey-Server-Password'] = String(password).trim()
+            }
+            const metaResp = await fetch(`http://${h}:3008/server-meta`, { headers, signal: ctrl.signal })
+            if (metaResp.ok) {
+              const metaJson = await metaResp.json().catch(() => null)
+              if (metaJson?.requiresPassword && !metaJson?.unlocked) {
+                return {
+                  success: false,
+                  found: true,
+                  requiresPassword: true,
+                  isStandalone: true,
+                  passwordVersion: metaJson.passwordVersion || '',
+                  standaloneMeta: metaJson,
+                  error: password
+                    ? 'Mot de passe incorrect pour ce serveur privé.'
+                    : 'Ce serveur privé est protégé par un mot de passe.'
+                }
+              }
+              if (metaJson?.success && metaJson?.name) {
+                return {
+                  success: false,
+                  found: false,
+                  standaloneMeta: metaJson
+                }
               }
             }
-            if (metaJson?.success && metaJson?.name) {
-              return {
-                success: false,
-                found: false,
-                standaloneMeta: metaJson
-              }
-            }
+          } catch {
+            // Host candidate injoignable, essayer le suivant
+          } finally {
+            clearTimeout(timer)
           }
-        } catch {}
+        }
       }
 
       return {

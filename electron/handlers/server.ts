@@ -43,10 +43,14 @@ function measureTcpPing(ip: string, port: number = 25565, timeoutMs = 2500): Pro
 export function registerServerHandlers() {
   ipcMain.handle(IPC.server.status, async (_event, ip: string, port: number = 25565) => {
     try {
+      const cleanIp = String(ip || '').trim()
+      if (!cleanIp) return null
+      const probeIp = cleanIp.toLowerCase() === 'localhost' ? '127.0.0.1' : cleanIp
+
       // Sonde TCP rapide en parallèle du protocole Minecraft pour un ping réseau précis
       const [tcpPing, status] = await Promise.all([
-        measureTcpPing(ip, port),
-        new ServerStatus(ip, port, 'modern', 774).getStatus().catch(() => null)
+        measureTcpPing(probeIp, port),
+        new ServerStatus(probeIp, port, 'modern', 774).getStatus().catch(() => null)
       ])
 
       if (status) {
@@ -56,15 +60,6 @@ export function registerServerHandlers() {
           status.ping = Math.max(1, status.ping)
         }
         return status
-      }
-
-      if (typeof tcpPing === 'number') {
-        return {
-          ping: tcpPing,
-          version: '1.21.1',
-          motd: 'Serveur Modey',
-          players: { online: 0, max: 40 }
-        }
       }
 
       return null

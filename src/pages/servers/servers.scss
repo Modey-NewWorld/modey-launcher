@@ -231,7 +231,20 @@
   }
 }
 
-/* Titre de section Serveurs officiels */
+/* Groupes de sections de serveurs */
+.servers-section-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  & + .servers-section-group {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* Titre de section Serveurs */
 .servers-section-heading {
   display: flex;
   align-items: center;
@@ -246,6 +259,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+
+    &.is-official {
+      background: rgba(245, 158, 11, 0.14);
+      color: #f59e0b;
+    }
+
+    &.is-community {
+      background: rgba(14, 165, 233, 0.14);
+      color: #0ea5e9;
+    }
+
+    &.is-custom {
+      background: rgba(139, 92, 246, 0.14);
+      color: #8b5cf6;
+    }
 
     svg {
       width: 18px;
@@ -271,12 +300,15 @@
 
   .btn-add-custom-server {
     margin-left: auto;
-    width: 32px;
     height: 32px;
+    padding: 0 12px;
+    gap: 6px;
     border-radius: 9px;
     border: 1px solid var(--line);
     background: var(--bg-surface);
     color: var(--text-main);
+    font-size: 12px;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -298,6 +330,39 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
+}
+
+.custom-servers-empty-card {
+  grid-column: 1 / -1;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px dashed var(--line);
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
+
+  .btn-inline-add-custom {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    background: rgba(139, 92, 246, 0.12);
+    color: #a78bfa;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: #8b5cf6;
+      color: #fff;
+    }
+  }
 }
 
 .servers-empty-state {
@@ -871,6 +936,32 @@
         margin: 0;
         font-weight: 500;
       }
+
+      &.is-custom {
+        background: rgba(139, 92, 246, 0.1);
+        border-color: rgba(139, 92, 246, 0.28);
+
+        .callout-icon {
+          color: #8b5cf6;
+        }
+
+        p {
+          color: #a78bfa;
+        }
+      }
+
+      &.is-verified {
+        background: rgba(14, 165, 233, 0.1);
+        border-color: rgba(14, 165, 233, 0.28);
+
+        .callout-icon {
+          color: #0ea5e9;
+        }
+
+        p {
+          color: #38bdf8;
+        }
+      }
     }
   }
 }
@@ -959,20 +1050,22 @@
 /* Bouton supprimer sur une carte personnalisée */
 .btn-remove-custom-server {
   position: absolute;
-  top: 10px;
+  bottom: 10px;
   right: 10px;
   z-index: 3;
-  width: 26px;
-  height: 26px;
+  height: 24px;
+  padding: 0 8px;
+  gap: 4px;
   border-radius: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(15, 23, 42, 0.78);
   color: #f8fafc;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1;
   transition: all 0.15s ease;
 

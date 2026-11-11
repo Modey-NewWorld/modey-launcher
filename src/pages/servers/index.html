@@ -11,27 +11,54 @@
         <!-- Two-column main layout: Inspector at left (larger & full height), Server cards at right -->
     <div class="servers-main-layout">
       <!-- Left column: Inspector Details Panel -->
-      <!-- Left column: Section header + Cards Grid -->
-      <section class="servers-catalog-col">
-        <!-- Section Title: Serveurs officiels Modey -->
-        <div class="servers-section-heading">
-          <div class="heading-icon-badge">
-            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>
+      <!-- Left column: Section headers + Categorized Cards Grids -->
+      <section class="servers-catalog-col" id="servers-catalog-col">
+        <!-- 1. Serveurs officiels Modey -->
+        <div class="servers-section-group" id="servers-section-official">
+          <div class="servers-section-heading">
+            <div class="heading-icon-badge is-official">
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-crown-bold"></use></svg>
+            </div>
+            <div class="heading-text">
+              <h2>Serveurs officiels Modey</h2>
+              <p>Des mondes uniques, créés et gérés par l'équipe Modey.</p>
+            </div>
           </div>
-          <div class="heading-text">
-            <h2>Serveurs officiels Modey</h2>
-            <p>Des mondes uniques, créés et gérés par l'équipe Modey.</p>
-          </div>
-          <button type="button" class="btn-add-custom-server" id="btn-add-custom-server" title="Ajouter un serveur personnalisé ou privé (IP + mot de passe)" aria-label="Ajouter un serveur personnalisé">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-          </button>
+          <div class="servers-cards-grid" id="servers-grid-official"></div>
         </div>
 
-        <!-- Cards Grid -->
-        <div class="servers-cards-grid" id="servers-cards-grid">
-          <!-- Dynamically rendered server cards -->
+        <!-- 2. Serveurs partenaires & communauté -->
+        <div class="servers-section-group" id="servers-section-community" style="display:none;">
+          <div class="servers-section-heading">
+            <div class="heading-icon-badge is-community">
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>
+            </div>
+            <div class="heading-text">
+              <h2>Serveurs partenaires &amp; tiers</h2>
+              <p>Serveurs externes ou communautaires référencés sur le réseau Modey.</p>
+            </div>
+          </div>
+          <div class="servers-cards-grid" id="servers-grid-community"></div>
+        </div>
+
+        <!-- 3. Mes serveurs privés & personnalisés -->
+        <div class="servers-section-group" id="servers-section-custom">
+          <div class="servers-section-heading">
+            <div class="heading-icon-badge is-custom">
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>
+            </div>
+            <div class="heading-text">
+              <h2>Mes serveurs privés &amp; personnalisés</h2>
+              <p>Serveurs locaux, privés (mot de passe) ou ajoutés par IP directe.</p>
+            </div>
+            <button type="button" class="btn-add-custom-server" id="btn-add-custom-server" title="Ajouter un serveur privé ou personnalisé (IP + mot de passe)" aria-label="Ajouter un serveur personnalisé">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              <span>Ajouter</span>
+            </button>
+          </div>
+          <div class="servers-cards-grid" id="servers-grid-custom"></div>
         </div>
       </section>
 
@@ -143,10 +170,10 @@
               </div>
             </div>
 
-            <!-- Official Server callout -->
-            <div class="inspector-official-callout">
+            <!-- Server type callout -->
+            <div class="inspector-official-callout" id="inspector-type-callout">
               <svg class="solar-icon solar-bold callout-icon" aria-hidden="true"><use href="#solar-info-bold"></use></svg>
-              <p>Ce serveur est un serveur officiel Modey. Aucune installation supplémentaire n'est nécessaire.</p>
+              <p id="inspector-callout-text">Ce serveur est un serveur officiel Modey. Aucune installation supplémentaire n'est nécessaire.</p>
             </div>
           </div>
         </div>

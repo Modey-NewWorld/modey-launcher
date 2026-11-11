@@ -14,7 +14,7 @@ function resolveServerIconSvg(iconUrl?: string, iconName?: string, isCrown = fal
 
 import { Dialog } from '../../components/dialog'
 import { showAccueil } from '../../router'
-import { pingServer, getServerTarget, setCachedServerInfo } from '../../services/serverStatus'
+import { pingServer, setCachedServerInfo } from '../../services/serverStatus'
 import { homeState } from '../home/state'
 import { profiles } from '../../ipc'
 import { launcherConfig } from '../../services/launcherConfig'
@@ -49,6 +49,7 @@ export interface ServerItem {
   online: boolean
   isComingSoon: boolean
   isProtected?: boolean
+  requiresPassword?: boolean
   description: string
   tags: string[]
   bannerUrl: string
@@ -162,6 +163,7 @@ function buildServersList(): ServerItem[] {
 
     const meta = launcherConfig.getServer(slug)
     const isProtected = p.visibility === 'PROTECTED' || Boolean((p as any).isProtected)
+    const requiresPassword = Boolean((p as any).requiresPassword || (p as any).require_password || isProtected)
     const isComingSoon = !isProtected && (isComingSoonProfile(p) || meta?.status === 'comingSoon')
 
     const tags: string[] = Array.isArray(p.tags)
@@ -206,6 +208,7 @@ function buildServersList(): ServerItem[] {
       online: cachedPing?.online ?? false,
       isComingSoon,
       isProtected,
+      requiresPassword,
       description,
       tags,
       bannerUrl: banner,
@@ -257,6 +260,8 @@ function buildServersList(): ServerItem[] {
       playersMax: cachedPing?.playersMax ?? null,
       online: cachedPing?.online ?? false,
       isComingSoon,
+      isProtected: vis === 'PROTECTED' || Boolean((meta as any).requiresPassword),
+      requiresPassword: Boolean((meta as any).requiresPassword || vis === 'PROTECTED'),
       description: meta.teaser?.description || '',
       tags,
       bannerUrl: banner,
@@ -275,24 +280,27 @@ function buildServersList(): ServerItem[] {
 
     const cachedPing = pingLiveCache[c.id] || pingLiveCache[c.slug]
     const mcVer = c.version || '1.21.1'
-    const iconSvg = resolveServerIconSvg(c.iconUrl, c.password ? 'lock' : 'server', false)
+    const isPwdRequired = Boolean(c.requiresPassword || c.needsPasswordPrompt)
+    const isPwdLocked = Boolean(isPwdRequired && (!c.password || c.needsPasswordPrompt))
+    const iconSvg = resolveServerIconSvg(c.iconUrl, isPwdRequired ? 'lock' : 'server', false)
 
     list.push({
       id: c.id,
       slug: c.slug,
       name: c.name || c.ip,
       iconSvg,
-      subtitle: `${c.ip}:${c.port}`,
-      location: 'Serveur personnalisé',
+      subtitle: `${c.ip}:${c.port}${isPwdRequired ? ' · Privé' : ''}`,
+      location: isPwdRequired ? 'Serveur privé (IP directe)' : 'Serveur personnalisé (IP directe)',
       version: mcVer,
       pingMs: cachedPing?.pingMs ?? null,
       playersOnline: cachedPing?.playersOnline ?? null,
       playersMax: cachedPing?.playersMax ?? null,
       online: cachedPing?.online ?? false,
       isComingSoon: false,
-      isProtected: false,
+      isProtected: isPwdLocked,
+      requiresPassword: isPwdRequired,
       description: c.description || `Connexion directe vers ${c.ip}:${c.port}.`,
-      tags: Array.isArray(c.tags) && c.tags.length > 0 ? c.tags : ['Personnalisé'],
+      tags: Array.isArray(c.tags) && c.tags.length > 0 ? c.tags : [isPwdRequired ? 'Privé' : 'Personnalisé'],
       bannerUrl: c.bannerUrl || bgAthena,
       detailBannerUrl: c.bannerUrl || bgAthena,
       isOfficial: false,
@@ -422,28 +430,32 @@ async function probeLiveServers() {
   for (const s of servers) {
     if (s.isComingSoon) continue
 
-    const t = getServerTarget(homeState.allProfiles, s.slug)
-    const host = s.profileRef?.server?.host || s.profileRef?.ip || t.host
-    const port = s.profileRef?.server?.port || s.profileRef?.port || t.port || 25565
+    const matchingProfile = homeState.allProfiles.find((p) => p.slug === s.slug || p.id === s.id)
+    const serverCfg = launcherConfig.getServer(s.slug) as any
+    const host = s.profileRef?.server?.host || s.profileRef?.ip || matchingProfile?.server?.host || matchingProfile?.ip || serverCfg?.ip
+    const port = s.profileRef?.server?.port || s.profileRef?.port || matchingProfile?.server?.port || matchingProfile?.port || serverCfg?.port || 25565
 
-    if (host) {
-      try {
-        const probe = await pingServer(host, port)
-        if (probe.online && probe.status) {
-          pingLiveCache[s.id] = {
-            online: true,
-            pingMs: probe.pingMs,
-            playersOnline: probe.status.players.online,
-            playersMax: probe.status.players.max
-          }
-          setCachedServerInfo(s.id, pingLiveCache[s.id])
-          setCachedServerInfo(s.slug, pingLiveCache[s.id])
-        } else {
-          pingLiveCache[s.id] = { online: false, pingMs: 0, playersOnline: 0, playersMax: 0 }
+    if (!host || (!s.isCustom && s.profileRef?.liveStatus?.status === 'OFFLINE')) {
+      pingLiveCache[s.id] = { online: false, pingMs: 0, playersOnline: 0, playersMax: 0 }
+      continue
+    }
+
+    try {
+      const probe = await pingServer(host, port)
+      if (probe.online && probe.status) {
+        pingLiveCache[s.id] = {
+          online: true,
+          pingMs: probe.pingMs,
+          playersOnline: probe.status.players.online,
+          playersMax: probe.status.players.max
         }
-      } catch {
+        setCachedServerInfo(s.id, pingLiveCache[s.id])
+        setCachedServerInfo(s.slug, pingLiveCache[s.id])
+      } else {
         pingLiveCache[s.id] = { online: false, pingMs: 0, playersOnline: 0, playersMax: 0 }
       }
+    } catch {
+      pingLiveCache[s.id] = { online: false, pingMs: 0, playersOnline: 0, playersMax: 0 }
     }
   }
 
@@ -523,117 +535,165 @@ function getFilteredAndSortedServers(servers: ServerItem[]): ServerItem[] {
   return list
 }
 
+function renderServerCardHtml(s: ServerItem): string {
+  const isSelected = s.id === selectedServerId
+  let statusHtml = ''
+  let playersHtml = ''
+  let pingHtml = ''
+  let joinBtnHtml = ''
+
+  if (s.isProtected) {
+    statusHtml = `<span class="card-badge card-badge-status" style="border-color:rgba(245,158,11,0.35); color:#f59e0b;"><svg class="solar-icon solar-bold" style="width:12px;height:12px;display:inline-block;vertical-align:-1px;margin-right:3px;" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>Protégé</span>`
+    playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;${s.online ? `${s.playersOnline ?? 0}/${s.playersMax ?? 40}` : '—'}</span>`
+    pingHtml = s.online ? `${getLatencySignalSvg()}<span>${s.pingMs ?? 0} ms</span>` : `<span>Privé</span>`
+    joinBtnHtml = `
+      <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
+        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>
+        <span>Déverrouiller</span>
+      </button>
+    `
+  } else if (s.isComingSoon) {
+    statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot coming-soon"></span>&nbsp;Arrive bientôt</span>`
+    playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;—</span>`
+    pingHtml = `<span>—</span>`
+    joinBtnHtml = `
+      <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
+        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>
+        <span>Sélectionner</span>
+      </button>
+    `
+  } else if (s.online) {
+    statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot online"></span>&nbsp;En ligne</span>`
+    playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;${s.playersOnline ?? 0}/${s.playersMax ?? 40}</span>`
+    pingHtml = `${getLatencySignalSvg()}<span>${s.pingMs ?? 0} ms</span>`
+    joinBtnHtml = `
+      <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
+        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>
+        <span>Rejoindre</span>
+      </button>
+    `
+  } else {
+    statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot offline"></span>&nbsp;Hors ligne</span>`
+    playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;—</span>`
+    pingHtml = `<span>—</span>`
+    joinBtnHtml = `
+      <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
+        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>
+        <span>Rejoindre</span>
+      </button>
+    `
+  }
+
+  let badgeHtml = ''
+  if (s.isOfficial) {
+    badgeHtml = `<span class="badge-cert badge-official" title="Serveur Officiel Modey" style="font-size:10px; font-weight:800; background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><svg style="width:10px; height:10px; fill:currentColor;" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg> Officiel</span>`
+  } else if (s.isVerified) {
+    badgeHtml = `<span class="badge-cert badge-verified" title="Serveur Partenaire Vérifié" style="font-size:10px; font-weight:800; background:#0284c7; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><svg style="width:10px; height:10px; fill:currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg> Vérifié</span>`
+  } else if (s.isCustom && s.requiresPassword) {
+    badgeHtml = `<span class="badge-cert" title="Serveur privé protégé par mot de passe" style="font-size:10px; font-weight:800; background:#d97706; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;">Privé · Mot de passe</span>`
+  } else if (s.isCustom) {
+    badgeHtml = `<span class="badge-cert" title="Serveur personnalisé local / IP directe" style="font-size:10px; font-weight:800; background:#475569; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center;">Personnalisé</span>`
+  } else {
+    badgeHtml = `<span class="badge-cert" title="Serveur tiers communautaire" style="font-size:10px; font-weight:800; background:#334155; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center;">Tiers</span>`
+  }
+
+  const tagsHtml = s.tags.map((tag) => `<span class="server-tag-chip">${escapeHtml(tag)}</span>`).join('')
+
+  return `
+    <article class="server-card-item ${isSelected ? 'is-selected' : ''}" data-server-id="${s.id}">
+      <div class="card-banner" style="background-image: url('${s.bannerUrl}')">
+        <div class="card-banner-overlay"></div>
+        ${s.isCustom ? `<button type="button" class="btn-remove-custom-server" data-action="remove-custom" data-server-id="${s.id}" title="Retirer ce serveur de votre liste" aria-label="Retirer">&times; Retirer</button>` : ''}
+        <div class="card-banner-top">
+          ${statusHtml}
+          ${playersHtml}
+        </div>
+      </div>
+      <div class="card-content">
+        <div class="card-header-row">
+          <div class="card-title-group">
+            <span class="card-icon">${s.iconSvg}</span>
+            <div>
+              <h3 class="card-name" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span>${escapeHtml(s.name)}</span>
+                ${badgeHtml}
+              </h3>
+              <span class="card-subtitle">${escapeHtml(s.subtitle)}</span>
+            </div>
+          </div>
+          <div class="card-latency text-green">
+            ${pingHtml}
+          </div>
+        </div>
+        <p class="card-description">${escapeHtml(s.description)}</p>
+        ${s.tags && s.tags.length > 0 ? `<div class="card-tags-list">${tagsHtml}</div>` : ''}
+        <div class="card-footer-row">
+          ${joinBtnHtml}
+          <button class="btn-card-details" data-action="details" data-server-id="${s.id}">
+            <span>Voir les détails</span>
+            <span class="arrow-right">→</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  `
+}
+
 function renderCards() {
-  const grid = el('servers-cards-grid')
-  if (!grid) return
+  const officialGrid = el('servers-grid-official')
+  const communitySection = el('servers-section-community')
+  const communityGrid = el('servers-grid-community')
+  const customGrid = el('servers-grid-custom')
+  const catalogCol = el('servers-catalog-col')
+  if (!officialGrid || !customGrid || !catalogCol) return
 
   const allServers = buildServersList()
   const servers = getFilteredAndSortedServers(allServers)
 
-  if (servers.length === 0) {
-    grid.innerHTML = `
+  const officialServers = servers.filter((s) => s.isOfficial && !s.isCustom)
+  const communityServers = servers.filter((s) => !s.isOfficial && !s.isCustom)
+  const customServers = servers.filter((s) => Boolean(s.isCustom))
+
+  if (officialServers.length === 0) {
+    officialGrid.innerHTML = `
       <div class="servers-empty-state">
         <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-magnifier-linear"></use></svg>
-        <p>Aucun serveur ne correspond à votre sélection.</p>
+        <p>Aucun serveur officiel ne correspond à votre filtre.</p>
       </div>
     `
-    return
+  } else {
+    officialGrid.innerHTML = officialServers.map(renderServerCardHtml).join('')
   }
 
-  grid.innerHTML = servers
-    .map((s) => {
-      const isSelected = s.id === selectedServerId
-      let statusHtml = ''
-      let playersHtml = ''
-      let pingHtml = ''
-      let joinBtnHtml = ''
+  if (communitySection && communityGrid) {
+    if (communityServers.length > 0) {
+      communitySection.style.display = ''
+      communityGrid.innerHTML = communityServers.map(renderServerCardHtml).join('')
+    } else {
+      communitySection.style.display = 'none'
+      communityGrid.innerHTML = ''
+    }
+  }
 
-      if (s.isProtected) {
-        statusHtml = `<span class="card-badge card-badge-status" style="border-color:rgba(245,158,11,0.35); color:#f59e0b;"><svg class="solar-icon solar-bold" style="width:12px;height:12px;display:inline-block;vertical-align:-1px;margin-right:3px;" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>Protégé</span>`
-        playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;—</span>`
-        pingHtml = `<span>Privé</span>`
-        joinBtnHtml = `
-          <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
-            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>
-            <span>Déverrouiller</span>
-          </button>
-        `
-      } else if (s.isComingSoon) {
-        statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot coming-soon"></span>&nbsp;Arrive bientôt</span>`
-        playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;—</span>`
-        pingHtml = `<span>—</span>`
-        joinBtnHtml = `
-          <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
-            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>
-            <span>Sélectionner</span>
-          </button>
-        `
-      } else if (s.online) {
-        statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot online"></span>&nbsp;En ligne</span>`
-        playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;${s.playersOnline ?? 0}/${s.playersMax ?? 40}</span>`
-        pingHtml = `${getLatencySignalSvg()}<span>${s.pingMs ?? 0} ms</span>`
-        joinBtnHtml = `
-          <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
-            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>
-            <span>Rejoindre</span>
-          </button>
-        `
-      } else {
-        statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot offline"></span>&nbsp;Hors ligne</span>`
-        playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;—</span>`
-        pingHtml = `<span>—</span>`
-        joinBtnHtml = `
-          <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
-            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>
-            <span>Rejoindre</span>
-          </button>
-        `
-      }
-
-      const tagsHtml = s.tags.map((tag) => `<span class="server-tag-chip">${tag}</span>`).join('')
-
-      return `
-        <article class="server-card-item ${isSelected ? 'is-selected' : ''}" data-server-id="${s.id}">
-          <div class="card-banner" style="background-image: url('${s.bannerUrl}')">
-            <div class="card-banner-overlay"></div>
-            ${s.isCustom ? `<button type="button" class="btn-remove-custom-server" data-action="remove-custom" data-server-id="${s.id}" title="Retirer ce serveur personnalisé" aria-label="Retirer">&times;</button>` : ''}
-            <div class="card-banner-top">
-              ${statusHtml}
-              ${playersHtml}
-            </div>
-          </div>
-          <div class="card-content">
-            <div class="card-header-row">
-              <div class="card-title-group">
-                <span class="card-icon">${s.iconSvg}</span>
-                <div>
-                  <h3 class="card-name" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                    <span>${escapeHtml(s.name)}</span>
-                    ${s.isOfficial ? `<span class="badge-cert badge-official" title="Serveur Officiel Modey" style="font-size:10px; font-weight:800; background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><svg style="width:10px; height:10px; fill:currentColor;" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg> Officiel</span>` : (s.isVerified ? `<span class="badge-cert badge-verified" title="Serveur Partenaire Vérifié" style="font-size:10px; font-weight:800; background:#0284c7; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><svg style="width:10px; height:10px; fill:currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg> Vérifié</span>` : (s.isCustom ? `<span class="badge-cert" title="Serveur Personnalisé" style="font-size:10px; font-weight:800; background:#475569; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center;">Personnalisé</span>` : ''))}
-                  </h3>
-                  <span class="card-subtitle">${escapeHtml(s.subtitle)}</span>
-                </div>
-              </div>
-              <div class="card-latency text-green">
-                ${pingHtml}
-              </div>
-            </div>
-            <p class="card-description">${escapeHtml(s.description)}</p>
-            ${s.tags && s.tags.length > 0 ? `<div class="card-tags-list">${tagsHtml}</div>` : ''}
-            <div class="card-footer-row">
-              ${joinBtnHtml}
-              <button class="btn-card-details" data-action="details" data-server-id="${s.id}">
-                <span>Voir les détails</span>
-                <span class="arrow-right">→</span>
-              </button>
-            </div>
-          </div>
-        </article>
+  if (customServers.length === 0) {
+    const hasSearchOrFilter = Boolean(searchQuery.trim() || activeFilterTag !== 'all')
+    customGrid.innerHTML = hasSearchOrFilter
+      ? `<div class="custom-servers-empty-card"><span>Aucun serveur privé ou personnalisé ne correspond à votre filtre.</span></div>`
+      : `
+        <div class="custom-servers-empty-card">
+          <span>Aucun serveur privé ou personnalisé enregistré pour le moment.</span>
+          <button type="button" class="btn-inline-add-custom" id="btn-inline-add-custom">+ Ajouter par IP / Privé</button>
+        </div>
       `
-    })
-    .join('')
+  } else {
+    customGrid.innerHTML = customServers.map(renderServerCardHtml).join('')
+  }
 
-  grid.querySelectorAll('.server-card-item').forEach((card) => {
+  el('btn-inline-add-custom')?.addEventListener('click', () => {
+    el('btn-add-custom-server')?.click()
+  })
+
+  catalogCol.querySelectorAll('.server-card-item').forEach((card) => {
     card.addEventListener('click', (e) => {
       const target = e.target as HTMLElement
       const removeBtn = target.closest('[data-action="remove-custom"]')
@@ -643,6 +703,7 @@ function renderCards() {
         if (idToRemove) {
           const next = loadCustomServers().filter((c) => c.id !== idToRemove)
           saveCustomServers(next)
+          delete pingLiveCache[idToRemove]
           if (selectedServerId === idToRemove) {
             selectedServerId = 'athena'
           }
@@ -655,8 +716,8 @@ function renderCards() {
       const serverId = card.getAttribute('data-server-id')
       if (!serverId) return
 
-      const servers = buildServersList()
-      const server = servers.find((s) => s.id === serverId)
+      const currentServers = buildServersList()
+      const server = currentServers.find((s) => s.id === serverId)
       if (!server) return
 
       if (joinBtn) {
@@ -760,6 +821,27 @@ function renderInspector(server: ServerItem) {
     }
   }
 
+  // Bandeau d'information dynamique selon la catégorie du serveur
+  const calloutEl = el('inspector-type-callout')
+  const calloutTextEl = el('inspector-callout-text')
+  if (calloutEl && calloutTextEl) {
+    calloutEl.classList.remove('is-custom', 'is-verified')
+    if (server.isCustom) {
+      calloutEl.classList.add('is-custom')
+      calloutTextEl.textContent = server.requiresPassword
+        ? 'Serveur privé protégé par mot de passe. Les accès et mises à jour sont gérés par son hébergeur.'
+        : 'Serveur personnalisé ajouté par IP directe. Vérifiez son statut et ses accès auprès de son hébergeur.'
+    } else if (server.isOfficial) {
+      calloutTextEl.textContent = 'Ce serveur est un serveur officiel Modey. Aucune installation supplémentaire n\'est nécessaire.'
+    } else if (server.isVerified) {
+      calloutEl.classList.add('is-verified')
+      calloutTextEl.textContent = 'Serveur partenaire vérifié sur le réseau Modey. Ses informations sont supervisées.'
+    } else {
+      calloutEl.classList.add('is-verified')
+      calloutTextEl.textContent = 'Serveur tiers référencé sur le réseau Modey.'
+    }
+  }
+
   // Galerie de captures d'écran
   const gallerySection = el('inspector-gallery-section')
   const galleryGrid = el('inspector-gallery-grid')
@@ -790,29 +872,47 @@ async function handleJoinServer(server: ServerItem) {
   if (profile && server.isCustom) {
     const customList = loadCustomServers()
     const customEntry = customList.find((c) => c.slug === server.slug || c.id === server.id)
-    if (customEntry?.needsPasswordPrompt) {
-      const pwd = await Dialog.prompt(
-        `Le mot de passe du serveur privé « ${server.name} » a été modifié par son hébergeur.\nVeuillez saisir le nouveau mot de passe :`,
-        '',
-        `Accès Privé — ${server.name}`,
-        true
-      )
-      if (!pwd) return
+    if (customEntry) {
       const addr = customEntry.port && customEntry.port !== 25565 ? `${customEntry.ip}:${customEntry.port}` : customEntry.ip
-      const verify = await profiles.resolveCustom(addr, pwd).catch(() => null)
-      if (verify?.requiresPassword) {
-        await Dialog.show(
-          verify.error || 'Mot de passe incorrect pour ce serveur privé.',
-          [{ text: 'Fermer', type: 'ok' }],
-          'Accès Refusé'
+      const liveCheck: any = await profiles.resolveCustom(addr, customEntry.password || '').catch(() => null)
+      const mustPromptPwd = Boolean(liveCheck?.requiresPassword || customEntry.needsPasswordPrompt)
+      if (mustPromptPwd) {
+        const promptMsg = customEntry.password
+          ? `Le mot de passe du serveur privé « ${server.name} » est requis ou a été modifié.\nVeuillez saisir le mot de passe d'accès :`
+          : `Ce serveur privé (« ${server.name} ») est protégé par un mot de passe.\nVeuillez saisir le mot de passe pour continuer :`
+        const pwd = await Dialog.prompt(
+          promptMsg,
+          '',
+          `Accès Privé — ${server.name}`,
+          true
         )
-        return
+        if (!pwd) return
+        const verify: any = await profiles.resolveCustom(addr, pwd).catch(() => null)
+        if (!verify || verify.requiresPassword) {
+          await Dialog.show(
+            verify?.error || 'Mot de passe incorrect ou serveur privé inaccessible.',
+            [{ text: 'Fermer', type: 'ok' }],
+            'Accès Refusé'
+          )
+          return
+        }
+        customEntry.password = pwd
+        customEntry.requiresPassword = true
+        customEntry.needsPasswordPrompt = false
+        const meta = verify?.standaloneMeta || verify?.profile
+        if (meta?.passwordVersion) customEntry.passwordVersion = meta.passwordVersion
+        saveCustomServers(customList)
+        updateDisplay()
+      } else if (liveCheck?.standaloneMeta?.requiresPassword) {
+        // Déjà déverrouillé avec le mot de passe enregistré : s'assurer que le flag est synchronisé
+        if (!customEntry.requiresPassword) {
+          customEntry.requiresPassword = true
+          if (liveCheck.standaloneMeta.passwordVersion) {
+            customEntry.passwordVersion = liveCheck.standaloneMeta.passwordVersion
+          }
+          saveCustomServers(customList)
+        }
       }
-      customEntry.password = pwd
-      customEntry.needsPasswordPrompt = false
-      const meta = verify?.standaloneMeta || verify?.profile
-      if (meta?.passwordVersion) customEntry.passwordVersion = meta.passwordVersion
-      saveCustomServers(customList)
     }
   }
 
