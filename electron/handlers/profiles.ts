@@ -62,10 +62,27 @@ export function registerProfilesHandlers() {
         try {
           const ctrl = new AbortController()
           const timer = setTimeout(() => ctrl.abort(), 900)
-          const metaResp = await fetch(`http://${probeHost}:3008/server-meta`, { signal: ctrl.signal })
+          const headers: Record<string, string> = {}
+          if (password && String(password).trim()) {
+            headers['X-Modey-Server-Password'] = String(password).trim()
+          }
+          const metaResp = await fetch(`http://${probeHost}:3008/server-meta`, { headers, signal: ctrl.signal })
           clearTimeout(timer)
           if (metaResp.ok) {
             const metaJson = await metaResp.json().catch(() => null)
+            if (metaJson?.requiresPassword && !metaJson?.unlocked) {
+              return {
+                success: false,
+                found: true,
+                requiresPassword: true,
+                isStandalone: true,
+                passwordVersion: metaJson.passwordVersion || '',
+                standaloneMeta: metaJson,
+                error: password
+                  ? 'Mot de passe incorrect pour ce serveur privé.'
+                  : 'Ce serveur privé est protégé par un mot de passe.'
+              }
+            }
             if (metaJson?.success && metaJson?.name) {
               return {
                 success: false,

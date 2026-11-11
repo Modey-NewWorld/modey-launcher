@@ -51,13 +51,15 @@ export async function resolveUpdaterUrl(
 export async function fetchServerManifest(
   adminToolUrl: string,
   slug: string,
-  customUpdaterUrl?: string
+  customUpdaterUrl?: string,
+  serverPassword?: string
 ): Promise<any> {
   const cleanSlug = (slug || 'athena').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
   const targetUrl = (customUpdaterUrl && customUpdaterUrl.trim())
     ? customUpdaterUrl.trim()
     : `${adminToolUrl}/api/files-updater/${cleanSlug}`
-  const cacheKey = `${cleanSlug}::${targetUrl}`
+  const pwdKey = serverPassword ? `:pwd:${serverPassword.length}` : ''
+  const cacheKey = `${cleanSlug}::${targetUrl}${pwdKey}`
   const now = Date.now()
 
   // 1. Vérifier si un cache récent (< 30 secondes) est disponible
@@ -77,6 +79,9 @@ export async function fetchServerManifest(
       if (cached?.etag) {
         headers['If-None-Match'] = cached.etag
       }
+      if (serverPassword && String(serverPassword).trim()) {
+        headers['X-Modey-Server-Password'] = String(serverPassword).trim()
+      }
 
       const resp = await fetch(targetUrl, { headers }).catch((err) => {
         logger.warn(`[ManifestCache] Erreur réseau lors de la récupération du manifeste (${cleanSlug}) :`, err)
@@ -93,6 +98,11 @@ export async function fetchServerManifest(
         cached.cachedAt = Date.now()
         logger.info(`[ManifestCache] 304 Not Modified reçu pour ${cleanSlug} (0 octet transféré)`)
         return cached.data
+      }
+
+      if (resp.status === 401) {
+        memoryManifests.delete(cacheKey)
+        throw new Error('PASSWORD_REQUIRED')
       }
 
       if (!resp.ok) {

@@ -33,7 +33,7 @@ contextBridge.exposeInMainWorld('api', {
     resolveCustom: (
       query: string,
       password?: string
-    ): Promise<{ success: boolean; found?: boolean; requiresPassword?: boolean; slug?: string; token?: string; profile?: any; error?: string }> =>
+    ): Promise<{ success: boolean; found?: boolean; requiresPassword?: boolean; isStandalone?: boolean; passwordVersion?: string; standaloneMeta?: any; slug?: string; token?: string; profile?: any; error?: string }> =>
       ipcRenderer.invoke(IPC.profiles.resolveCustom, query, password)
   },
   game: {
@@ -50,10 +50,9 @@ contextBridge.exposeInMainWorld('api', {
       loaderVersion?: string
       updaterUrl?: string
       isCustomServer?: boolean
+      serverPassword?: string
       forceClean?: boolean
-    }) => {
-      ipcRenderer.invoke(IPC.game.launch, payload)
-    },
+    }) => ipcRenderer.invoke(IPC.game.launch, payload),
 
     launchComputeDownload: (callback: () => void) => ipcRenderer.on(IPC.game.launchComputeDownload, (_event) => callback()),
 

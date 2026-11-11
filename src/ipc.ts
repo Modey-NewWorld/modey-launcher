@@ -39,7 +39,7 @@ declare global {
         resolveCustom: (
           query: string,
           password?: string
-        ) => Promise<{ success: boolean; found?: boolean; requiresPassword?: boolean; slug?: string; token?: string; profile?: any; error?: string }>
+        ) => Promise<{ success: boolean; found?: boolean; requiresPassword?: boolean; isStandalone?: boolean; passwordVersion?: string; standaloneMeta?: any; slug?: string; token?: string; profile?: any; error?: string }>
       }
       server: {
         getStatus: (ip: string, port?: number) => Promise<IServerStatus | null>
@@ -75,6 +75,7 @@ declare global {
           loaderVersion?: string
           updaterUrl?: string
           isCustomServer?: boolean
+          serverPassword?: string
           forceClean?: boolean
         }) => Promise<void>
 
@@ -196,6 +197,7 @@ export const game = {
     loaderVersion?: string
     updaterUrl?: string
     isCustomServer?: boolean
+    serverPassword?: string
     forceClean?: boolean
   }) => await window.api.game.launch(payload),
   launchComputeDownload: (callback: () => void) => window.api.game.launchComputeDownload(callback),

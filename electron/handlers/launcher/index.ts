@@ -251,6 +251,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       loaderVersion?: string
       updaterUrl?: string
       isCustomServer?: boolean
+      serverPassword?: string
       forceClean?: boolean
     }) => {
       const {
@@ -264,6 +265,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         loaderVersion,
         updaterUrl,
         isCustomServer,
+        serverPassword,
         forceClean
       } = payload
 
@@ -364,19 +366,8 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       const effectiveCustomUpdaterUrl = (updaterUrl && updaterUrl.trim())
         ? updaterUrl.trim()
         : (serverInfo?.updaterUrl ? String(serverInfo.updaterUrl).trim() : '')
-      const effectiveModpackUrl = effectiveCustomUpdaterUrl || (isCustomServer ? undefined : `${ADMINTOOL_URL}/api/files-updater/${profileSlug}`)
 
-      // 1. Récupérer le manifest distant du serveur (décentralisé ou centralisé selon effectiveModpackUrl)
-      let updaterManifest: any = null
-      if (effectiveModpackUrl) {
-        try {
-          updaterManifest = await fetchServerManifest(ADMINTOOL_URL, profileSlug, effectiveCustomUpdaterUrl || undefined).catch(() => null)
-        } catch (manifestErr) {
-          logger.warn('Failed to fetch manifest from server:', manifestErr)
-        }
-      }
-
-      // 1.b Aligner Minecraft / Loader / LoaderVersion sur la vérité en direct du serveur (/server-meta ou manifest)
+      // 1. Aligner Minecraft / Loader / LoaderVersion & vérifier l'accès par mot de passe sur /server-meta en amont
       let liveServerMeta: any = null
       const metaBaseUrl = effectiveCustomUpdaterUrl
         ? effectiveCustomUpdaterUrl.replace(/\/files-updater\/?$/i, '').replace(/\/+$/, '')
@@ -385,12 +376,43 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         try {
           const ctrl = new AbortController()
           const timer = setTimeout(() => ctrl.abort(), 1200)
-          const metaResp = await fetch(`${metaBaseUrl}/server-meta`, { signal: ctrl.signal })
+          const metaHeaders: Record<string, string> = {}
+          if (serverPassword && String(serverPassword).trim()) {
+            metaHeaders['X-Modey-Server-Password'] = String(serverPassword).trim()
+          }
+          const metaResp = await fetch(`${metaBaseUrl}/server-meta`, { headers: metaHeaders, signal: ctrl.signal })
           clearTimeout(timer)
           if (metaResp.ok) {
             liveServerMeta = await metaResp.json().catch(() => null)
           }
         } catch (_) {}
+      }
+
+      if (liveServerMeta?.requiresPassword && !liveServerMeta?.unlocked) {
+        throw new Error('PASSWORD_REQUIRED: Le mot de passe de ce serveur privé est requis ou a été modifié.')
+      }
+
+      const signedOrCleanCustomUpdaterUrl = (liveServerMeta?.signedUpdaterUrl && String(liveServerMeta.signedUpdaterUrl).trim())
+        ? String(liveServerMeta.signedUpdaterUrl).trim()
+        : effectiveCustomUpdaterUrl
+      const effectiveModpackUrl = signedOrCleanCustomUpdaterUrl || (isCustomServer ? undefined : `${ADMINTOOL_URL}/api/files-updater/${profileSlug}`)
+
+      // 1.b Récupérer le manifest distant du serveur (décentralisé ou centralisé selon effectiveModpackUrl)
+      let updaterManifest: any = null
+      if (effectiveModpackUrl) {
+        try {
+          updaterManifest = await fetchServerManifest(
+            ADMINTOOL_URL,
+            profileSlug,
+            effectiveCustomUpdaterUrl || undefined,
+            serverPassword
+          )
+        } catch (manifestErr: any) {
+          if (manifestErr?.message === 'PASSWORD_REQUIRED') {
+            throw new Error('PASSWORD_REQUIRED: Le mot de passe de ce serveur privé est requis ou a été modifié.')
+          }
+          logger.warn('Failed to fetch manifest from server:', manifestErr)
+        }
       }
 
       const authoritativeMc = liveServerMeta?.minecraftVersion || updaterManifest?.minecraftVersion || serverInfo?.minecraftVersion

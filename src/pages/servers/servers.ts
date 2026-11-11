@@ -67,6 +67,9 @@ interface CustomServerEntry {
   ip: string
   port: number
   password?: string
+  requiresPassword?: boolean
+  passwordVersion?: string
+  needsPasswordPrompt?: boolean
   version?: string
   loader?: string
   loaderVersion?: string
@@ -341,7 +344,17 @@ async function probeLiveServers() {
     if (!c.ip) continue
     try {
       const addr = c.port && c.port !== 25565 ? `${c.ip}:${c.port}` : c.ip
-      const res: any = await profiles.resolveCustom(addr).catch(() => null)
+      const res: any = await profiles.resolveCustom(addr, c.password || '').catch(() => null)
+      if (res?.requiresPassword) {
+        const nextVer = res.passwordVersion || c.passwordVersion || ''
+        if (!c.needsPasswordPrompt || nextVer !== c.passwordVersion || !c.requiresPassword) {
+          c.needsPasswordPrompt = true
+          c.requiresPassword = true
+          if (nextVer) c.passwordVersion = nextVer
+          customDirty = true
+        }
+        continue
+      }
       const meta = res?.profile || res?.standaloneMeta
       if (meta) {
         const nextName = (c.name && c.name !== c.ip && c.name !== 'localhost') ? c.name : (meta.name || c.name)
@@ -354,6 +367,8 @@ async function probeLiveServers() {
         const nextTags = Array.isArray(meta.tags) && meta.tags.length > 0 ? meta.tags : c.tags
         const nextBanner = meta.bannerUrl || c.bannerUrl
         const nextIcon = meta.iconUrl || c.iconUrl
+        const nextRequiresPwd = Boolean(meta.requiresPassword)
+        const nextPwdVer = meta.passwordVersion || c.passwordVersion || ''
         const nextClientCfg = meta.clientConfig || (meta.allowClientChoice !== undefined || meta.serverLoader ? {
           serverLoader: meta.serverLoader,
           serverLoaderVersion: meta.serverLoaderVersion,
@@ -375,6 +390,9 @@ async function probeLiveServers() {
           nextDesc !== c.description ||
           nextBanner !== c.bannerUrl ||
           nextIcon !== c.iconUrl ||
+          nextRequiresPwd !== Boolean(c.requiresPassword) ||
+          nextPwdVer !== (c.passwordVersion || '') ||
+          c.needsPasswordPrompt ||
           clientCfgChanged
         ) {
           c.name = nextName
@@ -386,6 +404,9 @@ async function probeLiveServers() {
           if (nextTags) c.tags = nextTags
           if (nextBanner) c.bannerUrl = nextBanner
           if (nextIcon) c.iconUrl = nextIcon
+          c.requiresPassword = nextRequiresPwd
+          if (nextPwdVer) c.passwordVersion = nextPwdVer
+          c.needsPasswordPrompt = false
           if (nextClientCfg) c.clientConfig = nextClientCfg
           customDirty = true
         }
@@ -766,6 +787,35 @@ async function handleJoinServer(server: ServerItem) {
     (p) => p.slug === server.slug || p.slug === server.id
   )
 
+  if (profile && server.isCustom) {
+    const customList = loadCustomServers()
+    const customEntry = customList.find((c) => c.slug === server.slug || c.id === server.id)
+    if (customEntry?.needsPasswordPrompt) {
+      const pwd = await Dialog.prompt(
+        `Le mot de passe du serveur privé « ${server.name} » a été modifié par son hébergeur.\nVeuillez saisir le nouveau mot de passe :`,
+        '',
+        `Accès Privé — ${server.name}`,
+        true
+      )
+      if (!pwd) return
+      const addr = customEntry.port && customEntry.port !== 25565 ? `${customEntry.ip}:${customEntry.port}` : customEntry.ip
+      const verify = await profiles.resolveCustom(addr, pwd).catch(() => null)
+      if (verify?.requiresPassword) {
+        await Dialog.show(
+          verify.error || 'Mot de passe incorrect pour ce serveur privé.',
+          [{ text: 'Fermer', type: 'ok' }],
+          'Accès Refusé'
+        )
+        return
+      }
+      customEntry.password = pwd
+      customEntry.needsPasswordPrompt = false
+      const meta = verify?.standaloneMeta || verify?.profile
+      if (meta?.passwordVersion) customEntry.passwordVersion = meta.passwordVersion
+      saveCustomServers(customList)
+    }
+  }
+
   if (profile && (profile.visibility === 'PROTECTED' || server.isProtected)) {
     const pwd = await Dialog.prompt(
       `Ce serveur est protégé par un mot de passe ou un code d'accès privé.\nVeuillez saisir le mot de passe pour le déverrouiller :`,
@@ -944,9 +994,12 @@ export function initServers(hooks: { onSelectProfile: (profile: any) => void }) 
 
       if (resolved?.found) {
         if (errBox) {
-          errBox.textContent = resolved.error || 'Mot de passe incorrect pour ce serveur privé.'
+          errBox.textContent = resolved.requiresPassword && !password
+            ? 'Ce serveur privé est protégé : veuillez saisir le mot de passe d\'accès.'
+            : (resolved.error || 'Mot de passe incorrect pour ce serveur privé.')
           errBox.style.display = 'block'
         }
+        if (resolved.requiresPassword) passInput?.focus()
         return
       }
 
@@ -993,6 +1046,9 @@ export function initServers(hooks: { onSelectProfile: (profile: any) => void }) 
         ip: host,
         port,
         ...(password ? { password } : {}),
+        requiresPassword: Boolean(standaloneMeta?.requiresPassword),
+        ...(standaloneMeta?.passwordVersion ? { passwordVersion: standaloneMeta.passwordVersion } : {}),
+        needsPasswordPrompt: false,
         version: detectedVer,
         ...(normalizedMetaLoader ? { loader: normalizedMetaLoader } : {}),
         ...(standaloneMeta?.loaderVersion ? { loaderVersion: standaloneMeta.loaderVersion } : {}),

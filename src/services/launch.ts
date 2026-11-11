@@ -1,4 +1,4 @@
-import { game, settings } from '../ipc'
+import { game, profiles, settings } from '../ipc'
 import { getUser } from '../state'
 import { targetFor } from './serverStatus'
 import { Dialog } from '../components/dialog'
@@ -31,6 +31,79 @@ let ui: LaunchUi | null = null
 let totalToDownload = 0
 let totalDownloadedByType: { type: string; size: number }[] = []
 let isLaunching = false
+
+async function resolveCustomServerPassword(profile: any, host: string, port: number): Promise<{ cancelled: boolean; password?: string }> {
+  const customKey = 'modey_custom_servers'
+  let list: any[] = []
+  try {
+    const raw = window.localStorage?.getItem(customKey)
+    list = raw ? JSON.parse(raw) : []
+    if (!Array.isArray(list)) list = []
+  } catch {
+    list = []
+  }
+
+  const idx = list.findIndex((c) => c?.slug === profile?.slug || c?.id === profile?.id)
+  const entry = idx >= 0 ? list[idx] : null
+  const addr = port && port !== 25565 ? `${host}:${port}` : host
+
+  let currentPassword = typeof entry?.password === 'string' ? entry.password : ''
+  const probe = await profiles.resolveCustom(addr, currentPassword).catch(() => null)
+
+  if (probe?.requiresPassword) {
+    let unlocked = false
+    while (!unlocked) {
+      const promptMsg = currentPassword
+        ? `Le mot de passe du serveur privé « ${profile?.name || host} » a changé ou est invalide.\nVeuillez saisir le nouveau mot de passe :`
+        : `Le serveur privé « ${profile?.name || host} » est protégé par mot de passe.\nVeuillez saisir le mot de passe d'accès :`
+      const entered = await Dialog.prompt(promptMsg, '', `Accès Privé — ${profile?.name || host}`, true)
+      if (!entered) {
+        return { cancelled: true }
+      }
+      const verify = await profiles.resolveCustom(addr, entered).catch(() => null)
+      if (!verify?.requiresPassword) {
+        currentPassword = entered
+        unlocked = true
+        const meta = verify?.standaloneMeta || verify?.profile
+        if (idx >= 0) {
+          list[idx] = {
+            ...list[idx],
+            password: entered,
+            requiresPassword: true,
+            needsPasswordPrompt: false,
+            ...(meta?.passwordVersion ? { passwordVersion: meta.passwordVersion } : {}),
+            ...(meta?.updaterUrl ? { updaterUrl: meta.updaterUrl } : {})
+          }
+          try { window.localStorage?.setItem(customKey, JSON.stringify(list)) } catch {}
+        }
+        if (meta && profile) {
+          if (meta.updaterUrl) profile.updaterUrl = meta.updaterUrl
+          if (profile.modey && meta.updaterUrl) profile.modey.updaterUrl = meta.updaterUrl
+        }
+      } else {
+        currentPassword = entered
+        await Dialog.show(
+          verify.error || 'Mot de passe incorrect pour ce serveur privé.',
+          [{ text: 'Réessayer', type: 'ok' }],
+          'Accès Refusé'
+        )
+      }
+    }
+  } else if (probe?.standaloneMeta && idx >= 0) {
+    const meta = probe.standaloneMeta
+    if (meta.passwordVersion !== list[idx].passwordVersion || list[idx].needsPasswordPrompt) {
+      list[idx] = {
+        ...list[idx],
+        requiresPassword: Boolean(meta.requiresPassword),
+        needsPasswordPrompt: false,
+        ...(meta.passwordVersion ? { passwordVersion: meta.passwordVersion } : {})
+      }
+      try { window.localStorage?.setItem(customKey, JSON.stringify(list)) } catch {}
+    }
+  }
+
+  return { cancelled: false, password: currentPassword || undefined }
+}
 
 export async function startLaunch() {
   if (!ui || isLaunching) return
@@ -90,6 +163,14 @@ export async function startLaunch() {
     }
   }
 
+  let customPassword: string | undefined
+  if (profile?.isCustomServer) {
+    const targetPreview = targetFor(profile)
+    const pwdResult = await resolveCustomServerPassword(profile, targetPreview.host, targetPreview.port)
+    if (pwdResult.cancelled) return
+    customPassword = pwdResult.password
+  }
+
   isLaunching = true
   ui.setPlayEnabled(false)
   ui.setPlayVisible(false)
@@ -123,14 +204,22 @@ export async function startLaunch() {
       loaderVersion: ldrVersion,
       updaterUrl: updaterUrl || undefined,
       isCustomServer,
+      serverPassword: customPassword,
       forceClean: forceClean
     })
-  } catch (err) {
+  } catch (err: any) {
     logger.error('Erreur lors du déclenchement du lancement:', err)
     isLaunching = false
     ui.setPlayEnabled(true)
     ui.setPlayVisible(true)
     ui.progress.hide()
+    if (String(err?.message || '').includes('PASSWORD_REQUIRED')) {
+      await Dialog.show(
+        'Le mot de passe de ce serveur privé est requis ou a été modifié. Cliquez à nouveau sur Jouer pour saisir le nouveau mot de passe.',
+        [{ text: 'Compris', type: 'ok' }],
+        'Mot de passe requis'
+      )
+    }
   }
 }
 
