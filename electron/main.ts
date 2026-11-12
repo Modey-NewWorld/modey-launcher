@@ -1,6 +1,13 @@
 import { app, BrowserWindow, Menu, nativeTheme, shell, ipcMain, screen } from 'electron'
+import dns from 'node:dns'
 import path from 'node:path'
 import fs from 'node:fs'
+
+// Force la résolution DNS IPv4 en priorité absolue pour fiabiliser les connexions
+// sur partages de connexion 4G/5G et réseaux avec IPv6 instable ou non routé.
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first')
+}
 import { registerAuthHandlers } from './handlers/auth'
 import { registerLauncherHandlers } from './handlers/launcher/index'
 import { registerSettingsHandlers, getSavedUiScale, getSavedBackgroundSleep } from './handlers/settings'
