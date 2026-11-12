@@ -36,6 +36,17 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;')
 }
 
+function resolveMediaSrc(url?: string): string {
+  if (!url) return ''
+  const trimmed = String(url).trim()
+  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return ''
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+    return trimmed
+  }
+  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  return `https://api.modey.flowcrea.fr${cleanPath}`
+}
+
 export function renderMarkdownToHtml(md: string): string {
   if (!md) return ''
 
@@ -127,8 +138,8 @@ export class NewsModal {
   public static show(item: INewsModalItem): void {
     const overlay = this.getOrCreateOverlay()
 
-    const rawBanner = item.image || item.image_url || ''
-    const rawIcon = item.icon || item.icon_url || ''
+    const rawBanner = resolveMediaSrc(item.image || item.image_url)
+    const rawIcon = resolveMediaSrc(item.icon || item.icon_url)
     const author = item.author || 'Équipe Modey'
     const category = (item.category || 'announcement').toLowerCase()
 

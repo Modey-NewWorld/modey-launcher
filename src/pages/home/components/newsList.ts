@@ -11,6 +11,17 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;')
 }
 
+function resolveMediaSrc(url?: string): string {
+  if (!url) return ''
+  const trimmed = String(url).trim()
+  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return ''
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+    return trimmed
+  }
+  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  return `https://api.modey.flowcrea.fr${cleanPath}`
+}
+
 export async function loadNews() {
   const newsList = document.getElementById('events-news-list')
   if (!newsList) return
@@ -65,8 +76,9 @@ export async function loadNews() {
     }
     const dateText = item.createdAt ? formatDate(item.createdAt) : 'Récent'
 
-    const rawImg = String(item.image || item.image_url || item.icon || item.icon_url || '').trim()
-    const hasImage = Boolean(rawImg && rawImg !== 'null' && rawImg !== 'undefined')
+    const rawImg = item.image || item.image_url || item.icon || item.icon_url || ''
+    const resolvedImg = resolveMediaSrc(rawImg)
+    const hasImage = Boolean(resolvedImg)
 
     const safeTitle = escapeHtml(item.title || '')
     const safeTeaser = escapeHtml(teaser)
@@ -76,7 +88,7 @@ export async function loadNews() {
     const itemHtml = hasImage
       ? `
       <div class="news-event-item with-image" data-index="${index}">
-        <div class="news-event-banner" style="background-image: url('${escapeHtml(rawImg)}')">
+        <div class="news-event-banner" style="background-image: url('${escapeHtml(resolvedImg)}')">
           <div class="news-event-banner-badges">
             <span class="news-event-badge ${badgeClass}">${safeBadge}</span>
             <span class="news-event-date-pill">${safeDate}</span>
