@@ -1,5 +1,7 @@
 import { refreshProfileIdentity, refreshProfileServer } from './pages/profile/profile'
+import { syncStudioControls } from './pages/profile/components/studio3d'
 import { applyServerSelection } from './pages/settings/settings'
+import shared from './shared'
 
 interface RouterHooks {
   onShowServers?: () => void
@@ -39,6 +41,7 @@ export function setActiveNav(active: HTMLElement | null) {
 }
 
 export function showAccueil() {
+  shared.pauseStudio()
   setActiveNav(el('nav-home'))
   if (el('modey-main')) el('modey-main')!.style.display = 'flex'
   if (el('servers-page')) el('servers-page')!.style.display = 'none'
@@ -47,6 +50,7 @@ export function showAccueil() {
 }
 
 export function showServers() {
+  shared.pauseStudio()
   setActiveNav(el('nav-servers'))
   if (el('modey-main')) el('modey-main')!.style.display = 'none'
   if (el('servers-page')) el('servers-page')!.style.display = 'flex'
@@ -63,10 +67,13 @@ export function showProfile() {
   if (el('profile-page')) el('profile-page')!.style.display = 'flex'
   refreshProfileIdentity()
   refreshProfileServer()
+  shared.resumeStudio()
+  syncStudioControls()
   el('profile-scroll')?.scrollTo({ top: 0 })
 }
 
 export function showSettings(serverSlug?: string) {
+  shared.pauseStudio()
   if (el('modey-main')) el('modey-main')!.style.display = 'none'
   if (el('servers-page')) el('servers-page')!.style.display = 'none'
   if (el('profile-page')) el('profile-page')!.style.display = 'none'

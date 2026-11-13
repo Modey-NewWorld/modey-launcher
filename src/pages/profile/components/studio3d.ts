@@ -1,7 +1,7 @@
 import { WalkingAnimation } from 'skinview3d'
 import { skin } from '../../../ipc'
 import { getUser } from '../../../state'
-import shared from '../../../shared'
+import shared, { DEFAULT_STUDIO_ROTATION_Y } from '../../../shared'
 import { Dialog } from '../../../components/dialog'
 import logger from 'electron-log/renderer'
 
@@ -19,6 +19,15 @@ function syncAnimationBtn() {
   const enabled = shared.isStudioAnimationEnabled()
   btn?.classList.toggle('active', enabled)
   if (label) label.innerText = enabled ? 'Animation : ON' : 'Animation : OFF'
+}
+
+/** Synchronise l'état visuel des boutons de contrôle (rotation, animation) avec le viewer actif */
+export function syncStudioControls() {
+  const v = viewer()
+  if (!v) return
+  rotating = Boolean(v.autoRotate)
+  el('btn-rotate')?.classList.toggle('active', rotating)
+  syncAnimationBtn()
 }
 
 function applyAnimationState() {
@@ -103,9 +112,8 @@ export function bindStudio(hooks: { onSkinChanged: () => void }) {
     const v = viewer()
     if (!v) return
     v.camera.position.set(-20, -2, 35)
-    v.playerObject.rotation.y = 0
+    v.playerObject.rotation.y = DEFAULT_STUDIO_ROTATION_Y
     document.querySelectorAll('.face-btn').forEach((b) => b.classList.remove('active'))
-    el('btn-face')?.classList.add('active')
   })
 
   el('btn-animation')?.addEventListener('click', () => {
@@ -249,6 +257,8 @@ export function bindStudio(hooks: { onSkinChanged: () => void }) {
     }
     const v = viewer()
     if (!v) return
+    // Rendu synchrone obligatoire car preserveDrawingBuffer est à false
+    v.render()
     const a = document.createElement('a')
     a.href = v.canvas.toDataURL('image/png')
     a.download = `${username}-skin.png`

@@ -185,24 +185,44 @@
   <div class="custom-server-modal-backdrop" id="custom-server-modal" style="display:none;" aria-hidden="true">
     <div class="custom-server-modal-card" role="dialog" aria-modal="true" aria-labelledby="custom-server-modal-title">
       <div class="custom-server-modal-header">
-        <div>
+        <div class="modal-header-icon">
+          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-server-bold"></use></svg>
+        </div>
+        <div class="modal-header-text">
           <h3 id="custom-server-modal-title">Ajouter un serveur</h3>
           <p>Accédez à un serveur privé Modey ou ajoutez un serveur personnalisé par IP.</p>
         </div>
-        <button type="button" class="btn-modal-close" id="btn-custom-srv-close" aria-label="Fermer">&times;</button>
+        <button type="button" class="btn-modal-close" id="btn-custom-srv-close" aria-label="Fermer" title="Fermer">✕</button>
       </div>
       <form id="custom-server-form" class="custom-server-modal-body">
         <div class="custom-srv-field">
-          <label for="custom-srv-address">Adresse IP / Domaine ou identifiant <span class="req">*</span></label>
-          <input type="text" id="custom-srv-address" placeholder="ex: play.monserveur.fr:25565 ou slug" autocomplete="off" required />
+          <label for="custom-srv-address">
+            <span>Adresse IP / Domaine ou identifiant</span>
+            <span class="req">*</span>
+          </label>
+          <div class="input-with-icon">
+            <svg class="solar-icon solar-bold field-icon" aria-hidden="true"><use href="#solar-feed-bold"></use></svg>
+            <input type="text" id="custom-srv-address" placeholder="ex: play.monserveur.fr:25565 ou slug" autocomplete="off" required />
+          </div>
         </div>
         <div class="custom-srv-field">
-          <label for="custom-srv-password">Mot de passe d'accès <span class="req">*</span></label>
-          <input type="password" id="custom-srv-password" placeholder="Obligatoire pour les serveurs privés / locaux" autocomplete="off" />
+          <label for="custom-srv-password">
+            <span>Mot de passe d'accès</span>
+            <span class="req">*</span>
+          </label>
+          <div class="input-with-icon">
+            <svg class="solar-icon solar-bold field-icon" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>
+            <input type="password" id="custom-srv-password" placeholder="Obligatoire pour les serveurs privés / locaux" autocomplete="off" />
+          </div>
         </div>
         <div class="custom-srv-field">
-          <label for="custom-srv-name">Nom affiché (optionnel)</label>
-          <input type="text" id="custom-srv-name" placeholder="ex: Serveur Entre Amis" autocomplete="off" />
+          <label for="custom-srv-name">
+            <span>Nom affiché (optionnel)</span>
+          </label>
+          <div class="input-with-icon">
+            <svg class="solar-icon solar-bold field-icon" aria-hidden="true"><use href="#solar-notes-bold"></use></svg>
+            <input type="text" id="custom-srv-name" placeholder="ex: Serveur Entre Amis" autocomplete="off" />
+          </div>
         </div>
         <div class="custom-srv-error" id="custom-srv-error" style="display:none;"></div>
         <div class="custom-server-modal-footer">

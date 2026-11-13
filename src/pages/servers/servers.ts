@@ -1038,6 +1038,9 @@ export function initServers(hooks: { onSelectProfile: (profile: any) => void }) 
 
   const openCustomModal = () => {
     if (!modal) return
+    if (modal.parentElement !== document.body) {
+      document.body.appendChild(modal)
+    }
     if (addrInput) addrInput.value = ''
     if (passInput) passInput.value = ''
     if (nameInput) nameInput.value = ''
@@ -1061,6 +1064,11 @@ export function initServers(hooks: { onSelectProfile: (profile: any) => void }) 
   el('btn-custom-srv-cancel')?.addEventListener('click', closeCustomModal)
   modal?.addEventListener('click', (ev) => {
     if (ev.target === modal) closeCustomModal()
+  })
+  window.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && modal && modal.style.display === 'flex') {
+      closeCustomModal()
+    }
   })
 
   form?.addEventListener('submit', async (ev) => {

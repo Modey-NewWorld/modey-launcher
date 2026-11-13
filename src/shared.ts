@@ -7,6 +7,16 @@ import { onThemeChange } from './theme'
 import { getApiBaseUrl } from './services/runtime'
 
 
+export const DEFAULT_STUDIO_ROTATION_Y = -Math.PI / 4
+
+interface StudioSessionState {
+  cameraPosition: { x: number; y: number; z: number }
+  playerRotationY: number
+  autoRotate: boolean
+}
+
+let studioSessionState: StudioSessionState | null = null
+
 export function normalizeSkinUrl(url: string | null | undefined): string {
   if (!url) return ''
   let clean = url.trim()
@@ -73,12 +83,14 @@ const shared = {
         canvas: skinCanvasSettingsEl,
         width: targetWidth,
         height: targetHeight,
-        preserveDrawingBuffer: true
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
+        preserveDrawingBuffer: false
       })
 
       shared.mainSkinViewer.animation = new WalkingAnimation()
       shared.mainSkinViewer.animation!.speed = 0.3
       shared.mainSkinViewer.camera.position.set(-20, -2, 35)
+      shared.mainSkinViewer.playerObject.rotation.y = DEFAULT_STUDIO_ROTATION_Y
       // Activer le zoom avec des limites contrôlées (évite de traverser le joueur ou de s'éloigner trop)
       shared.mainSkinViewer.controls.enableZoom = true
       shared.mainSkinViewer.controls.minDistance = 15
@@ -104,6 +116,9 @@ const shared = {
       shared.mainSkinViewer.controls.enableZoom = true
       shared.mainSkinViewer.controls.minDistance = 15
       shared.mainSkinViewer.controls.maxDistance = 75
+      if (!shared.restoreStudioSessionState()) {
+        shared.mainSkinViewer.playerObject.rotation.y = DEFAULT_STUDIO_ROTATION_Y
+      }
     }
 
     // Respecte la préférence sauvegardée (bouton Animation de la page Mon Profil)
@@ -116,10 +131,53 @@ const shared = {
       shared.mainSkinViewer.animation = null
     }
 
-    // Toujours charger le modèle standard classic 4px
-    shared.mainSkinViewer.loadSkin(normalizeSkinUrl(activeSkin.url), { model: 'default' })
+    // Modèle classique 4px ou slim 3px selon les métadonnées du skin
+    const skinModel = (activeSkin as any)?.variant === 'slim' ? 'slim' : 'default'
+    shared.mainSkinViewer.loadSkin(normalizeSkinUrl(activeSkin.url), { model: skinModel })
     if (activeCape) shared.mainSkinViewer.loadCape(activeCape.url)
     else shared.mainSkinViewer.resetCape()
+  },
+  /** Sauvegarde l'orientation, la caméra et la rotation 360 en mémoire vive (RAM de session) */
+  saveStudioSessionState: () => {
+    if (!shared.mainSkinViewer) return
+    studioSessionState = {
+      cameraPosition: {
+        x: shared.mainSkinViewer.camera.position.x,
+        y: shared.mainSkinViewer.camera.position.y,
+        z: shared.mainSkinViewer.camera.position.z
+      },
+      playerRotationY: shared.mainSkinViewer.playerObject.rotation.y,
+      autoRotate: Boolean(shared.mainSkinViewer.autoRotate)
+    }
+  },
+  /** Restaure l'état 3D enregistré lors de la session active */
+  restoreStudioSessionState: () => {
+    if (!shared.mainSkinViewer) return false
+    if (!studioSessionState) return false
+    shared.mainSkinViewer.camera.position.set(
+      studioSessionState.cameraPosition.x,
+      studioSessionState.cameraPosition.y,
+      studioSessionState.cameraPosition.z
+    )
+    shared.mainSkinViewer.playerObject.rotation.y = studioSessionState.playerRotationY
+    shared.mainSkinViewer.autoRotate = studioSessionState.autoRotate
+    if (studioSessionState.autoRotate) {
+      shared.mainSkinViewer.autoRotateSpeed = 1.2
+    }
+    return true
+  },
+  /** Met en pause la boucle de rendu WebGL et fige la caméra en RAM pour économiser le GPU */
+  pauseStudio: () => {
+    if (!shared.mainSkinViewer) return
+    shared.saveStudioSessionState()
+    shared.mainSkinViewer.renderPaused = true
+  },
+  /** Relance la boucle WebGL et restaure l'état de session du studio 3D */
+  resumeStudio: () => {
+    if (!shared.mainSkinViewer) return
+    shared.restoreStudioSessionState()
+    shared.mainSkinViewer.renderPaused = false
+    shared.mainSkinViewer.render()
   },
   /**
    * `skins` should be updated before calling this function.
@@ -134,7 +192,9 @@ const shared = {
       shared.auxiliarySkinViewer = new SkinViewer({
         canvas: document.createElement('canvas'),
         width: 240,
-        height: 300
+        height: 300,
+        pixelRatio: 1,
+        renderPaused: true
       })
 
       shared.auxiliarySkinViewer.animation = new WalkingAnimation()
@@ -142,6 +202,7 @@ const shared = {
       shared.auxiliarySkinViewer.animation!.speed = 0
       shared.auxiliarySkinViewer.zoom = 0.95
       shared.auxiliarySkinViewer.camera.position.set(-20, -2, 35)
+      shared.auxiliarySkinViewer.playerObject.rotation.y = DEFAULT_STUDIO_ROTATION_Y
       shared.auxiliarySkinViewer.controls.enabled = false
     }
 
@@ -300,11 +361,12 @@ const shared = {
       skinDiv.title = `${displayName} (${s.state === 'active' ? 'Actif' : 'Cliquer pour équiper'})`
 
       const cleanUrl = normalizeSkinUrl(s.url)
+      const skinModel = (s as any)?.variant === 'slim' ? 'slim' : 'default'
       try {
         if (shared.cachedSkinThumbnails.has(source)) {
           skinImg.src = shared.cachedSkinThumbnails.get(source)!
         } else {
-          await shared.auxiliarySkinViewer.loadSkin(cleanUrl, { model: 'default' })
+          await shared.auxiliarySkinViewer.loadSkin(cleanUrl, { model: skinModel })
           shared.auxiliarySkinViewer.render()
 
           skinImg.src = shared.auxiliarySkinViewer.canvas.toDataURL()
@@ -409,6 +471,19 @@ onThemeChange(() => {
     shared.mainSkinViewer.render()
   }
 })
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      shared.pauseStudio()
+    } else {
+      const profilePage = document.getElementById('profile-page')
+      if (profilePage && profilePage.style.display !== 'none') {
+        shared.resumeStudio()
+      }
+    }
+  })
+}
 
 export default shared
 
