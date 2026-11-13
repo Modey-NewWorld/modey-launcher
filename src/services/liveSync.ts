@@ -17,17 +17,24 @@ import logger from 'electron-log/renderer'
 
 let syncTimer: any = null
 let isSyncing = false
+let lastSyncTime = 0
 const SYNC_INTERVAL_MS = 30000 // 30 secondes
+const MIN_FOCUS_SYNC_INTERVAL_MS = 20000 // Anti-spam focus : 20s minimum entre 2 syncs
 
 /**
  * Exécute un cycle de synchronisation en direct :
  * 1. Vérification de la maintenance globale du launcher
  * 2. Rafraîchissement des profils serveurs et mise à jour dynamique du statut/bouton Jouer
- * 3. Rafraîchissement des actualités
- * 4. Actualisation du ping serveur et du nombre de joueurs connectés
+ * 3. Rafraîchissement des actualités (silencieux sans squelette)
+ * 4. Actualisation du ping serveur et du nombre de joueurs connectés (silencieux)
  * 5. Vérification des mises à jour du launcher
  */
-export async function triggerLiveSync(): Promise<void> {
+export async function triggerLiveSync(options?: { silent?: boolean; force?: boolean }): Promise<void> {
+  const silent = options?.silent ?? true
+  const force = options?.force ?? false
+  const now = Date.now()
+
+  if (!force && now - lastSyncTime < 4000) return
   if (isSyncing) return
   if (!isOnlineState()) {
     logger.debug('[LiveSync] Machine hors-ligne, synchronisation suspendue.')
@@ -35,6 +42,7 @@ export async function triggerLiveSync(): Promise<void> {
   }
 
   isSyncing = true
+  lastSyncTime = Date.now()
 
   try {
     // 1. Maintenance globale du Launcher
@@ -107,17 +115,17 @@ export async function triggerLiveSync(): Promise<void> {
       logger.warn('[LiveSync] Erreur sync profils:', profErr)
     }
 
-    // 3. Synchronisation des actualités
+    // 3. Synchronisation des actualités (silencieuse sans flash squelette)
     try {
-      await loadNews()
+      await loadNews(silent)
     } catch (newsErr) {
       logger.warn('[LiveSync] Erreur sync actualités:', newsErr)
     }
 
-    // 4. Ping serveur & joueurs connectés
+    // 4. Ping serveur & joueurs connectés (silencieux sans reset de texte)
     try {
       if (homeState.selectedProfile) {
-        await updateServerStatus(homeState.selectedProfile)
+        await updateServerStatus(homeState.selectedProfile, silent)
       }
     } catch (statusErr) {
       logger.warn('[LiveSync] Erreur ping serveur:', statusErr)
@@ -141,30 +149,35 @@ export async function triggerLiveSync(): Promise<void> {
  */
 export function startLiveSync(): void {
   stopLiveSync()
+  lastSyncTime = Date.now()
 
-  // Déclencher un cycle régulier
+  // Déclencher un cycle régulier silencieux
   syncTimer = setInterval(() => {
     if (document.hidden || document.body.classList.contains('is-asleep')) return
-    triggerLiveSync()
+    triggerLiveSync({ silent: true })
   }, SYNC_INTERVAL_MS)
 
-  // Réveil immédiat au retour sur la fenêtre ou changement de visibilité
+  // Réveil mesuré au retour sur la fenêtre ou changement de visibilité (avec anti-rebond)
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && !document.body.classList.contains('is-asleep')) {
-      triggerLiveSync()
+      if (Date.now() - lastSyncTime >= MIN_FOCUS_SYNC_INTERVAL_MS) {
+        triggerLiveSync({ silent: true })
+      }
     }
   })
 
   window.addEventListener('focus', () => {
     if (!document.hidden && !document.body.classList.contains('is-asleep')) {
-      triggerLiveSync()
+      if (Date.now() - lastSyncTime >= MIN_FOCUS_SYNC_INTERVAL_MS) {
+        triggerLiveSync({ silent: true })
+      }
     }
   })
 
   // Synchronisation dès que la connectivité Internet revient
   onConnectivityChange((online) => {
     if (online) {
-      triggerLiveSync()
+      triggerLiveSync({ silent: true, force: true })
     } else {
       // Si déconnexion, mettre à jour l'affichage serveur pour indiquer l'indisponibilité réseau
       if (homeState.selectedProfile) {

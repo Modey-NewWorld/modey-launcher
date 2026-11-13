@@ -22,17 +22,33 @@ function resolveMediaSrc(url?: string): string {
   return `https://api.modey.flowcrea.fr${cleanPath}`
 }
 
-export async function loadNews() {
+export async function loadNews(silent = false) {
   const newsList = document.getElementById('events-news-list')
   if (!newsList) return
 
-  newsList.innerHTML = `
-    <div class="news-skeleton-item skeleton-shimmer"></div>
-    <div class="news-skeleton-item skeleton-shimmer"></div>
-  `
+  const hasExistingContent = newsList.children.length > 0 && !newsList.querySelector('.news-skeleton-item')
 
-  // Uniquement les vraies actualités de l\'API — AUCUNE donnée inventée
+  if (!silent && !hasExistingContent) {
+    newsList.innerHTML = `
+      <div class="news-skeleton-item skeleton-shimmer"></div>
+      <div class="news-skeleton-item skeleton-shimmer"></div>
+    `
+  }
+
+  // Uniquement les vraies actualités de l'API — AUCUNE donnée inventée
   const feed: any[] = (await fetchNews()) || []
+
+  // Anti-clignotement : si les actualités sont déjà affichées et identiques, ne pas toucher au DOM
+  if (hasExistingContent && homeState.newsFeed && homeState.newsFeed.length === feed.length) {
+    const isIdentical = feed.every((item, idx) => {
+      const prev = homeState.newsFeed[idx]
+      return prev && (item.id === prev.id || item.title === prev.title) && item.updatedAt === prev.updatedAt
+    })
+    if (isIdentical) {
+      return
+    }
+  }
+
   homeState.newsFeed = feed
   newsList.innerHTML = ''
 

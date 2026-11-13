@@ -232,7 +232,7 @@ function applyPlayButtonState(
 
 }
 
-export async function updateServerStatus(profile: any) {
+export async function updateServerStatus(profile: any, silent = false) {
   const isSoon = isComingSoonProfile(profile)
   const isMaint = isMaintenanceProfile(profile)
   const isDisabled = isDisabledProfile(profile)
@@ -241,9 +241,12 @@ export async function updateServerStatus(profile: any) {
   const serverStatusText = el('server-status-text')
   const playerCount = el('player-count')
 
-  if (serverStatusDot) serverStatusDot.className = 'status-dot pinging'
-  if (serverStatusText) serverStatusText.innerText = 'Vérification...'
-  if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;—'
+  // En mode silencieux (background sync), ne pas afficher l'état temporaire "Vérification..." pour éviter tout clignotement
+  if (!silent) {
+    if (serverStatusDot) serverStatusDot.className = 'status-dot pinging'
+    if (serverStatusText) serverStatusText.innerText = 'Vérification...'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-friends-bold"></use></svg>&nbsp;—'
+  }
 
   if (isSoon) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot soon'
@@ -281,6 +284,8 @@ export async function updateServerStatus(profile: any) {
   const probe = await pingServer(t.host, t.port)
 
   const profileKey = profile?.id ?? 'default'
+  const prevCached = serverStatusCache[profileKey]
+  const statusChanged = !prevCached || prevCached.online !== probe.online
   serverStatusCache[profileKey] = { online: probe.online, timestamp: Date.now() }
 
   if (probe.online && probe.status) {
@@ -302,7 +307,10 @@ export async function updateServerStatus(profile: any) {
     if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-signal-bold"></use></svg>&nbsp;—'
   }
 
-  renderHero(profile)
+  // Ne déclencher un repaint complet du Hero que si l'état en ligne/hors ligne a réellement basculé
+  if (statusChanged) {
+    renderHero(profile)
+  }
 }
 
 
