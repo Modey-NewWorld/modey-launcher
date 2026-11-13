@@ -65,22 +65,8 @@ export function refreshStudioMeta() {
   }
 }
 
-/** Écouteurs du studio 3D (vue face/dos, rotation 360, animation, import/téléchargement). */
+/** Écouteurs du studio 3D (rotation 360, zoom, animation, import). */
 export function bindStudio(hooks: { onSkinChanged: () => void }) {
-  el('btn-face')?.addEventListener('click', (e) => {
-    document.querySelectorAll('.face-btn').forEach((b) => b.classList.remove('active'))
-    ;(e.target as HTMLElement).classList.add('active')
-    const v = viewer()
-    if (v) v.playerObject.rotation.y = 0
-  })
-
-  el('btn-back')?.addEventListener('click', (e) => {
-    document.querySelectorAll('.face-btn').forEach((b) => b.classList.remove('active'))
-    ;(e.target as HTMLElement).classList.add('active')
-    const v = viewer()
-    if (v) v.playerObject.rotation.y = Math.PI
-  })
-
   el('btn-rotate')?.addEventListener('click', (e) => {
     const v = viewer()
     if (!v) return
@@ -113,7 +99,6 @@ export function bindStudio(hooks: { onSkinChanged: () => void }) {
     if (!v) return
     v.camera.position.set(-20, -2, 35)
     v.playerObject.rotation.y = DEFAULT_STUDIO_ROTATION_Y
-    document.querySelectorAll('.face-btn').forEach((b) => b.classList.remove('active'))
   })
 
   el('btn-animation')?.addEventListener('click', () => {

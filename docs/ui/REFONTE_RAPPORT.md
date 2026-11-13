@@ -14,9 +14,11 @@
 > - la phase 4 « Migration Icônes Phosphor » contredit la ligne « Solar Icons » : le code utilise
 >   aujourd'hui un **sprite SVG Solar** (`<use href="#solar-...">`), pas Phosphor ;
 > - les paddings ne sont pas à « 18 px partout » : des valeurs 12/14/16/20 px subsistent selon les vues ;
-> - le bleu primaire `#3B82F6` avec texte blanc ne passe pas le contraste AA (**3,68:1** pour un seuil de 4,5:1).
+> - le bleu primaire `#3B82F6` avec texte blanc ne passe pas le contraste AA (**3,68:1** pour un seuil de 4,5:1) ;
+>   la décision D1 conserve ce bleu et impose un texte foncé `--on-accent: #0B1017` (**5,19:1**).
 >
 > **Source de vérité actuelle** : [`design/README.md`](../../../.antigravity/design/README.md),
+> [`design/DECISIONS.md`](../../../.antigravity/design/DECISIONS.md),
 > [`design/UI_AUDIT.md`](../../../.antigravity/design/UI_AUDIT.md) et
 > [`design/DESIGN_SYSTEM.md`](../../../.antigravity/design/DESIGN_SYSTEM.md).
 > Les règles opposables sont dans [`rules/design-system.md`](../../../.antigravity/rules/design-system.md).

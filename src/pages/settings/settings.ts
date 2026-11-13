@@ -209,31 +209,27 @@ async function initAccountSettings() {
 
       if (badge2FA) {
         badge2FA.innerText = isEnabled ? '2FA Active' : 'Non activée'
-        badge2FA.style.background = isEnabled ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)'
-        badge2FA.style.color = isEnabled ? '#22c55e' : '#f59e0b'
+        badge2FA.className = `settings-2fa-badge ${isEnabled ? 'is-active' : 'is-inactive'}`
       }
 
       if (banner2FA) {
+        banner2FA.className = `settings-2fa-status-banner ${isEnabled ? 'is-active' : 'is-inactive'}`
         if (isEnabled) {
-          banner2FA.style.background = 'rgba(34, 197, 94, 0.08)'
-          banner2FA.style.borderColor = 'rgba(34, 197, 94, 0.25)'
           banner2FA.innerHTML = `
-            <svg class="solar-icon solar-bold" style="font-size:24px; color:#22c55e; flex-shrink:0;" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>
-            <div style="font-size:12.5px; color:var(--text-main); line-height:1.4;">
-              <strong style="color:#22c55e;">Votre compte est protégé par la double authentification.</strong><br/>
-              <span style="color:var(--text-muted); font-size:11.5px;">Chaque nouvelle connexion requiert un code généré par Google Authenticator sur votre smartphone.</span>
+            <svg class="solar-icon solar-bold settings-2fa-banner-icon" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>
+            <div class="settings-2fa-banner-text">
+              <strong>Votre compte est protégé par la double authentification.</strong>
+              <span class="settings-2fa-banner-desc">Chaque nouvelle connexion requiert un code temporaire généré par Google Authenticator sur votre smartphone.</span>
             </div>
           `
           if (btnSetup2FA) btnSetup2FA.style.display = 'none'
           if (btnDisable2FA) btnDisable2FA.style.display = 'inline-flex'
         } else {
-          banner2FA.style.background = 'rgba(245, 158, 11, 0.08)'
-          banner2FA.style.borderColor = 'rgba(245, 158, 11, 0.25)'
           banner2FA.innerHTML = `
-            <svg class="solar-icon solar-bold" style="font-size:24px; color:#f59e0b; flex-shrink:0;" aria-hidden="true"><use href="#solar-shield-warning-bold"></use></svg>
-            <div style="font-size:12.5px; color:var(--text-main); line-height:1.4;">
-              <strong style="color:#fbbf24;">Protection 2FA recommandée.</strong><br/>
-              <span style="color:var(--text-muted); font-size:11.5px;">Activez Google Authenticator pour sécuriser votre compte contre toute tentative d'intrusion.</span>
+            <svg class="solar-icon solar-bold settings-2fa-banner-icon" aria-hidden="true"><use href="#solar-shield-warning-bold"></use></svg>
+            <div class="settings-2fa-banner-text">
+              <strong>Protection 2FA recommandée.</strong>
+              <span class="settings-2fa-banner-desc">Activez Google Authenticator pour sécuriser votre compte contre toute tentative d'accès non autorisée.</span>
             </div>
           `
           if (btnSetup2FA) btnSetup2FA.style.display = 'inline-flex'
@@ -367,21 +363,21 @@ async function initAccountSettings() {
       sessionsList.innerHTML = list.map((s: any) => {
         const lastActive = s.lastActiveAt ? new Date(s.lastActiveAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : 'Récemment'
         return `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:10px 14px; border-radius:10px;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <svg class="solar-icon solar-bold" style="color:var(--primary); font-size:20px;"><use href="#solar-monitor-bold"></use></svg>
+          <div class="settings-session-item">
+            <div class="session-info">
+              <svg class="solar-icon solar-bold session-icon" aria-hidden="true"><use href="#solar-monitor-bold"></use></svg>
               <div>
-                <div style="font-size:13px; font-weight:600; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                <div class="session-device">
                   ${s.deviceName}
-                  ${s.isCurrent ? '<span style="font-size:10px; font-weight:700; color:#22c55e; background:rgba(34,197,94,0.15); padding:1px 6px; border-radius:10px;">Cet appareil</span>' : ''}
+                  ${s.isCurrent ? '<span class="session-current-badge">Cet appareil</span>' : ''}
                 </div>
-                <div style="font-size:11px; color:var(--text-muted);">
+                <div class="session-meta">
                   IP: ${s.ipAddress} · Dernière activité : ${lastActive}
                 </div>
               </div>
             </div>
             ${!s.isCurrent ? `
-              <button type="button" class="settings-btn btn-revoke-single" data-token="${s.token}" style="padding:4px 10px; font-size:11px; color:var(--danger, #ef4444); border-color:rgba(239,68,68,0.25);">
+              <button type="button" class="btn-revoke-single" data-token="${s.token}">
                 Déconnecter
               </button>
             ` : ''}

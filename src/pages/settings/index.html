@@ -185,21 +185,21 @@
               <!-- Carte Double Authentification 2FA -->
               <section class="settings-card settings-card--wide" id="account-2fa-card" data-cat="account">
                 <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold" style="color:#38bdf8;" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;&nbsp;Double Authentification (Google Authenticator)</h3>
-                  <span id="settings-2fa-badge" style="font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.06); color:var(--text-muted);">Vérification...</span>
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;&nbsp;Double Authentification (Google Authenticator)</h3>
+                  <span id="settings-2fa-badge" class="settings-2fa-badge">Vérification...</span>
                 </div>
                 <p class="muted" style="margin-bottom:14px;">Protégez l'accès à votre compte et à vos serveurs avec une clé cryptographique unique générée sur votre smartphone via Google Authenticator ou une application TOTP compatible.</p>
                 
-                <div id="settings-2fa-status-banner" style="border-radius:12px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
-                  <svg class="solar-icon solar-bold" style="font-size:24px; color:var(--text-muted);" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>
-                  <div id="settings-2fa-status-text" style="font-size:12.5px; color:var(--text-main);">Chargement du statut de sécurité...</div>
+                <div id="settings-2fa-status-banner" class="settings-2fa-status-banner">
+                  <svg class="solar-icon solar-bold settings-2fa-banner-icon" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>
+                  <div class="settings-2fa-banner-text" id="settings-2fa-status-text">Chargement du statut de sécurité...</div>
                 </div>
 
                 <div class="settings-btn-row">
                   <button type="button" class="settings-btn settings-btn--primary" id="btn-settings-setup-2fa">
                     <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;Activer Google Authenticator
                   </button>
-                  <button type="button" class="settings-btn" id="btn-settings-disable-2fa" style="display:none; color:var(--danger, #ef4444); border-color:rgba(239, 68, 68, 0.3);">
+                  <button type="button" class="settings-btn" id="btn-settings-disable-2fa" style="display:none; color:var(--danger); border-color:rgba(239, 68, 68, 0.3);">
                     <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-unlocked-bold"></use></svg>&nbsp;Désactiver la double authentification
                   </button>
                 </div>
@@ -215,7 +215,7 @@
                 </div>
                 <p class="muted" style="margin-bottom:14px;">Consultez les appareils et applications actuellement autorisés à utiliser votre compte Modey.</p>
                 <div id="settings-sessions-list" style="display:flex; flex-direction:column; gap:8px;">
-                  <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Chargement des sessions...</div>
+                  <div style="text-align:center; padding:16px; color:var(--ink-500); font-size:12px;">Chargement des sessions...</div>
                 </div>
               </section>
 
@@ -454,48 +454,67 @@
               <p class="muted"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>&nbsp;Tous les réglages sont sauvegardés localement. Aucune donnée ne quitte votre machine.</p>
             </footer>
 
-            <!-- Modal Configuration 2FA -->
-            <div id="modal-2fa-setup-dialog" class="settings-modal-backdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-              <div class="settings-modal-card" style="background:rgba(18,24,38,0.95); border:1px solid var(--accent-soft); border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); max-width:480px; width:100%; padding:28px 24px; display:flex; flex-direction:column; gap:16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:12px;">
-                  <h3 style="margin:0; font-size:16px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
-                    <svg class="solar-icon solar-bold" style="color:var(--primary); font-size:22px;"><use href="#solar-shield-check-bold"></use></svg>
-                    Configuration Google Authenticator
-                  </h3>
-                  <button type="button" id="btn-close-modal-2fa" class="settings-btn" style="padding:4px 8px; border-radius:6px; cursor:pointer;">✕</button>
+            <!-- Modal Configuration 2FA (Aligne sur le design system officiel du Launcher) -->
+            <div id="modal-2fa-setup-dialog" class="modal-2fa-overlay" style="display:none;">
+              <div class="modal-2fa-box">
+                <div class="modal-2fa-head">
+                  <div class="modal-2fa-title-wrap">
+                    <div class="modal-2fa-shield-icon">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>
+                    </div>
+                    <div>
+                      <h3 class="modal-2fa-title">Google Authenticator</h3>
+                      <p class="modal-2fa-sub">Double authentification (A2F)</p>
+                    </div>
+                  </div>
+                  <button type="button" id="btn-close-modal-2fa" class="modal-2fa-close-btn" title="Fermer">✕</button>
                 </div>
 
-                <div style="font-size:12.5px; color:var(--text-muted); line-height:1.5;">
-                  <strong>Étape 1 :</strong> Scannez ce QR Code avec l'application <strong>Google Authenticator</strong> (ou Microsoft Authenticator / Authy) sur votre smartphone :
-                </div>
+                <div class="modal-2fa-body">
+                  <div class="modal-2fa-step">
+                    <span class="modal-2fa-step-badge">1</span>
+                    <span class="modal-2fa-step-text">Scannez ce QR Code avec l'application <strong>Google Authenticator</strong> (ou Microsoft Authenticator / Authy) sur votre smartphone :</span>
+                  </div>
 
-                <div id="modal-2fa-qr-mount" style="text-align:center; padding:10px; background:#ffffff; border-radius:14px; width:190px; height:190px; margin:0 auto; display:flex; align-items:center; justify-content:center;">
-                  <img id="modal-2fa-qr-img" src="" alt="QR Code" style="width:100%; height:100%; object-fit:contain;" />
-                </div>
+                  <div class="modal-2fa-qr-card">
+                    <img id="modal-2fa-qr-img" src="" alt="QR Code 2FA" />
+                  </div>
 
-                <div style="font-size:12px; color:var(--text-muted); text-align:center;">
-                  Ou entrez manuellement cette clé secrète :<br/>
-                  <div style="display:flex; gap:8px; justify-content:center; align-items:center; margin-top:6px;">
-                    <code id="modal-2fa-secret-code" style="font-family:monospace; font-size:13px; font-weight:700; color:#38bdf8; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:6px; letter-spacing:1px;">—</code>
-                    <button type="button" id="btn-copy-2fa-secret" class="settings-btn" style="padding:4px 8px; font-size:11px;">Copier</button>
+                  <div class="modal-2fa-secret-row">
+                    <span class="modal-2fa-secret-label">Ou saisissez la clé manuellement :</span>
+                    <div class="modal-2fa-secret-box">
+                      <code id="modal-2fa-secret-code">—</code>
+                      <button type="button" id="btn-copy-2fa-secret" class="btn-copy-pill" title="Copier la clé">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-copy-bold"></use></svg>&nbsp;Copier
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="modal-2fa-recovery-box">
+                    <div class="modal-2fa-recovery-header">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-danger-bold"></use></svg>
+                      <strong>Codes de secours (usage unique)</strong>
+                    </div>
+                    <p class="modal-2fa-recovery-hint">Conservez ces codes en lieu sûr pour débloquer votre compte en cas de perte ou d'indisponibilité de votre smartphone.</p>
+                    <div id="modal-2fa-recovery-list" class="modal-2fa-recovery-grid"></div>
+                  </div>
+
+                  <div class="modal-2fa-step">
+                    <span class="modal-2fa-step-badge">2</span>
+                    <span class="modal-2fa-step-text">Entrez le code à 6 chiffres généré par l'application :</span>
+                  </div>
+
+                  <div class="modal-2fa-input-wrap">
+                    <input type="text" id="input-confirm-2fa-code" class="modal-2fa-code-input" placeholder="000 000" maxlength="8" autocomplete="one-time-code" />
                   </div>
                 </div>
 
-                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:10px; padding:10px 12px; font-size:11.5px; color:var(--text-main); line-height:1.4;">
-                  <strong style="color:#fbbf24;">⚠️ Codes de secours (en cas de perte du téléphone) :</strong><br />
-                  <div id="modal-2fa-recovery-list" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:6px; font-family:monospace; font-size:11px; color:var(--text-muted);"></div>
-                </div>
-
-                <div>
-                  <label for="input-confirm-2fa-code" style="font-size:12px; font-weight:600; color:var(--text-main); display:block; margin-bottom:6px;">
-                    <strong>Étape 2 :</strong> Saisissez le code à 6 chiffres généré par l'application :
-                  </label>
-                  <input type="text" id="input-confirm-2fa-code" class="input-field" placeholder="000 000" maxlength="8" style="width:100%; text-align:center; font-size:22px; font-weight:700; letter-spacing:4px; box-sizing:border-box; padding:8px 12px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid var(--accent-soft); color:#fff;" />
-                </div>
-
-                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:4px;">
-                  <button type="button" id="btn-modal-2fa-cancel" class="settings-btn" style="flex:1;">Annuler</button>
-                  <button type="button" id="btn-modal-2fa-confirm" class="settings-btn settings-btn--primary" style="flex:1;">Activer la 2FA</button>
+                <div class="modal-2fa-actions">
+                  <button type="button" id="btn-modal-2fa-cancel" class="btn btn-secondary">Annuler</button>
+                  <button type="button" id="btn-modal-2fa-confirm" class="btn btn-primary">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-read-bold"></use></svg>
+                    <span>Activer la double authentification</span>
+                  </button>
                 </div>
               </div>
             </div>
