@@ -97,6 +97,7 @@ const shared = {
       shared.mainSkinViewer.controls.maxDistance = 75
       shared.mainSkinViewer.controls.enablePan = false
       shared.mainSkinViewer.controls.rotateSpeed = 0.5
+      shared.mainSkinViewer.controls.update()
 
       // Observer les changements de taille de la fenêtre et du conteneur en temps réel
       if (parent && typeof ResizeObserver !== 'undefined') {
@@ -194,7 +195,8 @@ const shared = {
         width: 240,
         height: 300,
         pixelRatio: 1,
-        renderPaused: true
+        renderPaused: true,
+        preserveDrawingBuffer: true
       })
 
       shared.auxiliarySkinViewer.animation = new WalkingAnimation()
@@ -202,8 +204,11 @@ const shared = {
       shared.auxiliarySkinViewer.animation!.speed = 0
       shared.auxiliarySkinViewer.zoom = 0.95
       shared.auxiliarySkinViewer.camera.position.set(-20, -2, 35)
-      shared.auxiliarySkinViewer.playerObject.rotation.y = DEFAULT_STUDIO_ROTATION_Y
       shared.auxiliarySkinViewer.controls.enabled = false
+      shared.auxiliarySkinViewer.controls.update()
+      if (shared.auxiliarySkinViewer.animation) {
+        shared.auxiliarySkinViewer.animation.update(shared.auxiliarySkinViewer.playerObject, 0)
+      }
     }
 
     // Ordonner : les skins personnalisés uniques en premier, et un seul Steve en dernier
@@ -367,6 +372,10 @@ const shared = {
           skinImg.src = shared.cachedSkinThumbnails.get(source)!
         } else {
           await shared.auxiliarySkinViewer.loadSkin(cleanUrl, { model: skinModel })
+          shared.auxiliarySkinViewer.controls.update()
+          if (shared.auxiliarySkinViewer.animation) {
+            shared.auxiliarySkinViewer.animation.update(shared.auxiliarySkinViewer.playerObject, 0)
+          }
           shared.auxiliarySkinViewer.render()
 
           skinImg.src = shared.auxiliarySkinViewer.canvas.toDataURL()
