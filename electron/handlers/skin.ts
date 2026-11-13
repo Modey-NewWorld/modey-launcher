@@ -438,6 +438,19 @@ async function getSkins(skipFetch = false, inject: (ISkin & { name?: string })[]
     logger.warn('Failed to read skins from cache:', err)
   }
 
+  // Nettoyer du cache local les anciens skins hébergés sur le serveur Modey qui n'existent plus sur disque
+  if (serverWardrobe.length > 0) {
+    const serverUrlSet = new Set(serverWardrobe.map((s) => normalizeSkinUrl(s.url)))
+    localCache = localCache.filter((s) => {
+      const norm = normalizeSkinUrl(s.url)
+      const isModeyHosted = norm.includes('/skins/') || norm.includes('modey.flowcrea.fr')
+      if (isModeyHosted) {
+        return serverUrlSet.has(norm)
+      }
+      return true
+    })
+  }
+
   // Synchroniser et fusionner avec le casier officiel distant
   for (const srvSkin of serverWardrobe) {
     const existing = localCache.find((s) => s.url === srvSkin.url)

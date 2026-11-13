@@ -183,8 +183,31 @@ const shared = {
       skinDiv.classList.add('skin-preview')
       if (s.state === 'active') skinDiv.classList.add('active')
 
+      let isBroken = false
+
       // Sélection d'un skin dans le casier
       skinDiv.addEventListener('click', async () => {
+        if (isBroken) {
+          const confirmed = await Dialog.show(
+            `Ce fichier de skin est introuvable sur le serveur.\n\nSouhaitez-vous retirer cette entrée vide de votre casier ?`,
+            [
+              { text: 'Annuler', type: 'cancel' },
+              { text: 'Retirer du casier', type: 'danger' }
+            ],
+            'Skin introuvable'
+          )
+          if (confirmed) {
+            try {
+              shared.skins = await skin.deleteSkin(s.id)
+              await shared.resetMainView()
+              await shared.resetSkinViews()
+            } catch (delErr) {
+              logger.error('Erreur retrait skin introuvable:', delErr)
+            }
+          }
+          return
+        }
+
         if (s.state === 'active') return
         try {
           const cleanTargetUrl = normalizeSkinUrl(s.url)
@@ -291,6 +314,9 @@ const shared = {
         logger.warn('Failed to render thumbnail for skin:', cleanUrl, err)
         skinImg.src = createFallbackThumbnail()
         skinImg.alt = displayName
+        isBroken = true
+        skinDiv.classList.add('skin-broken')
+        skinDiv.title = `${displayName} (Introuvable — Cliquez pour retirer)`
       }
 
       skinDiv.appendChild(skinImg)
