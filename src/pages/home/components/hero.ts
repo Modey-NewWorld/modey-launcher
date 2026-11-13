@@ -4,6 +4,7 @@ import { pingServer, targetFor, setCachedServerInfo } from '../../../services/se
 import { getUser } from '../../../state'
 import { launcherConfig, FALLBACK_MC_VERSION } from '../../../services/launcherConfig'
 import { bannerCache } from '../../../services/bannerCache'
+import { isOnlineState } from '../../../services/connectivity'
 import bgImage from '../../../static/images/bg.webp'
 
 const DEFAULT_TAGS = ['Survie', 'Communauté', 'Aventure']
@@ -30,7 +31,7 @@ export function renderHero(profile: any) {
 
   const profileKey = profile?.id ?? 'default'
   const cachedStatus = serverStatusCache[profileKey]
-  const isOffline = cachedStatus !== undefined && !cachedStatus.online && !isSoon
+  const isOffline = (cachedStatus !== undefined && !cachedStatus.online && !isSoon) || !isOnlineState()
 
   const officialBadge = el('hero-official-badge')
   if (officialBadge) {
@@ -177,21 +178,22 @@ function applyPlayButtonState(
       sidebarDisabled = true
     }
   } else if (isOffline) {
+    const isNetworkDown = !isOnlineState()
     if (isAdmin) {
-      heroLabel = 'Hors ligne (Staff)'
+      heroLabel = isNetworkDown ? 'Hors ligne (Réseau)' : 'Hors ligne (Staff)'
       heroIcon = 'danger'
       heroDisabled = false
       heroBypass = true
 
-      sidebarLabel = 'Hors ligne • Lancer (Staff)'
+      sidebarLabel = isNetworkDown ? 'Hors ligne (Réseau)' : 'Hors ligne • Lancer (Staff)'
       sidebarIcon = 'danger'
       sidebarDisabled = false
     } else {
-      heroLabel = 'Serveur hors ligne'
+      heroLabel = isNetworkDown ? 'Connexion requise' : 'Serveur hors ligne'
       heroIcon = 'danger'
       heroDisabled = true
 
-      sidebarLabel = 'Serveur hors ligne'
+      sidebarLabel = isNetworkDown ? 'Hors ligne' : 'Serveur hors ligne'
       sidebarIcon = 'danger'
       sidebarDisabled = true
     }
@@ -263,6 +265,14 @@ export async function updateServerStatus(profile: any) {
     if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
     if (serverStatusText) serverStatusText.innerText = 'Désactivé'
     if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-forbidden-bold"></use></svg>&nbsp;Désactivé'
+    renderHero(profile)
+    return
+  }
+
+  if (!isOnlineState()) {
+    if (serverStatusDot) serverStatusDot.className = 'status-dot offline'
+    if (serverStatusText) serverStatusText.innerText = 'Hors-ligne'
+    if (playerCount) playerCount.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-wifi-bold"></use></svg>&nbsp;Déconnecté'
     renderHero(profile)
     return
   }

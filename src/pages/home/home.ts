@@ -1,4 +1,5 @@
 import { checkAndShowUpdateToast } from '../../services/updateToast'
+import { startLiveSync } from '../../services/liveSync'
 import shared from '../../shared'
 import { settings, system } from '../../ipc'
 import { Dialog } from '../../components/dialog'
@@ -119,6 +120,7 @@ export function initHome() {
   refreshServerCard()
   bindSidebar()
   checkAndShowUpdateToast()
+  startLiveSync()
 
   setRouterHooks({ onShowServers: refreshServerCard })
 

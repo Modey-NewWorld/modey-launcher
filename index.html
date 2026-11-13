@@ -302,6 +302,12 @@
 
     <div id="app">
       <div class="app-background"></div>
+      <div id="network-offline-banner" class="network-offline-banner hidden" role="status" aria-live="polite">
+        <div class="network-offline-inner">
+          <svg class="solar-icon banner-icon" aria-hidden="true"><use id="network-banner-icon" href="#solar-wifi-bold"></use></svg>
+          <span class="banner-text" id="network-banner-text">Connexion Internet interrompue — Vous êtes actuellement hors-ligne.</span>
+        </div>
+      </div>
       <div id="view-login" class="view" data-view="login"></div>
       <div id="view-home" class="view" data-view="home"></div>
     </div>

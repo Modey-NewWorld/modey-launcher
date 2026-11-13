@@ -2,7 +2,8 @@ import { game, profiles, settings } from '../ipc'
 import { getUser } from '../state'
 import { targetFor } from './serverStatus'
 import { Dialog } from '../components/dialog'
-import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile, checkCanBypass } from './profiles'
+import { isComingSoonProfile, isMaintenanceProfile, isDisabledProfile, checkCanBypass, fetchProfiles } from './profiles'
+import { isOnlineState } from './connectivity'
 import { FALLBACK_MC_VERSION, FALLBACK_LOADER, FALLBACK_LOADER_VERSION } from './launcherConfig'
 import logger from 'electron-log/renderer'
 
@@ -110,7 +111,29 @@ export async function startLaunch() {
   const user = getUser() as any
   if (!user) return
 
+  // Garde-fou réseau : vérification de la connectivité Internet
+  if (!navigator.onLine || !isOnlineState()) {
+    await Dialog.show(
+      "Vous n'êtes actuellement pas connecté à Internet.\n\nUne connexion réseau active est requise pour synchroniser les composants de jeu et rejoindre les serveurs Modey.",
+      [{ text: 'Compris', type: 'ok' }],
+      'Connexion Réseau Interrompue'
+    )
+    return
+  }
+
   const profile = ui.getProfile()
+
+  // Vérification de sécurité en direct : s'assurer que le statut du serveur n'a pas basculé en maintenance
+  try {
+    const freshProfiles = await fetchProfiles()
+    const fresh = freshProfiles.find((p: any) => (p.slug || p.id) === (profile?.slug || profile?.id))
+    if (fresh) {
+      Object.assign(profile, fresh)
+    }
+  } catch (err) {
+    logger.warn('Pré-vérification en direct du profil échouée, utilisation du cache:', err)
+  }
+
   const isSoon = isComingSoonProfile(profile)
   const isMaint = isMaintenanceProfile(profile)
   const isDisabled = isDisabledProfile(profile)

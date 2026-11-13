@@ -5,9 +5,11 @@ import './static/styles/screens.scss'
 import './static/styles/loading.scss'
 import './static/styles/maintenance.scss'
 import './static/styles/update.scss'
+import './static/styles/connectivity.scss'
 
 import { initTheme } from './theme'
 import { initTitlebar } from './components/titlebar'
+import { initConnectivity } from './services/connectivity'
 import { initLogin } from './pages/login/login'
 import { initHome, selectProfile } from './pages/home/home'
 import { initServers } from './pages/servers/servers'
@@ -17,6 +19,7 @@ import { bootstrap } from './init'
 
 initTheme()
 initTitlebar()
+initConnectivity()
 initLogin()
 initHome()
 initServers({ onSelectProfile: selectProfile })

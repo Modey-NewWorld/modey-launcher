@@ -3,6 +3,7 @@ import { auth, maintenance } from '../../ipc'
 import { renderMaintenanceView } from '../../init'
 import { Dialog } from '../../components/dialog'
 import { loadSkinAssets } from '../../services/skin'
+import { isOnlineState } from '../../services/connectivity'
 import logger from 'electron-log/renderer'
 import logoUrl from '../../static/images/logo.png'
 import loginHtmlRaw from './index.html?raw'
@@ -69,6 +70,15 @@ export async function initLogin() {
   if (form && inputUsername && inputPassword && btnSubmit) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
+
+      if (!navigator.onLine || !isOnlineState()) {
+        await Dialog.show(
+          "Vous n'êtes actuellement pas connecté à Internet.\n\nUne connexion réseau active est requise pour vous connecter à votre compte Modey.",
+          [{ text: 'Compris', type: 'ok' }],
+          'Connexion Réseau Interrompue'
+        )
+        return
+      }
 
       const username = inputUsername.value.trim()
       const password = inputPassword.value
