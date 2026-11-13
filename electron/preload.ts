@@ -21,8 +21,24 @@ contextBridge.exposeInMainWorld('api', {
   auth: {
     loginCustom: (identifier: string, password?: string): Promise<IAuthResponse> =>
       ipcRenderer.invoke(IPC.auth.loginCustom, identifier, password),
+    login2FA: (tempToken: string, code: string): Promise<any> =>
+      ipcRenderer.invoke(IPC.auth.login2FA, tempToken, code),
     registerCustom: (payload: { email: string; username: string; password: string }): Promise<IAuthResponse> =>
       ipcRenderer.invoke(IPC.auth.registerCustom, payload),
+    get2FAStatus: (): Promise<{ enabled: boolean }> =>
+      ipcRenderer.invoke(IPC.auth.get2FAStatus),
+    setup2FA: (): Promise<any> =>
+      ipcRenderer.invoke(IPC.auth.setup2FA),
+    enable2FA: (code: string): Promise<{ success: boolean; message?: string; error?: string }> =>
+      ipcRenderer.invoke(IPC.auth.enable2FA, code),
+    disable2FA: (password: string, code?: string): Promise<{ success: boolean; message?: string; error?: string }> =>
+      ipcRenderer.invoke(IPC.auth.disable2FA, password, code),
+    getSessions: (): Promise<{ success: boolean; sessions: any[]; error?: string }> =>
+      ipcRenderer.invoke(IPC.auth.getSessions),
+    revokeSession: (token: string): Promise<{ success: boolean; message?: string; error?: string }> =>
+      ipcRenderer.invoke(IPC.auth.revokeSession, token),
+    revokeOtherSessions: (): Promise<{ success: boolean; message?: string; error?: string }> =>
+      ipcRenderer.invoke(IPC.auth.revokeOtherSessions),
     refresh: (): Promise<IAuthResponse> => ipcRenderer.invoke(IPC.auth.refresh),
     logout: (): Promise<{ success: boolean }> => ipcRenderer.invoke(IPC.auth.logout)
   },
@@ -86,6 +102,7 @@ contextBridge.exposeInMainWorld('api', {
     getSkin: (account?: Account): Promise<ISkin[] | null> => ipcRenderer.invoke(IPC.skin.getSkin, account),
     getCape: (account?: Account): Promise<ICape[] | null> => ipcRenderer.invoke(IPC.skin.getCape, account),
     getAvatar: (account?: Account): Promise<IAvatar | null> => ipcRenderer.invoke(IPC.skin.getAvatar, account),
+    getSkinDataUrl: (urlOrPath: string): Promise<string | null> => ipcRenderer.invoke(IPC.skin.getSkinDataUrl, urlOrPath),
     updateSkin: (source: string | Blob, model?: 'classic' | 'slim'): Promise<ISkin[] | null> => ipcRenderer.invoke(IPC.skin.updateSkin, source, model),
     switchCape: (id: string): Promise<ICape[] | null> => ipcRenderer.invoke(IPC.skin.switchCape, id),
     deleteSkin: (id: string): Promise<ISkin[] | null> => ipcRenderer.invoke(IPC.skin.deleteSkin, id),

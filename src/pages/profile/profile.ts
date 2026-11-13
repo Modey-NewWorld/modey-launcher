@@ -171,4 +171,182 @@ export function initProfile() {
   })
 
   refreshProfileIdentity()
+
+  // Slider horizontal ultra-fluide pour la galerie de skins (lerp wheel + glisse inertielle)
+  const skinGallery = el('skin-gallery')
+  if (skinGallery) {
+    let isDown = false
+    let startX = 0
+    let scrollStart = 0
+    let lastX = 0
+    let lastTime = 0
+    let velocity = 0
+    let momentumRAF: number | null = null
+    let wheelRAF: number | null = null
+    let targetScroll = skinGallery.scrollLeft
+    let hasMoved = false
+
+    const stopMomentum = () => {
+      if (momentumRAF !== null) {
+        cancelAnimationFrame(momentumRAF)
+        momentumRAF = null
+      }
+    }
+
+    const stopWheel = () => {
+      if (wheelRAF !== null) {
+        cancelAnimationFrame(wheelRAF)
+        wheelRAF = null
+      }
+    }
+
+    // Molette avec défilement doux et contrôlé (lerp)
+    skinGallery.addEventListener('wheel', (e) => {
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX
+      if (delta !== 0) {
+        e.preventDefault()
+        stopMomentum()
+
+        const maxScroll = skinGallery.scrollWidth - skinGallery.clientWidth
+        // Défilement modéré (vitesse douce et maîtrisée)
+        targetScroll = Math.max(0, Math.min(maxScroll, targetScroll + delta * 0.4))
+
+        if (wheelRAF === null) {
+          const animateWheel = () => {
+            const current = skinGallery.scrollLeft
+            const diff = targetScroll - current
+            if (Math.abs(diff) < 0.5) {
+              skinGallery.scrollLeft = targetScroll
+              wheelRAF = null
+              return
+            }
+            skinGallery.scrollLeft = current + diff * 0.14
+            wheelRAF = requestAnimationFrame(animateWheel)
+          }
+          wheelRAF = requestAnimationFrame(animateWheel)
+        }
+      }
+    }, { passive: false })
+
+    // Glissement à la souris (drag 1:1)
+    skinGallery.addEventListener('mousedown', (e) => {
+      if ((e.target as HTMLElement).closest('.btn-skin-action')) return
+      isDown = true
+      hasMoved = false
+      stopMomentum()
+      stopWheel()
+      targetScroll = skinGallery.scrollLeft
+      startX = e.pageX - skinGallery.offsetLeft
+      scrollStart = skinGallery.scrollLeft
+      lastX = e.pageX
+      lastTime = performance.now()
+      velocity = 0
+    })
+
+    window.addEventListener('mouseup', () => {
+      if (!isDown) return
+      isDown = false
+      setTimeout(() => skinGallery.classList.remove('is-dragging'), 30)
+
+      // Inertie très douce et courte au relâchement rapide
+      if (Math.abs(velocity) > 0.15) {
+        let currentVelocity = Math.max(-10, Math.min(10, velocity * 4))
+        const applyMomentum = () => {
+          if (Math.abs(currentVelocity) < 0.3) {
+            momentumRAF = null
+            targetScroll = skinGallery.scrollLeft
+            return
+          }
+          skinGallery.scrollLeft -= currentVelocity
+          targetScroll = skinGallery.scrollLeft
+          currentVelocity *= 0.82 // arrêt rapide et naturel
+          momentumRAF = requestAnimationFrame(applyMomentum)
+        }
+        momentumRAF = requestAnimationFrame(applyMomentum)
+      } else {
+        targetScroll = skinGallery.scrollLeft
+      }
+    })
+
+    skinGallery.addEventListener('mousemove', (e) => {
+      if (!isDown) return
+      const now = performance.now()
+      const dt = now - lastTime
+      const x = e.pageX - skinGallery.offsetLeft
+      const walk = x - startX
+
+      if (Math.abs(walk) > 2) {
+        hasMoved = true
+        skinGallery.classList.add('is-dragging')
+        e.preventDefault()
+        skinGallery.scrollLeft = scrollStart - walk
+        targetScroll = skinGallery.scrollLeft
+
+        if (dt > 0) {
+          velocity = (e.pageX - lastX) / dt
+        }
+        lastX = e.pageX
+        lastTime = now
+      }
+    })
+
+    // Empêcher l'équipement accidentel d'un skin si l'utilisateur glissait
+    skinGallery.addEventListener('click', (e) => {
+      if (hasMoved) {
+        e.stopImmediatePropagation()
+        e.preventDefault()
+        hasMoved = false
+      }
+    }, true)
+  }
+
+  bindLockerDragAndDrop()
+}
+
+/**
+ * Active le glisser-déposer (Drag & Drop) d'un skin PNG directement sur la carte Casier.
+ */
+function bindLockerDragAndDrop() {
+  const lockerCard = document.querySelector('.locker-card') as HTMLElement | null
+  if (!lockerCard) return
+
+  let dragCounter = 0
+
+  lockerCard.addEventListener('dragenter', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter++
+    lockerCard.classList.add('is-dragover')
+  })
+
+  lockerCard.addEventListener('dragover', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy'
+    }
+  })
+
+  lockerCard.addEventListener('dragleave', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter--
+    if (dragCounter <= 0) {
+      dragCounter = 0
+      lockerCard.classList.remove('is-dragover')
+    }
+  })
+
+  lockerCard.addEventListener('drop', async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter = 0
+    lockerCard.classList.remove('is-dragover')
+
+    const file = e.dataTransfer?.files?.[0]
+    if (!file) return
+
+    const { processSkinFile } = await import('./components/studio3d')
+    await processSkinFile(file, { onSkinChanged: refreshProfileIdentity })
+  })
 }

@@ -11,7 +11,7 @@ import { IPC } from '../ipc-channels'
 const sessionPath = () => path.join(app.getPath('userData'), 'session.json')
 const accountsPath = () => path.join(app.getPath('userData'), 'accounts.json')
 
-export type IAuthResponse = { success: true; account: Account } | { success: false; error: string }
+export type IAuthResponse = { success: true; account: Account } | { success: false; error?: string; requires2FA?: boolean; tempToken?: string }
 
 export interface IStoredAccount {
   name: string
@@ -32,6 +32,40 @@ function loadSavedAccounts(): IStoredAccount[] {
   return []
 }
 
+function getCurrentAccessToken(): string | null {
+  try {
+    if (fs.existsSync(sessionPath())) {
+      const data = JSON.parse(fs.readFileSync(sessionPath(), 'utf-8'))
+      return data?.accessToken || null
+    }
+  } catch (_) {}
+  return null
+}
+
+function buildAccountFromAuthData(data: any): Account {
+  const account: Account = {
+    name: data.selectedProfile.name,
+    uuid: data.selectedProfile.id,
+    clientToken: data.clientToken,
+    accessToken: data.accessToken,
+    meta: {
+      online: true,
+      type: 'yggdrasil',
+      url: AUTH_SERVER_URL
+    }
+  }
+  ;(account as any).email = data.user?.email
+  ;(account as any).role = data.user?.role || 'citizen'
+  ;(account as any).roleLabel = data.user?.roleLabel
+  ;(account as any).roleColor = data.user?.roleColor
+  ;(account as any).roleGradient = data.user?.roleGradient
+  ;(account as any).roleShadow = data.user?.roleShadow
+  ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
+  ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
+  ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
+  ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
+  return account
+}
 function saveAccount(name: string, uuid: string, email?: string) {
   try {
     const list = loadSavedAccounts().filter((acc) => acc.name.toLowerCase() !== name.toLowerCase())
@@ -72,6 +106,9 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         })
 
         const data = await resp.json()
+        if (data.requires2FA) {
+          return { success: false, requires2FA: true, tempToken: data.tempToken } as any
+        }
         if (!resp.ok || !data.success) {
           return { success: false, error: data.error || 'Identifiant ou mot de passe incorrect.' } as IAuthResponse
         }
@@ -287,5 +324,140 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
       fs.unlinkSync(sessionPath())
     }
     return { success: true }
+  })
+
+  // Validation du code 2FA Google Authenticator lors de la connexion
+  ipcMain.handle(IPC.auth.login2FA, async (_event, tempToken: string, code: string) => {
+    try {
+      if (!tempToken || !code) {
+        return { success: false, error: 'Jeton de sécurité et code requis.' }
+      }
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/login-2fa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tempToken, code, deviceName: 'Modey Launcher' })
+      })
+      const data = await resp.json()
+      if (!resp.ok || !data.success) {
+        return { success: false, error: data.error || 'Code Google Authenticator incorrect.' }
+      }
+
+      const account = buildAccountFromAuthData(data)
+      fs.writeFileSync(sessionPath(), JSON.stringify(account))
+      saveAccount(account.name, account.uuid, data.user?.email)
+
+      logger.info(`Connexion 2FA validée pour le joueur : ${account.name}`)
+      return { success: true, account }
+    } catch (err: any) {
+      logger.error('Failed 2FA login:', err)
+      return { success: false, error: err.message || 'Erreur lors de la validation 2FA.' }
+    }
+  })
+
+  // Statut 2FA du compte
+  ipcMain.handle(IPC.auth.get2FAStatus, async () => {
+    const token = getCurrentAccessToken()
+    if (!token) return { enabled: false }
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/2fa/status`, {
+        headers: { 'x-access-token': token }
+      })
+      const data = await resp.json()
+      return { enabled: Boolean(data.enabled) }
+    } catch (_) {
+      return { enabled: false }
+    }
+  })
+
+  // Initialisation de la configuration 2FA
+  ipcMain.handle(IPC.auth.setup2FA, async () => {
+    const token = getCurrentAccessToken()
+    if (!token) return { success: false, error: 'Session introuvable.' }
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/2fa/setup`, {
+        method: 'POST',
+        headers: { 'x-access-token': token }
+      })
+      return await resp.json()
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  })
+
+  // Confirmation de l'activation 2FA
+  ipcMain.handle(IPC.auth.enable2FA, async (_event, code: string) => {
+    const token = getCurrentAccessToken()
+    if (!token) return { success: false, error: 'Session introuvable.' }
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/2fa/confirm-enable`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-access-token': token },
+        body: JSON.stringify({ code })
+      })
+      return await resp.json()
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  })
+
+  // Désactivation 2FA
+  ipcMain.handle(IPC.auth.disable2FA, async (_event, password: string, code?: string) => {
+    const token = getCurrentAccessToken()
+    if (!token) return { success: false, error: 'Session introuvable.' }
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/2fa/disable`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-access-token': token },
+        body: JSON.stringify({ password, code })
+      })
+      return await resp.json()
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  })
+
+  // Liste des sessions actives
+  ipcMain.handle(IPC.auth.getSessions, async () => {
+    const token = getCurrentAccessToken()
+    if (!token) return { success: false, sessions: [] }
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/sessions`, {
+        headers: { 'x-access-token': token }
+      })
+      return await resp.json()
+    } catch (err: any) {
+      return { success: false, sessions: [], error: err.message }
+    }
+  })
+
+  // Révocation d'une session
+  ipcMain.handle(IPC.auth.revokeSession, async (_event, targetToken: string) => {
+    const token = getCurrentAccessToken()
+    if (!token) return { success: false, error: 'Session introuvable.' }
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/sessions/revoke`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-access-token': token },
+        body: JSON.stringify({ token: targetToken })
+      })
+      return await resp.json()
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  })
+
+  // Révocation de toutes les autres sessions
+  ipcMain.handle(IPC.auth.revokeOtherSessions, async () => {
+    const token = getCurrentAccessToken()
+    if (!token) return { success: false, error: 'Session introuvable.' }
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/sessions/revoke-others`, {
+        method: 'POST',
+        headers: { 'x-access-token': token }
+      })
+      return await resp.json()
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
   })
 }

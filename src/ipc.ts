@@ -18,7 +18,15 @@ declare global {
       }
       auth: {
         loginCustom: (identifier: string, password?: string) => Promise<IAuthResponse>
+        login2FA: (tempToken: string, code: string) => Promise<any>
         registerCustom: (payload: { email: string; username: string; password: string }) => Promise<IAuthResponse>
+        get2FAStatus: () => Promise<{ enabled: boolean }>
+        setup2FA: () => Promise<any>
+        enable2FA: (code: string) => Promise<{ success: boolean; message?: string; error?: string }>
+        disable2FA: (password: string, code?: string) => Promise<{ success: boolean; message?: string; error?: string }>
+        getSessions: () => Promise<{ success: boolean; sessions: any[]; error?: string }>
+        revokeSession: (token: string) => Promise<{ success: boolean; message?: string; error?: string }>
+        revokeOtherSessions: () => Promise<{ success: boolean; message?: string; error?: string }>
         refresh: () => Promise<IAuthResponse>
         logout: () => Promise<{ success: boolean }>
       }
@@ -27,6 +35,7 @@ declare global {
         getSkin: (account?: Account) => Promise<ISkin[] | null>
         getCape: (account?: Account) => Promise<ICape[] | null>
         getAvatar: (account?: Account) => Promise<IAvatar | null>
+        getSkinDataUrl: (urlOrPath: string) => Promise<string | null>
         updateSkin: (source: string | ArrayBuffer, model?: 'classic' | 'slim') => Promise<ISkin[] | null>
         switchCape: (id: string) => Promise<ICape[] | null>
         deleteSkin: (id: string) => Promise<ISkin[] | null>
@@ -136,7 +145,15 @@ export type INewsCategoryRef = INewsCategory
 
 export const auth = {
   loginCustom: async (identifier: string, password?: string) => await window.api.auth.loginCustom(identifier, password),
+  login2FA: async (tempToken: string, code: string) => await window.api.auth.login2FA(tempToken, code),
   registerCustom: async (payload: { email: string; username: string; password: string }) => await window.api.auth.registerCustom(payload),
+  get2FAStatus: async () => await window.api.auth.get2FAStatus(),
+  setup2FA: async () => await window.api.auth.setup2FA(),
+  enable2FA: async (code: string) => await window.api.auth.enable2FA(code),
+  disable2FA: async (password: string, code?: string) => await window.api.auth.disable2FA(password, code),
+  getSessions: async () => await window.api.auth.getSessions(),
+  revokeSession: async (token: string) => await window.api.auth.revokeSession(token),
+  revokeOtherSessions: async () => await window.api.auth.revokeOtherSessions(),
   logout: async () => await window.api.auth.logout(),
   refresh: async () => await window.api.auth.refresh()
 }
@@ -146,6 +163,7 @@ export const skin = {
   getSkin: async (account?: Account) => await window.api.skin.getSkin(account),
   getCape: async (account?: Account) => await window.api.skin.getCape(account),
   getAvatar: async (account?: Account) => await window.api.skin.getAvatar(account),
+  getSkinDataUrl: async (urlOrPath: string) => await window.api.skin.getSkinDataUrl(urlOrPath),
   updateSkin: async (source: string | ArrayBuffer, model: 'classic' | 'slim') => await window.api.skin.updateSkin(source, model),
   switchCape: async (id: string) => await window.api.skin.switchCape(id),
   deleteSkin: async (id: string) => await window.api.skin.deleteSkin(id),

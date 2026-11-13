@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, nativeTheme, shell, ipcMain, screen } from 'electron'
+import { app, BrowserWindow, Menu, nativeTheme, shell, ipcMain, screen, session } from 'electron'
 import dns from 'node:dns'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -266,6 +266,20 @@ function cleanupLegacyAthenaFolder() {
 
 app.whenReady().then(() => {
   logger.initialize()
+
+  // Assurer que les textures de skins et capes (Modey Core, Mojang, Minotar)
+  // ne soient jamais bloquées par CORS dans le moteur Chromium d'Electron
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const responseHeaders = { ...details.responseHeaders }
+    const url = (details.url || '').toLowerCase()
+    if (url.includes('/skins/') || url.includes('/capes/') || url.includes('textures.minecraft.net') || url.includes('minotar.net')) {
+      responseHeaders['access-control-allow-origin'] = ['*']
+      responseHeaders['access-control-allow-methods'] = ['GET, HEAD, OPTIONS']
+      responseHeaders['cross-origin-resource-policy'] = ['cross-origin']
+    }
+    callback({ responseHeaders })
+  })
+
   if (isPortable()) {
     logger.info('[Modey Launcher] Mode portable actif — données dans le dossier ModeyData de la clé USB.')
   }

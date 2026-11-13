@@ -160,6 +160,65 @@
             <!-- VUE DÉDIÉE : PAGE PARAMÈTRES GÉNÉRAUX       -->
             <!-- ========================================== -->
             <div id="global-settings-view" class="settings-view-section" style="grid-column: 1 / -1; display:contents;">
+              <!-- Catégorie: Compte & sécurité -->
+              <!-- Carte Profil & Identité -->
+              <section class="settings-card settings-card--wide" id="account-profile-card" data-cat="account">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--primary);" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;&nbsp;Informations du compte citoyen</h3>
+                </div>
+                <div class="account-profile-box" style="display:flex; align-items:center; gap:20px; padding:12px 0;">
+                  <img id="settings-account-avatar" src="" alt="Avatar" style="width:64px; height:64px; border-radius:14px; background:rgba(255,255,255,0.05); border:1px solid var(--accent-soft); object-fit:contain; image-rendering:pixelated;" onerror="this.src='https://minotar.net/avatar/steve/64.png';" />
+                  <div style="flex:1;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                      <h4 id="settings-account-username" style="font-size:17px; font-weight:700; margin:0; color:var(--text-main);">—</h4>
+                      <span id="settings-account-role-badge" class="modey-role-badge" style="padding:2px 10px; font-size:11px; border-radius:12px; font-weight:700;">Joueur</span>
+                    </div>
+                    <div id="settings-account-email" style="font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">—</div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span style="font-size:11px; color:var(--text-muted);">UUID Modey :</span>
+                      <code id="settings-account-uuid" style="font-size:11px; font-family:monospace; color:var(--accent); background:rgba(255,255,255,0.04); padding:2px 8px; border-radius:6px;">—</code>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Carte Double Authentification 2FA -->
+              <section class="settings-card settings-card--wide" id="account-2fa-card" data-cat="account">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:#38bdf8;" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;&nbsp;Double Authentification (Google Authenticator)</h3>
+                  <span id="settings-2fa-badge" style="font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.06); color:var(--text-muted);">Vérification...</span>
+                </div>
+                <p class="muted" style="margin-bottom:14px;">Protégez l'accès à votre compte et à vos serveurs avec une clé cryptographique unique générée sur votre smartphone via Google Authenticator ou une application TOTP compatible.</p>
+                
+                <div id="settings-2fa-status-banner" style="border-radius:12px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
+                  <svg class="solar-icon solar-bold" style="font-size:24px; color:var(--text-muted);" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>
+                  <div id="settings-2fa-status-text" style="font-size:12.5px; color:var(--text-main);">Chargement du statut de sécurité...</div>
+                </div>
+
+                <div class="settings-btn-row">
+                  <button type="button" class="settings-btn settings-btn--primary" id="btn-settings-setup-2fa">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;Activer Google Authenticator
+                  </button>
+                  <button type="button" class="settings-btn" id="btn-settings-disable-2fa" style="display:none; color:var(--danger, #ef4444); border-color:rgba(239, 68, 68, 0.3);">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-unlocked-bold"></use></svg>&nbsp;Désactiver la double authentification
+                  </button>
+                </div>
+              </section>
+
+              <!-- Carte Sessions & Appareils connectés -->
+              <section class="settings-card settings-card--wide" id="account-sessions-card" data-cat="account">
+                <div class="settings-card-head" style="display:flex; justify-content:space-between; align-items:center;">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-monitor-bold"></use></svg>&nbsp;&nbsp;Sessions Actives &amp; Appareils</h3>
+                  <button type="button" class="settings-btn" id="btn-settings-revoke-others" title="Déconnecte toutes les sessions sauf celle-ci">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-logout-bold"></use></svg>&nbsp;Déconnecter les autres appareils
+                  </button>
+                </div>
+                <p class="muted" style="margin-bottom:14px;">Consultez les appareils et applications actuellement autorisés à utiliser votre compte Modey.</p>
+                <div id="settings-sessions-list" style="display:flex; flex-direction:column; gap:8px;">
+                  <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Chargement des sessions...</div>
+                </div>
+              </section>
+
               <!-- Catégorie: Jeu & performance -->
               <!-- Carte RAM générale par défaut -->
               <section class="settings-card" id="ram-card" data-cat="game">
@@ -394,5 +453,51 @@
             <footer class="settings-footer">
               <p class="muted"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>&nbsp;Tous les réglages sont sauvegardés localement. Aucune donnée ne quitte votre machine.</p>
             </footer>
+
+            <!-- Modal Configuration 2FA -->
+            <div id="modal-2fa-setup-dialog" class="settings-modal-backdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+              <div class="settings-modal-card" style="background:rgba(18,24,38,0.95); border:1px solid var(--accent-soft); border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); max-width:480px; width:100%; padding:28px 24px; display:flex; flex-direction:column; gap:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:12px;">
+                  <h3 style="margin:0; font-size:16px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+                    <svg class="solar-icon solar-bold" style="color:var(--primary); font-size:22px;"><use href="#solar-shield-check-bold"></use></svg>
+                    Configuration Google Authenticator
+                  </h3>
+                  <button type="button" id="btn-close-modal-2fa" class="settings-btn" style="padding:4px 8px; border-radius:6px; cursor:pointer;">✕</button>
+                </div>
+
+                <div style="font-size:12.5px; color:var(--text-muted); line-height:1.5;">
+                  <strong>Étape 1 :</strong> Scannez ce QR Code avec l'application <strong>Google Authenticator</strong> (ou Microsoft Authenticator / Authy) sur votre smartphone :
+                </div>
+
+                <div id="modal-2fa-qr-mount" style="text-align:center; padding:10px; background:#ffffff; border-radius:14px; width:190px; height:190px; margin:0 auto; display:flex; align-items:center; justify-content:center;">
+                  <img id="modal-2fa-qr-img" src="" alt="QR Code" style="width:100%; height:100%; object-fit:contain;" />
+                </div>
+
+                <div style="font-size:12px; color:var(--text-muted); text-align:center;">
+                  Ou entrez manuellement cette clé secrète :<br/>
+                  <div style="display:flex; gap:8px; justify-content:center; align-items:center; margin-top:6px;">
+                    <code id="modal-2fa-secret-code" style="font-family:monospace; font-size:13px; font-weight:700; color:#38bdf8; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:6px; letter-spacing:1px;">—</code>
+                    <button type="button" id="btn-copy-2fa-secret" class="settings-btn" style="padding:4px 8px; font-size:11px;">Copier</button>
+                  </div>
+                </div>
+
+                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:10px; padding:10px 12px; font-size:11.5px; color:var(--text-main); line-height:1.4;">
+                  <strong style="color:#fbbf24;">⚠️ Codes de secours (en cas de perte du téléphone) :</strong><br />
+                  <div id="modal-2fa-recovery-list" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:6px; font-family:monospace; font-size:11px; color:var(--text-muted);"></div>
+                </div>
+
+                <div>
+                  <label for="input-confirm-2fa-code" style="font-size:12px; font-weight:600; color:var(--text-main); display:block; margin-bottom:6px;">
+                    <strong>Étape 2 :</strong> Saisissez le code à 6 chiffres généré par l'application :
+                  </label>
+                  <input type="text" id="input-confirm-2fa-code" class="input-field" placeholder="000 000" maxlength="8" style="width:100%; text-align:center; font-size:22px; font-weight:700; letter-spacing:4px; box-sizing:border-box; padding:8px 12px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid var(--accent-soft); color:#fff;" />
+                </div>
+
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:4px;">
+                  <button type="button" id="btn-modal-2fa-cancel" class="settings-btn" style="flex:1;">Annuler</button>
+                  <button type="button" id="btn-modal-2fa-confirm" class="settings-btn settings-btn--primary" style="flex:1;">Activer la 2FA</button>
+                </div>
+              </div>
+            </div>
           </div>
         </main>

@@ -1,6 +1,7 @@
 import type { Account, IAvatar, ICape, ISkin } from 'eml-lib'
 import logger from 'electron-log/renderer'
 import shared, { normalizeSkinUrl } from './shared'
+import { skin } from './ipc'
 
 export type ViewName = 'loading' | 'login' | 'home' | 'settings'
 export type BlockingViewName = 'maintenance' | 'update'
@@ -30,7 +31,13 @@ export async function updateAvatarFromSkinUrl(skinUrl: string) {
   if (!skinUrl) return
   try {
     const cleanUrl = normalizeSkinUrl(skinUrl)
-    const res = await fetch(cleanUrl)
+    let sourceUrl = cleanUrl
+    try {
+      const dataUrl = await skin.getSkinDataUrl(cleanUrl)
+      if (dataUrl) sourceUrl = dataUrl
+    } catch (_) {}
+
+    const res = await fetch(sourceUrl)
     const blob = await res.blob()
     const img = await createImageBitmap(blob)
     const canvas = document.createElement('canvas')

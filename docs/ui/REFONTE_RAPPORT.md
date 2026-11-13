@@ -2,7 +2,24 @@
 
 **Date** : Novembre 2026  
 **Branche Git** : `refonte-ui` (sous-branche de `dev`)  
-**Statut** : Validé et Conforme aux Spécifications  
+**Statut** : Validé et Conforme aux Spécifications
+
+> ⚠️ **Avertissement — audit du 13 novembre 2026**
+>
+> Ce rapport décrit l'état de la refonte v26.1.3 **au moment de sa rédaction** et reste utile comme historique.
+> Un audit contradictoire du code réel a depuis relevé plusieurs affirmations qui ne sont plus exactes :
+>
+> - le plancher typographique « ≥ 11 px partout » n'est pas respecté : **16 tailles < 11 px** subsistent
+>   (minimum 9,5 px), notamment dans `sidebar.scss`, `home.scss`, `settings.scss`, `userCard.scss` et `servers.scss` ;
+> - la phase 4 « Migration Icônes Phosphor » contredit la ligne « Solar Icons » : le code utilise
+>   aujourd'hui un **sprite SVG Solar** (`<use href="#solar-...">`), pas Phosphor ;
+> - les paddings ne sont pas à « 18 px partout » : des valeurs 12/14/16/20 px subsistent selon les vues ;
+> - le bleu primaire `#3B82F6` avec texte blanc ne passe pas le contraste AA (**3,68:1** pour un seuil de 4,5:1).
+>
+> **Source de vérité actuelle** : [`design/README.md`](../../../.antigravity/design/README.md),
+> [`design/UI_AUDIT.md`](../../../.antigravity/design/UI_AUDIT.md) et
+> [`design/DESIGN_SYSTEM.md`](../../../.antigravity/design/DESIGN_SYSTEM.md).
+> Les règles opposables sont dans [`rules/design-system.md`](../../../.antigravity/rules/design-system.md).
 
 ---
 

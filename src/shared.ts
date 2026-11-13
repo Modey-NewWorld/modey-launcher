@@ -21,10 +21,62 @@ export function normalizeSkinUrl(url: string | null | undefined): string {
   if (!url) return ''
   let clean = url.trim()
   const domain = getApiBaseUrl()
-  clean = clean.replace(/^http:\/\/192\.168\.1\.\d+(:\d+)?/, domain)
-  clean = clean.replace(/^http:\/\/localhost(:\d+)?/, domain)
-  clean = clean.replace(/^http:\/\/api\.modey\.flowcrea\.fr/, domain)
+  clean = clean.replace(/^https?:\/\/192\.168\.1\.\d+(:\d+)?/, domain)
+  clean = clean.replace(/^https?:\/\/localhost(:\d+)?/, domain)
+  clean = clean.replace(/^https?:\/\/api\.modey\.flowcrea\.fr(:\d+)?/, domain)
   return clean
+}
+
+export function createSkin2DThumbnail(img: CanvasImageSource, isSlim = false): string {
+  const canvas = document.createElement('canvas')
+  canvas.width = 120
+  canvas.height = 150
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return createFallbackThumbnail()
+
+  ctx.imageSmoothingEnabled = false
+
+  // Personnage centré en vue face pixel-art propre
+  const headSize = 44
+  const headX = Math.round((canvas.width - headSize) / 2)
+  const headY = 12
+  // Tête de base (8,8, 8x8) + Chapeau (40,8, 8x8)
+  ctx.drawImage(img, 8, 8, 8, 8, headX, headY, headSize, headSize)
+  ctx.drawImage(img, 40, 8, 8, 8, headX, headY, headSize, headSize)
+
+  // Torso (20,20, 8x12) + Veste (20,36, 8x12)
+  const bodyW = 44
+  const bodyH = 58
+  const bodyX = headX
+  const bodyY = headY + headSize
+  ctx.drawImage(img, 20, 20, 8, 12, bodyX, bodyY, bodyW, bodyH)
+  ctx.drawImage(img, 20, 36, 8, 12, bodyX, bodyY, bodyW, bodyH)
+
+  // Bras
+  const armW = isSlim ? 16 : 20
+  const armH = 58
+  // Bras droit (44,20, 4x12)
+  ctx.drawImage(img, 44, 20, 4, 12, bodyX - armW, bodyY, armW, armH)
+  // Bras gauche (36,52, 4x12)
+  const imgH = (img as any).naturalHeight || (img as any).height || 64
+  if (imgH >= 64) {
+    ctx.drawImage(img, 36, 52, 4, 12, bodyX + bodyW, bodyY, armW, armH)
+  } else {
+    ctx.drawImage(img, 44, 20, 4, 12, bodyX + bodyW, bodyY, armW, armH)
+  }
+
+  // Jambes
+  const legW = 20
+  const legH = 22
+  const legY = bodyY + bodyH
+  ctx.drawImage(img, 4, 20, 4, 12, bodyX + 2, legY, legW, legH)
+  if (imgH >= 64) {
+    ctx.drawImage(img, 20, 52, 4, 12, bodyX + bodyW - legW - 2, legY, legW, legH)
+  } else {
+    ctx.drawImage(img, 4, 20, 4, 12, bodyX + bodyW - legW - 2, legY, legW, legH)
+  }
+
+  return canvas.toDataURL()
 }
 
 function createFallbackThumbnail(): string {
@@ -44,7 +96,7 @@ function createFallbackThumbnail(): string {
   return canvas.toDataURL()
 }
 
-const DEFAULT_SKIN = {
+export const DEFAULT_SKIN = {
   id: 'steve',
   url: 'http://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb',
   variant: 'classic',
@@ -244,43 +296,88 @@ const shared = {
 
     const orderedSkins = [...customSkins, ...defaultSkins]
 
+    // Quota dynamique selon le serveur et le rôle du compte
+    const user = shared.account
+    let maxSkins: number = typeof (user as any)?.maxSkins === 'number' && (user as any).maxSkins > 0
+      ? (user as any).maxSkins
+      : 0
+    if (!maxSkins) {
+      const role = ((user as any)?.role || 'citizen').toLowerCase()
+      if (role === 'founder' || role === 'admin') maxSkins = 50
+      else if (role === 'moderator' || role === 'developer' || role === 'dev') maxSkins = 20
+      else if (role === 'builder') maxSkins = 15
+      else maxSkins = 5
+    }
+
+    // Case d'import/ajout en tout premier si le quota n'est pas encore atteint
+    if (customSkins.length < maxSkins) {
+      const addCard = document.createElement('div')
+      addCard.classList.add('skin-preview', 'skin-add-card')
+      addCard.id = 'btn-add-skin-card'
+      addCard.setAttribute('role', 'button')
+      addCard.setAttribute('tabindex', '0')
+      addCard.setAttribute('aria-label', 'Ajouter un nouveau skin')
+      addCard.title = `Ajouter un skin (${customSkins.length}/${maxSkins} utilisé${customSkins.length > 1 ? 's' : ''})`
+      addCard.innerHTML = `
+        <div class="skin-add-inner">
+          <div class="skin-add-icon">
+            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-upload-bold"></use></svg>
+          </div>
+          <span class="skin-add-title">Ajouter un skin</span>
+          <span class="skin-add-sub">PNG 64×64</span>
+        </div>
+      `
+      const triggerUpload = () => {
+        const fileInput = document.getElementById('input-import-skin') as HTMLInputElement | null
+        fileInput?.click()
+      }
+      addCard.addEventListener('click', triggerUpload)
+      addCard.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          triggerUpload()
+        }
+      })
+      skinGallerySettingsEl.appendChild(addCard)
+    }
+
     for (const s of (orderedSkins as (ISkin & { name?: string })[])) {
       const skinDiv = document.createElement('div')
       skinDiv.classList.add('skin-preview')
       if (s.state === 'active') skinDiv.classList.add('active')
 
-      let isBroken = false
-
       // Sélection d'un skin dans le casier
       skinDiv.addEventListener('click', async () => {
-        if (isBroken) {
-          const confirmed = await Dialog.show(
-            `Ce fichier de skin est introuvable sur le serveur.\n\nSouhaitez-vous retirer cette entrée vide de votre casier ?`,
-            [
-              { text: 'Annuler', type: 'cancel' },
-              { text: 'Retirer du casier', type: 'danger' }
-            ],
-            'Skin introuvable'
-          )
-          if (confirmed) {
-            try {
-              shared.skins = await skin.deleteSkin(s.id)
-              await shared.resetMainView()
-              await shared.resetSkinViews()
-            } catch (delErr) {
-              logger.error('Erreur retrait skin introuvable:', delErr)
-            }
-          }
-          return
-        }
-
         if (s.state === 'active') return
         try {
           const cleanTargetUrl = normalizeSkinUrl(s.url)
           const updated = await skin.updateSkin(cleanTargetUrl, 'classic')
           if (updated && Array.isArray(updated)) {
             shared.skins = updated
+          } else if ((updated as any)?.error || (updated as any)?.errorMessage) {
+            const errStr = String((updated as any)?.errorMessage || (updated as any)?.error || '').toLowerCase()
+            if (errStr.includes('404') || errStr.includes('introuvable') || errStr.includes('not found') || errStr.includes('inexistant')) {
+              const confirmed = await Dialog.show(
+                `Ce fichier de skin est introuvable sur le serveur.\n\nSouhaitez-vous retirer cette entrée vide de votre casier ?`,
+                [
+                  { text: 'Annuler', type: 'cancel' },
+                  { text: 'Retirer du casier', type: 'danger' }
+                ],
+                'Skin introuvable'
+              )
+              if (confirmed) {
+                try {
+                  shared.skins = await skin.deleteSkin(s.id)
+                  await shared.resetMainView()
+                  await shared.resetSkinViews()
+                } catch (delErr) {
+                  logger.error('Erreur retrait skin introuvable:', delErr)
+                }
+              }
+              return
+            }
           }
+
           await shared.resetMainView()
           await shared.resetSkinViews()
           // Mettre à jour immédiatement la photo de profil (avatar) et les infos d'identité
@@ -359,6 +456,7 @@ const shared = {
 
       const source = `${s.url}-classic`
       const skinImg = document.createElement('img') as HTMLImageElement
+      skinImg.draggable = false
       const skinLabel = document.createElement('span')
       const displayName = s.name || (isSteve ? 'Steve' : 'Personnalisé')
       skinLabel.innerText = displayName
@@ -371,23 +469,40 @@ const shared = {
         if (shared.cachedSkinThumbnails.has(source)) {
           skinImg.src = shared.cachedSkinThumbnails.get(source)!
         } else {
-          await shared.auxiliarySkinViewer.loadSkin(cleanUrl, { model: skinModel })
-          shared.auxiliarySkinViewer.controls.update()
-          if (shared.auxiliarySkinViewer.animation) {
-            shared.auxiliarySkinViewer.animation.update(shared.auxiliarySkinViewer.playerObject, 0)
-          }
-          shared.auxiliarySkinViewer.render()
+          // 1. Récupérer le skin sous forme de data URL via IPC pour éviter tout problème CORS dans Electron
+          let skinSource = cleanUrl
+          try {
+            const dataUrl = await skin.getSkinDataUrl(cleanUrl)
+            if (dataUrl) skinSource = dataUrl
+          } catch (_) {}
 
-          skinImg.src = shared.auxiliarySkinViewer.canvas.toDataURL()
-          shared.cachedSkinThumbnails.set(source, skinImg.src)
+          try {
+            await shared.auxiliarySkinViewer.loadSkin(skinSource, { model: skinModel })
+            shared.auxiliarySkinViewer.controls.update()
+            if (shared.auxiliarySkinViewer.animation) {
+              shared.auxiliarySkinViewer.animation.update(shared.auxiliarySkinViewer.playerObject, 0)
+            }
+            shared.auxiliarySkinViewer.render()
+
+            skinImg.src = shared.auxiliarySkinViewer.canvas.toDataURL()
+            shared.cachedSkinThumbnails.set(source, skinImg.src)
+          } catch (render3dErr) {
+            // 2. Si le moteur 3D échoue (WebGL occupé ou glitch), générer immédiatement l'aperçu 2D pixel-art
+            const img = new Image()
+            img.crossOrigin = 'anonymous'
+            await new Promise<void>((resolve, reject) => {
+              img.onload = () => resolve()
+              img.onerror = reject
+              img.src = skinSource
+            })
+            skinImg.src = createSkin2DThumbnail(img, (s as any)?.variant === 'slim')
+            shared.cachedSkinThumbnails.set(source, skinImg.src)
+          }
         }
       } catch (err) {
         logger.warn('Failed to render thumbnail for skin:', cleanUrl, err)
         skinImg.src = createFallbackThumbnail()
         skinImg.alt = displayName
-        isBroken = true
-        skinDiv.classList.add('skin-broken')
-        skinDiv.title = `${displayName} (Introuvable — Cliquez pour retirer)`
       }
 
       skinDiv.appendChild(skinImg)

@@ -1,7 +1,8 @@
 import { getTheme, setTheme, onThemeChange, type ThemePreference } from "../../theme"
-import { settings, system, profiles, files, game } from '../../ipc'
+import { settings, system, profiles, files, game, auth } from '../../ipc'
 import type { IGameSettings, IServerGameSettings } from '../../../electron/handlers/settings'
 import { Dialog } from '../../components/dialog'
+import { getUser } from '../../state'
 import { setRouterHooks } from '../../router'
 import { initUpdateCard } from './components/updateCard'
 import { initFilesRoot, refreshFilesCard } from './components/filesRoot'
@@ -46,6 +47,7 @@ interface SettingsCategory {
 }
 
 const GLOBAL_CATEGORIES: SettingsCategory[] = [
+  { id: 'account', label: 'Compte & sécurité', icon: 'solar-shield-check-bold' },
   { id: 'game', label: 'Jeu & performance', icon: 'solar-gamepad-bold' },
   { id: 'interface', label: 'Interface & comportement', icon: 'solar-monitor-bold' },
   { id: 'storage', label: 'Mises à jour & stockage', icon: 'solar-download-bold' },
@@ -154,6 +156,281 @@ function initCategoryKeyboardNav() {
   })
 }
 
+async function initAccountSettings() {
+  const user = getUser()
+  if (!user) return
+
+  // 1. Profil joueur
+  const avatarEl = el('settings-account-avatar') as HTMLImageElement | null
+  const usernameEl = el('settings-account-username')
+  const emailEl = el('settings-account-email')
+  const roleBadgeEl = el('settings-account-role-badge')
+  const uuidEl = el('settings-account-uuid')
+
+  if (avatarEl) {
+    avatarEl.src = (user as any).avatar?.url || `https://minotar.net/avatar/${user.name}/64.png`
+  }
+  if (usernameEl) usernameEl.innerText = user.name
+  if (emailEl) emailEl.innerText = (user as any).email || 'Compte joueur officiel Modey'
+  if (uuidEl) uuidEl.innerText = user.uuid
+  if (roleBadgeEl) {
+    const rawRole = ((user as any).role || 'citizen').toLowerCase()
+    roleBadgeEl.innerText = (user as any).roleLabel || (rawRole.charAt(0).toUpperCase() + rawRole.slice(1))
+    if ((user as any).roleGradient) {
+      roleBadgeEl.style.background = (user as any).roleGradient
+      roleBadgeEl.style.color = '#ffffff'
+    } else if ((user as any).roleColor) {
+      roleBadgeEl.style.background = (user as any).roleColor
+      roleBadgeEl.style.color = '#ffffff'
+    }
+  }
+
+  // 2. Double Authentification (2FA)
+  const badge2FA = el('settings-2fa-badge')
+  const banner2FA = el('settings-2fa-status-banner')
+  const btnSetup2FA = el('btn-settings-setup-2fa') as HTMLButtonElement | null
+  const btnDisable2FA = el('btn-settings-disable-2fa') as HTMLButtonElement | null
+
+  // Modal 2FA
+  const modalDialog = el('modal-2fa-setup-dialog')
+  const btnCloseModal = el('btn-close-modal-2fa')
+  const btnCancelModal = el('btn-modal-2fa-cancel')
+  const btnConfirmModal = el('btn-modal-2fa-confirm') as HTMLButtonElement | null
+  const qrImg = el('modal-2fa-qr-img') as HTMLImageElement | null
+  const secretCode = el('modal-2fa-secret-code')
+  const recoveryList = el('modal-2fa-recovery-list')
+  const inputConfirmCode = el('input-confirm-2fa-code') as HTMLInputElement | null
+  const btnCopySecret = el('btn-copy-2fa-secret')
+
+  async function refresh2FAStatus() {
+    try {
+      const res = await auth.get2FAStatus()
+      const isEnabled = Boolean(res?.enabled)
+
+      if (badge2FA) {
+        badge2FA.innerText = isEnabled ? '2FA Active' : 'Non activée'
+        badge2FA.style.background = isEnabled ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)'
+        badge2FA.style.color = isEnabled ? '#22c55e' : '#f59e0b'
+      }
+
+      if (banner2FA) {
+        if (isEnabled) {
+          banner2FA.style.background = 'rgba(34, 197, 94, 0.08)'
+          banner2FA.style.borderColor = 'rgba(34, 197, 94, 0.25)'
+          banner2FA.innerHTML = `
+            <svg class="solar-icon solar-bold" style="font-size:24px; color:#22c55e; flex-shrink:0;" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>
+            <div style="font-size:12.5px; color:var(--text-main); line-height:1.4;">
+              <strong style="color:#22c55e;">Votre compte est protégé par la double authentification.</strong><br/>
+              <span style="color:var(--text-muted); font-size:11.5px;">Chaque nouvelle connexion requiert un code généré par Google Authenticator sur votre smartphone.</span>
+            </div>
+          `
+          if (btnSetup2FA) btnSetup2FA.style.display = 'none'
+          if (btnDisable2FA) btnDisable2FA.style.display = 'inline-flex'
+        } else {
+          banner2FA.style.background = 'rgba(245, 158, 11, 0.08)'
+          banner2FA.style.borderColor = 'rgba(245, 158, 11, 0.25)'
+          banner2FA.innerHTML = `
+            <svg class="solar-icon solar-bold" style="font-size:24px; color:#f59e0b; flex-shrink:0;" aria-hidden="true"><use href="#solar-shield-warning-bold"></use></svg>
+            <div style="font-size:12.5px; color:var(--text-main); line-height:1.4;">
+              <strong style="color:#fbbf24;">Protection 2FA recommandée.</strong><br/>
+              <span style="color:var(--text-muted); font-size:11.5px;">Activez Google Authenticator pour sécuriser votre compte contre toute tentative d'intrusion.</span>
+            </div>
+          `
+          if (btnSetup2FA) btnSetup2FA.style.display = 'inline-flex'
+          if (btnDisable2FA) btnDisable2FA.style.display = 'none'
+        }
+      }
+    } catch (err) {
+      logger.warn('Failed to fetch 2FA status:', err)
+    }
+  }
+
+  // Ouvrir modal configuration
+  btnSetup2FA?.addEventListener('click', async () => {
+    try {
+      const origText = btnSetup2FA.innerHTML
+      btnSetup2FA.disabled = true
+      btnSetup2FA.innerText = 'Chargement...'
+
+      const setupData = await auth.setup2FA()
+      btnSetup2FA.disabled = false
+      btnSetup2FA.innerHTML = origText
+
+      if (!setupData || !setupData.success) {
+        await Dialog.show(setupData?.error || 'Impossible d\'initialiser la configuration 2FA.', [{ text: 'OK', type: 'ok' }])
+        return
+      }
+
+      if (qrImg) qrImg.src = setupData.qrCodeDataUrl
+      if (secretCode) secretCode.innerText = setupData.secret
+      if (recoveryList) {
+        recoveryList.innerHTML = (setupData.recoveryCodes || []).map((code: string) => `<span>${code}</span>`).join('')
+      }
+      if (inputConfirmCode) inputConfirmCode.value = ''
+
+      if (modalDialog) modalDialog.style.display = 'flex'
+      setTimeout(() => inputConfirmCode?.focus(), 150)
+    } catch (err) {
+      logger.error('Error during 2FA setup:', err)
+      await Dialog.show('Une erreur est survenue lors de l\'initialisation de la 2FA.', [{ text: 'OK', type: 'ok' }])
+    }
+  })
+
+  // Copier la clé secrète
+  btnCopySecret?.addEventListener('click', () => {
+    const text = secretCode?.innerText || ''
+    if (text) {
+      navigator.clipboard.writeText(text)
+      btnCopySecret.innerText = 'Copié !'
+      setTimeout(() => { if (btnCopySecret) btnCopySecret.innerText = 'Copier' }, 2000)
+    }
+  })
+
+  const closeModal = () => { if (modalDialog) modalDialog.style.display = 'none' }
+  btnCloseModal?.addEventListener('click', closeModal)
+  btnCancelModal?.addEventListener('click', closeModal)
+
+  // Valider et activer la 2FA
+  btnConfirmModal?.addEventListener('click', async () => {
+    const code = inputConfirmCode?.value.trim() || ''
+    if (!code) {
+      await Dialog.show('Veuillez saisir le code à 6 chiffres de Google Authenticator.', [{ text: 'OK', type: 'ok' }])
+      return
+    }
+
+    const origText = btnConfirmModal.innerText
+    btnConfirmModal.disabled = true
+    btnConfirmModal.innerText = 'Vérification...'
+
+    try {
+      const res = await auth.enable2FA(code)
+      if (res.success) {
+        closeModal()
+        await Dialog.show('La double authentification avec Google Authenticator est désormais active sur votre compte !', [{ text: 'Parfait', type: 'ok' }], 'Sécurité Active')
+        await refresh2FAStatus()
+      } else {
+        await Dialog.show(res.error || 'Code incorrect. Vérifiez l\'heure de votre smartphone et réessayez.', [{ text: 'Réessayer', type: 'ok' }])
+      }
+    } catch (err: any) {
+      logger.error(err)
+      await Dialog.show('Erreur lors de l\'activation de la double authentification.', [{ text: 'OK', type: 'ok' }])
+    } finally {
+      btnConfirmModal.disabled = false
+      btnConfirmModal.innerText = origText
+    }
+  })
+
+  // Désactiver 2FA
+  btnDisable2FA?.addEventListener('click', async () => {
+    const confirmed = await Dialog.show(
+      'Êtes-vous sûr de vouloir désactiver la double authentification ? Votre compte sera moins sécurisé.',
+      [
+        { text: 'Annuler', type: 'cancel' },
+        { text: 'Désactiver', type: 'ok' }
+      ],
+      'Désactivation de la 2FA'
+    )
+    if (!confirmed) return
+
+    const password = prompt('Saisissez votre mot de passe de compte Modey pour confirmer la désactivation :')
+    if (!password) return
+
+    try {
+      const res = await auth.disable2FA(password)
+      if (res.success) {
+        await Dialog.show('La double authentification a été désactivée.', [{ text: 'OK', type: 'ok' }])
+        await refresh2FAStatus()
+      } else {
+        await Dialog.show(res.error || 'Mot de passe incorrect.', [{ text: 'OK', type: 'ok' }])
+      }
+    } catch (err: any) {
+      logger.error(err)
+      await Dialog.show('Erreur lors de la désactivation de la 2FA.', [{ text: 'OK', type: 'ok' }])
+    }
+  })
+
+  // 3. Sessions actives
+  const sessionsList = el('settings-sessions-list')
+  const btnRevokeOthers = el('btn-settings-revoke-others')
+
+  async function loadSessions() {
+    if (!sessionsList) return
+    try {
+      const res = await auth.getSessions()
+      const list = res.sessions || []
+
+      if (list.length === 0) {
+        sessionsList.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-muted); font-size:12px;">Aucune session trouvée.</div>'
+        return
+      }
+
+      sessionsList.innerHTML = list.map((s: any) => {
+        const lastActive = s.lastActiveAt ? new Date(s.lastActiveAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : 'Récemment'
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:10px 14px; border-radius:10px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <svg class="solar-icon solar-bold" style="color:var(--primary); font-size:20px;"><use href="#solar-monitor-bold"></use></svg>
+              <div>
+                <div style="font-size:13px; font-weight:600; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                  ${s.deviceName}
+                  ${s.isCurrent ? '<span style="font-size:10px; font-weight:700; color:#22c55e; background:rgba(34,197,94,0.15); padding:1px 6px; border-radius:10px;">Cet appareil</span>' : ''}
+                </div>
+                <div style="font-size:11px; color:var(--text-muted);">
+                  IP: ${s.ipAddress} · Dernière activité : ${lastActive}
+                </div>
+              </div>
+            </div>
+            ${!s.isCurrent ? `
+              <button type="button" class="settings-btn btn-revoke-single" data-token="${s.token}" style="padding:4px 10px; font-size:11px; color:var(--danger, #ef4444); border-color:rgba(239,68,68,0.25);">
+                Déconnecter
+              </button>
+            ` : ''}
+          </div>
+        `
+      }).join('')
+
+      sessionsList.querySelectorAll<HTMLButtonElement>('.btn-revoke-single').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const token = btn.dataset.token
+          if (token) {
+            btn.disabled = true
+            btn.innerText = '...'
+            await auth.revokeSession(token)
+            await loadSessions()
+          }
+        })
+      })
+    } catch (err) {
+      logger.warn('Failed to load sessions:', err)
+      sessionsList.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-muted); font-size:12px;">Impossible de charger la liste des sessions.</div>'
+    }
+  }
+
+  btnRevokeOthers?.addEventListener('click', async () => {
+    const confirmed = await Dialog.show(
+      'Déconnecter toutes les autres sessions ? Les autres appareils connectés à votre compte devront se reconnecter.',
+      [
+        { text: 'Annuler', type: 'cancel' },
+        { text: 'Déconnecter les autres', type: 'ok' }
+      ],
+      'Déconnexion globale'
+    )
+    if (!confirmed) return
+
+    try {
+      await auth.revokeOtherSessions()
+      await Dialog.show('Toutes les autres sessions ont été déconnectées.', [{ text: 'OK', type: 'ok' }])
+      await loadSessions()
+    } catch (err: any) {
+      logger.error(err)
+      await Dialog.show('Erreur lors de la déconnexion des sessions.', [{ text: 'OK', type: 'ok' }])
+    }
+  })
+
+  await refresh2FAStatus()
+  await loadSessions()
+}
+
 export async function initSettings() {
   const sysInfo = await system.getInfo()
   portableMode = !!sysInfo.portable
@@ -178,6 +455,7 @@ export async function initSettings() {
   await initServerPillTabs()
   initServerLocationCardListeners()
   initCategoryKeyboardNav()
+  await initAccountSettings()
   await applyServerSelection('global')
 
   // Écoute de l'événement de navigation directe vers un serveur
@@ -191,6 +469,7 @@ export async function initSettings() {
     onShowSettings: () => {
       refreshFilesCard()
       refreshServerPillTabs()
+      initAccountSettings()
     }
   })
 }

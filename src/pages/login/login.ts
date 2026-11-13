@@ -38,10 +38,38 @@ export async function initLogin() {
   const btnSubmit = el('btn-login-custom') as HTMLButtonElement | null
   const btnSubmitText = el('btn-submit-text') as HTMLElement | null
 
+  const form2FA = el('form-login-2fa') as HTMLFormElement | null
+  const input2FACode = el('input-2fa-code') as HTMLInputElement | null
+  const btnSubmit2FA = el('btn-submit-2fa') as HTMLButtonElement | null
+  const btnSubmit2FAText = el('btn-submit-2fa-text') as HTMLElement | null
+  const btnCancel2FA = el('btn-cancel-2fa') as HTMLButtonElement | null
+
   const tabLogin = el('tab-auth-login') as HTMLButtonElement | null
   const tabRegister = el('tab-auth-register') as HTMLButtonElement | null
 
   let mode: 'login' | 'register' = 'login'
+  let active2FATempToken: string | null = null
+
+  async function finalizeSession(session: any) {
+    const mn = await maintenance.get()
+    const account = session.account
+    const userRole = ((account as any)?.role || 'citizen').toLowerCase()
+    const canBypass = Boolean(
+      (account as any)?.canBypassMaintenance ||
+      userRole === 'founder' ||
+      userRole === 'super_admin' ||
+      userRole === 'admin'
+    )
+
+    if (mn && canBypass) {
+      renderMaintenanceView(mn, session)
+      return
+    }
+
+    const { skins, capes, avatar } = await loadSkinAssets(session.account)
+    setUser(session.account, { skins, capes, avatar })
+    setView('home')
+  }
 
   function switchMode(newMode: 'login' | 'register') {
     mode = newMode
@@ -67,6 +95,7 @@ export async function initLogin() {
   tabLogin?.addEventListener('click', () => switchMode('login'))
   tabRegister?.addEventListener('click', () => switchMode('register'))
 
+  // Soumission identifiants principaux
   if (form && inputUsername && inputPassword && btnSubmit) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
@@ -112,25 +141,24 @@ export async function initLogin() {
           session = await auth.loginCustom(username, password)
         }
 
-        if (session.success) {
-          const mn = await maintenance.get()
-          const account = session.account
-          const userRole = ((account as any)?.role || 'citizen').toLowerCase()
-          const canBypass = Boolean(
-            (account as any)?.canBypassMaintenance ||
-            userRole === 'founder' ||
-            userRole === 'super_admin' ||
-            userRole === 'admin'
-          )
-
-          if (mn && canBypass) {
-            renderMaintenanceView(mn, session)
-            return
+        // Si double authentification (2FA) requise
+        if ((session as any).requires2FA) {
+          active2FATempToken = (session as any).tempToken
+          form.style.display = 'none'
+          const tabs = el('view-login')?.querySelector('.auth-tabs') as HTMLElement | null
+          if (tabs) tabs.style.display = 'none'
+          if (form2FA) {
+            form2FA.style.display = 'flex'
+            if (input2FACode) {
+              input2FACode.value = ''
+              setTimeout(() => input2FACode.focus(), 100)
+            }
           }
+          return
+        }
 
-          const { skins, capes, avatar } = await loadSkinAssets(session.account)
-          setUser(session.account, { skins, capes, avatar })
-          setView('home')
+        if (session.success) {
+          await finalizeSession(session)
         } else {
           logger.error(session.error)
           await Dialog.show(session.error || "Erreur d'authentification", [{ text: 'OK', type: 'ok' }])
@@ -144,4 +172,45 @@ export async function initLogin() {
       }
     })
   }
+
+  // Soumission 2FA
+  if (form2FA && input2FACode && btnSubmit2FA) {
+    form2FA.addEventListener('submit', async (e) => {
+      e.preventDefault()
+
+      const code = input2FACode.value.trim()
+      if (!code || !active2FATempToken) {
+        await Dialog.show('Veuillez saisir votre code de sécurité à 6 chiffres.', [{ text: 'OK', type: 'ok' }])
+        return
+      }
+
+      const originalText = btnSubmit2FAText?.innerText || 'Valider le code de sécurité'
+      btnSubmit2FA.disabled = true
+      if (btnSubmit2FAText) btnSubmit2FAText.innerText = 'Vérification...'
+
+      try {
+        const res = await auth.login2FA(active2FATempToken, code)
+        if (res.success) {
+          await finalizeSession(res)
+        } else {
+          await Dialog.show(res.error || 'Code Google Authenticator incorrect.', [{ text: 'Réessayer', type: 'ok' }])
+        }
+      } catch (err: any) {
+        logger.error(err)
+        await Dialog.show('Une erreur inattendue est survenue lors de la validation 2FA.', [{ text: 'OK', type: 'ok' }])
+      } finally {
+        btnSubmit2FA.disabled = false
+        if (btnSubmit2FAText) btnSubmit2FAText.innerText = originalText
+      }
+    })
+  }
+
+  // Annulation 2FA / Retour
+  btnCancel2FA?.addEventListener('click', () => {
+    active2FATempToken = null
+    if (form2FA) form2FA.style.display = 'none'
+    if (form) form.style.display = 'flex'
+    const tabs = el('view-login')?.querySelector('.auth-tabs') as HTMLElement | null
+    if (tabs) tabs.style.display = 'flex'
+  })
 }

@@ -95,6 +95,30 @@ export function registerSkinHandlers() {
     }
   })
 
+  ipcMain.handle(IPC.skin.getSkinDataUrl, async (_event, urlOrPath: string) => {
+    if (!urlOrPath) return null
+    try {
+      let buffer: Buffer
+      const clean = normalizeSkinUrl(urlOrPath)
+      if (clean.startsWith('http://') || clean.startsWith('https://')) {
+        const resp = await fetch(clean)
+        if (!resp.ok) return null
+        const arrayBuf = await resp.arrayBuffer()
+        buffer = Buffer.from(arrayBuf)
+      } else if (clean.startsWith('data:')) {
+        return clean
+      } else if (fs.existsSync(clean)) {
+        buffer = fs.readFileSync(clean)
+      } else {
+        return null
+      }
+      return `data:image/png;base64,${buffer.toString('base64')}`
+    } catch (err) {
+      logger.warn('Failed to convert skin to data URL:', urlOrPath, err)
+      return null
+    }
+  })
+
   ipcMain.handle(IPC.skin.updateSkin, async (_event, source: string | ArrayBuffer, _model?: 'classic' | 'slim') => {
     if (!skin) {
       return { success: false, error: 'No skin loaded' }

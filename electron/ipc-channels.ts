@@ -15,7 +15,15 @@ export const IPC = {
     /** @internal — login Microsoft, conservation EML, pas d'UI Modey */
     login: 'auth:login',
     loginCustom: 'auth:login-custom',
+    login2FA: 'auth:login-2fa',
     registerCustom: 'auth:register-custom',
+    get2FAStatus: 'auth:get-2fa-status',
+    setup2FA: 'auth:setup-2fa',
+    enable2FA: 'auth:enable-2fa',
+    disable2FA: 'auth:disable-2fa',
+    getSessions: 'auth:get-sessions',
+    revokeSession: 'auth:revoke-session',
+    revokeOtherSessions: 'auth:revoke-other-sessions',
     /** @internal — multi-comptes EML, pas d'UI Modey */
     listAccounts: 'auth:list-accounts',
     /** @internal */
@@ -84,6 +92,7 @@ export const IPC = {
     getSkin: 'skin:get_skin',
     getCape: 'skin:get_cape',
     getAvatar: 'skin:get_avatar',
+    getSkinDataUrl: 'skin:get_skin_data_url',
     updateSkin: 'skin:update_skin',
     switchCape: 'skin:switch_cape',
     deleteSkin: 'skin:delete_skin',
