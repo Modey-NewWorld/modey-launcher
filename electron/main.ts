@@ -8,6 +8,7 @@ import fs from 'node:fs'
 if (typeof dns.setDefaultResultOrder === 'function') {
   dns.setDefaultResultOrder('ipv4first')
 }
+app.commandLine.appendSwitch('disable-ipv6')
 import { registerAuthHandlers } from './handlers/auth'
 import { registerLauncherHandlers } from './handlers/launcher/index'
 import { registerSettingsHandlers, getSavedUiScale, getSavedBackgroundSleep } from './handlers/settings'

@@ -506,7 +506,7 @@ async function initUIListeners() {
     if (currentSelectedTarget === 'global') return
     const originalContent = serverRepairBtn.innerHTML
     serverRepairBtn.disabled = true
-    serverRepairBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Vérification en cours...'
+    serverRepairBtn.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg>&nbsp;Vérification en cours...'
     try {
       const res = await game.verifyIntegrity(currentSelectedTarget)
       if (!res.success) {

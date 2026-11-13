@@ -28,9 +28,12 @@ div.loading-card {
   }
 
   .spinner {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     color: var(--primary, var(--accent));
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .text {

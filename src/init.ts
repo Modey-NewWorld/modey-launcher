@@ -108,7 +108,7 @@ export function renderMaintenanceView(mn: any, session: any) {
 
       btnBypass.onclick = async () => {
         btnBypass.disabled = true
-        btnBypass.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> Accès en cours...'
+        btnBypass.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg> Accès en cours...'
         try {
           if (session && session.account) {
             const { skins, capes, avatar } = await loadSkinAssets(session.account)

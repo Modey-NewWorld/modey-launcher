@@ -145,7 +145,7 @@ export function initProfile() {
 
     const originalHtml = unlinkBtn.innerHTML
     unlinkBtn.disabled = true
-    unlinkBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Dissociation en cours...'
+    unlinkBtn.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg>&nbsp;Dissociation en cours...'
 
     try {
       const res = await fetch(`${API_BASE}/api/auth/discord/unlink`, {

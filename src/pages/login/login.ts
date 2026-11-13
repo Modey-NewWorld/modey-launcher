@@ -92,7 +92,7 @@ export async function initLogin() {
 
       const originalHtml = btnSubmit.innerHTML
       btnSubmit.disabled = true
-      btnSubmit.innerHTML = `<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> ${mode === 'register' ? 'Création du compte...' : 'Connexion à la cité...'}`
+      btnSubmit.innerHTML = `<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg> ${mode === 'register' ? 'Création du compte...' : 'Connexion à la cité...'}`
 
       try {
         let session

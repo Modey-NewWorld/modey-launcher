@@ -90,7 +90,7 @@ export async function refreshOptionalMods(slug: string) {
   if (cachedMods.length === 0) {
     container.innerHTML = `
       <div class="optional-mods-placeholder" style="background:var(--bg-surface-alt); border:1px dashed var(--line-strong); border-radius:10px; padding:24px 16px; text-align:center; color:var(--ink-500); font-size:13px;">
-        <svg class="solar-icon solar-bold spin" style="font-size:24px; color:var(--accent); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
+        <svg class="solar-icon spin" style="font-size:24px; color:var(--accent); margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#modey-spinner"></use></svg>
         <div>Recherche des mods facultatifs pour ${slug}...</div>
       </div>
     `
@@ -147,7 +147,7 @@ export async function refreshOptionalMods(slug: string) {
         <svg class="solar-icon solar-bold" style="font-size:22px; color:#ef4444; margin-bottom:8px; display:inline-block;" aria-hidden="true"><use href="#solar-danger-bold"></use></svg>
         <div style="font-weight:600; margin-bottom:4px;">Impossible de charger les mods</div>
         <button type="button" class="opt-btn opt-btn--retry" style="display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:6px 14px; background:#ef4444; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600; font-size:12px;">
-          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg> Réessayer
+          <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg> Réessayer
         </button>
       </div>
     `
@@ -254,7 +254,7 @@ function renderSidebarList(preserveScrollTop?: number) {
     dlBtn?.addEventListener('click', async (e) => {
       e.stopPropagation()
       dlBtn.disabled = true
-      dlBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>'
+      dlBtn.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg>'
       const res = await installWithDependencies(currentSlug, mod, cachedMods)
       if (!res.success) {
         await Dialog.show(res.error || "Impossible d'installer le mod.", [{ text: 'OK', type: 'ok' }])
@@ -267,7 +267,7 @@ function renderSidebarList(preserveScrollTop?: number) {
     toggleBtn?.addEventListener('click', async (e) => {
       e.stopPropagation()
       toggleBtn.disabled = true
-      toggleBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>'
+      toggleBtn.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg>'
 
       if (!mod.isEnabled) {
         // Activation avec dépendances
@@ -360,7 +360,7 @@ async function inspectSelectedMod() {
       </div>
       <div class="opt-inspector-body">
         <div class="opt-inspector-loading-strip">
-          <svg class="solar-icon solar-bold spin" style="font-size:18px; color:var(--accent);" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>
+          <svg class="solar-icon spin" style="font-size:18px; color:var(--accent);" aria-hidden="true"><use href="#modey-spinner"></use></svg>
           <span>Chargement de la fiche détaillée et des dépendances...</span>
         </div>
       </div>
@@ -711,7 +711,7 @@ function renderFullInspector(
   const installBtn = inspector.querySelector<HTMLButtonElement>('.opt-btn-inspector-install')
   installBtn?.addEventListener('click', async () => {
     installBtn.disabled = true
-    installBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Installation en cours...'
+    installBtn.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg>&nbsp;Installation en cours...'
     const res = await installWithDependencies(currentSlug, mod, cachedMods)
     if (!res.success) {
       await Dialog.show(res.error || "Impossible d'installer le mod.", [{ text: 'OK', type: 'ok' }])
@@ -723,7 +723,7 @@ function renderFullInspector(
   const toggleBtn = inspector.querySelector<HTMLButtonElement>('.opt-btn-inspector-toggle')
   toggleBtn?.addEventListener('click', async () => {
     toggleBtn.disabled = true
-    toggleBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Mise à jour...'
+    toggleBtn.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg>&nbsp;Mise à jour...'
 
     if (!mod.isEnabled) {
       // Activer le mod et toutes ses dépendances requises
@@ -766,7 +766,7 @@ function renderFullInspector(
     )
     if (confirm) {
       delBtn.disabled = true
-      delBtn.innerHTML = '<svg class="solar-icon solar-bold spin" aria-hidden="true"><use href="#solar-refresh-bold"></use></svg>&nbsp;Suppression...'
+      delBtn.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg>&nbsp;Suppression...'
       try {
         const res = await optionalMods.uninstall(currentSlug, mod.id)
         if (!res.success) {
