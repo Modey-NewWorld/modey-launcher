@@ -34,6 +34,13 @@ export function refreshProfileIdentity() {
   syncEmailUI()
   refreshStudioMeta()
   refreshDiscordStatus()
+
+  const mcBadge = el('minecraft-license-badge')
+  if (mcBadge) {
+    const isMsa = (user as any)?.meta?.type === 'msa'
+    mcBadge.innerText = isMsa ? 'Licence vérifiée' : 'Non vérifié'
+    mcBadge.style.color = isMsa ? 'var(--success, #22C55E)' : 'var(--ink-500)'
+  }
 }
 
 function syncEmailUI() {

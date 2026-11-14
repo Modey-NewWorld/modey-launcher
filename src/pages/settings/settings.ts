@@ -3,13 +3,14 @@ import { settings, system, profiles, files, game, auth } from '../../ipc'
 import type { IGameSettings, IServerGameSettings } from '../../../electron/handlers/settings'
 import { Dialog } from '../../components/dialog'
 import { getUser } from '../../state'
-import { setRouterHooks } from '../../router'
+import { setRouterHooks, closeSettings, showProfile } from '../../router'
 import { initUpdateCard } from './components/updateCard'
 import { initFilesRoot, refreshFilesCard } from './components/filesRoot'
 import { initOptionalModsCard, refreshOptionalMods } from './components/optionalModsCard'
 import { launcherConfig } from '../../services/launcherConfig'
-import { openDiscordInvite } from '../../services/discord'
+import { openDiscordInvite, openDiscordConnect, getApiBase } from '../../services/discord'
 import logger from 'electron-log/renderer'
+import shared from '../../shared'
 import settingsHtml from './index.html?raw'
 import './settings.scss'
 
@@ -34,6 +35,7 @@ const resolutionList = [
 
 let currentSettings: IGameSettings
 let currentSelectedTarget: string = 'global' // 'global' ou '<slug>'
+let activeServerCategory: string = 'performance'
 let allKnownProfiles: any[] = []
 let serverMemoryTouched = false
 let portableMode = false
@@ -46,13 +48,47 @@ interface SettingsCategory {
   icon: string
 }
 
+interface SettingsSubitem {
+  cardId: string
+  label: string
+}
+
 const GLOBAL_CATEGORIES: SettingsCategory[] = [
-  { id: 'account', label: 'Compte & sécurité', icon: 'solar-shield-check-bold' },
+  { id: 'account', label: 'Compte & sécurité', icon: 'solar-user-bold' },
+  { id: 'privacy', label: 'Données & confidentialité', icon: 'solar-shield-bold' },
   { id: 'game', label: 'Jeu & performance', icon: 'solar-gamepad-bold' },
   { id: 'interface', label: 'Interface & comportement', icon: 'solar-monitor-bold' },
   { id: 'storage', label: 'Mises à jour & stockage', icon: 'solar-download-bold' },
   { id: 'about', label: 'À propos & licences', icon: 'solar-info-bold' }
 ]
+
+const GLOBAL_SUBITEMS: Record<string, SettingsSubitem[]> = {
+  account: [
+    { cardId: 'account-profile-card', label: 'Informations du compte' },
+    { cardId: 'account-security-card', label: 'Mot de passe et sécurité' },
+    { cardId: 'account-danger-card', label: 'Suppression du compte' }
+  ],
+  privacy: [
+    { cardId: 'privacy-telemetry-card', label: 'Télémétrie & diagnostics' },
+    { cardId: 'privacy-social-card', label: 'Visibilité & présence' },
+    { cardId: 'privacy-data-card', label: 'Données personnelles & RGPD' }
+  ],
+  game: [
+    { cardId: 'ram-card', label: 'Mémoire RAM' },
+    { cardId: 'java-card', label: 'Moteur Java & Lancement' }
+  ],
+  interface: [
+    { cardId: 'appearance-card', label: 'Thème & Apparence' },
+    { cardId: 'behavior-card', label: 'Comportement du launcher' }
+  ],
+  storage: [
+    { cardId: 'update-card', label: 'Mises à jour' },
+    { cardId: 'files-card', label: 'Fichiers & Stockage' }
+  ],
+  about: [
+    { cardId: 'about-card', label: 'Modey Launcher & Licences' }
+  ]
+}
 
 const SERVER_CATEGORIES: SettingsCategory[] = [
   { id: 'performance', label: 'Performance', icon: 'solar-cpu-bold' },
@@ -75,57 +111,178 @@ function currentCategories(): SettingsCategory[] {
   return currentViewKind() === 'global' ? GLOBAL_CATEGORIES : SERVER_CATEGORIES
 }
 
+export function setHeaderTitle(parentLabel: string, childLabel?: string, onBack?: () => void) {
+  const titleEl = el('settings-active-cat-title')
+  if (!titleEl) return
+
+  if (!childLabel) {
+    titleEl.innerText = parentLabel
+    return
+  }
+
+  titleEl.innerHTML = `
+    <button type="button" class="breadcrumb-parent-btn" id="btn-header-breadcrumb-back" title="Retour à ${parentLabel}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span>${parentLabel}</span>
+    </button>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-child">${childLabel}</span>
+  `
+
+  if (onBack) {
+    titleEl.querySelector('#btn-header-breadcrumb-back')?.addEventListener('click', onBack)
+  }
+}
+
 function renderCategoryTabs() {
   const bar = el('settings-category-bar')
   if (!bar) return
 
-  const categories = currentCategories()
-  if (!categories.some((cat) => cat.id === activeCategory)) {
-    const stored = lastCategoryByView[currentViewKind()]
-    activeCategory = categories.some((cat) => cat.id === stored) ? stored : categories[0].id
-  }
+  const isGlobal = currentSelectedTarget === 'global'
 
   bar.innerHTML = ''
-  for (const cat of categories) {
+  for (const cat of GLOBAL_CATEGORIES) {
+    const isCatActive = isGlobal && cat.id === activeCategory
+
+    const group = document.createElement('div')
+    group.className = 'settings-category-group'
+    group.dataset.cat = cat.id
+
     const btn = document.createElement('button')
     btn.type = 'button'
-    btn.className = `settings-category-tab ${cat.id === activeCategory ? 'active' : ''}`
+    btn.className = `settings-category-tab ${isCatActive ? 'active' : ''}`
     btn.dataset.cat = cat.id
     btn.setAttribute('role', 'tab')
-    btn.setAttribute('aria-selected', String(cat.id === activeCategory))
+    btn.setAttribute('aria-selected', String(isCatActive))
     btn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#${cat.icon}"></use></svg><span>${cat.label}</span>`
-    btn.addEventListener('click', () => setCategory(cat.id))
-    bar.appendChild(btn)
+    btn.addEventListener('click', () => {
+      if (currentSelectedTarget !== 'global') {
+        applyServerSelection('global')
+      }
+      setCategory(cat.id)
+    })
+    group.appendChild(btn)
+
+    // Arborescence des sous-sections dépliables uniquement si la catégorie générale est active
+    if (isCatActive) {
+      const subitems = GLOBAL_SUBITEMS[cat.id] || []
+      if (subitems.length > 0) {
+        const tree = document.createElement('div')
+        tree.className = 'settings-subitems-tree'
+        subitems.forEach((sub, idx) => {
+          const subBtn = document.createElement('button')
+          subBtn.type = 'button'
+          subBtn.className = `settings-subitem-tab ${idx === 0 ? 'active' : ''}`
+          subBtn.dataset.targetCard = sub.cardId
+          subBtn.innerText = sub.label
+          subBtn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            scrollToCard(sub.cardId)
+          })
+          tree.appendChild(subBtn)
+        })
+        group.appendChild(tree)
+      }
+    }
+
+    bar.appendChild(group)
+  }
+
+  if (isGlobal) {
+    const currentCat = GLOBAL_CATEGORIES.find((c) => c.id === activeCategory)
+    if (currentCat) {
+      setHeaderTitle(currentCat.label)
+    }
   }
 
   applyCategoryFilter()
+}
+
+function closeAccountSubpages() {
+  const sub2fa = el('account-subpage-2fa')
+  const subSessions = el('account-subpage-sessions')
+  const subSso = el('account-subpage-sso')
+  if (sub2fa) sub2fa.style.display = 'none'
+  if (subSessions) subSessions.style.display = 'none'
+  if (subSso) subSso.style.display = 'none'
+
+  const profileCard = el('account-profile-card')
+  const securityCard = el('account-security-card')
+  const dangerCard = el('account-danger-card')
+  if (profileCard) profileCard.style.display = ''
+  if (securityCard) securityCard.style.display = ''
+  if (dangerCard) dangerCard.style.display = ''
+
+  const currentCat = currentCategories().find((c) => c.id === activeCategory)
+  if (currentCat) {
+    setHeaderTitle(currentCat.label)
+  }
+}
+
+function scrollToCard(cardId: string) {
+  closeAccountSubpages()
+  const card = el(cardId)
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    document.querySelectorAll<HTMLElement>('.settings-subitem-tab').forEach((tab) => {
+      tab.classList.toggle('active', tab.dataset.targetCard === cardId)
+    })
+  }
 }
 
 function setCategory(categoryId: string) {
+  closeAccountSubpages()
   activeCategory = categoryId
   lastCategoryByView[currentViewKind()] = categoryId
+  renderCategoryTabs()
+  el('settings-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
-  document.querySelectorAll<HTMLElement>('.settings-category-tab').forEach((btn) => {
-    const isActive = btn.dataset.cat === categoryId
-    btn.classList.toggle('active', isActive)
-    btn.setAttribute('aria-selected', String(isActive))
+function setServerCategory(zoneId: string) {
+  activeServerCategory = zoneId
+  refreshServerPillTabs()
+
+  const profile = allKnownProfiles.find((p) => p.slug === currentSelectedTarget)
+  const serverName = profile?.name || launcherConfig.getServer(currentSelectedTarget)?.name || currentSelectedTarget
+  const zoneObj = SERVER_CATEGORIES.find((z) => z.id === zoneId)
+  const zoneLabel = zoneObj?.label || zoneId
+
+  setHeaderTitle(serverName, zoneLabel, () => {
+    applyServerSelection('global')
   })
 
   applyCategoryFilter()
+
+  if (zoneId === 'content') {
+    try { refreshOptionalMods(currentSelectedTarget) } catch (e) { logger.warn(e) }
+  } else if (zoneId === 'maintenance') {
+    try { updateServerLocationCard(currentSelectedTarget) } catch (e) { logger.warn(e) }
+  }
+
+  el('settings-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function applyCategoryFilter() {
-  const viewId = currentViewKind() === 'global' ? 'global-settings-view' : 'server-settings-view'
+  const isGlobal = currentSelectedTarget === 'global'
+  const viewId = isGlobal ? 'global-settings-view' : 'server-settings-view'
   const view = el(viewId)
   if (!view) return
 
+  const targetCategory = isGlobal ? activeCategory : activeServerCategory
+
   view.querySelectorAll<HTMLElement>('.settings-card').forEach((card) => {
-    card.hidden = card.dataset.cat !== activeCategory
+    card.hidden = card.dataset.cat !== targetCategory
   })
 
+  const serverView = el('server-settings-view')
   const scrollEl = el('settings-scroll')
+  const isContent = !isGlobal && activeServerCategory === 'content'
+
+  if (serverView) {
+    serverView.classList.toggle('is-content-mode', isContent)
+  }
   if (scrollEl) {
-    scrollEl.classList.toggle('is-cat-content', activeCategory === 'content' && currentViewKind() === 'server')
+    scrollEl.classList.toggle('is-cat-content', isContent)
   }
 }
 
@@ -156,6 +313,19 @@ function initCategoryKeyboardNav() {
   })
 }
 
+function getModeyAvatarSrc(): string {
+  if (shared.avatar?.url) return shared.avatar.url
+  const homeAvatar = document.getElementById('user-avatar') as HTMLImageElement | null
+  if (homeAvatar?.src && !homeAvatar.src.includes('minotar.net')) {
+    return homeAvatar.src
+  }
+  const profileAvatar = document.getElementById('profile-id-avatar') as HTMLImageElement | null
+  if (profileAvatar?.src && !profileAvatar.src.includes('minotar.net')) {
+    return profileAvatar.src
+  }
+  return shared.avatar?.url || ''
+}
+
 async function initAccountSettings() {
   const user = getUser()
   if (!user) return
@@ -164,26 +334,147 @@ async function initAccountSettings() {
   const avatarEl = el('settings-account-avatar') as HTMLImageElement | null
   const usernameEl = el('settings-account-username')
   const emailEl = el('settings-account-email')
-  const roleBadgeEl = el('settings-account-role-badge')
-  const uuidEl = el('settings-account-uuid')
+  const btnRevealEmail = el('btn-reveal-email') as HTMLButtonElement | null
+  const btnEditAvatar = el('btn-edit-avatar') as HTMLButtonElement | null
 
   if (avatarEl) {
-    avatarEl.src = (user as any).avatar?.url || `https://minotar.net/avatar/${user.name}/64.png`
+    const avatarSrc = getModeyAvatarSrc()
+    if (avatarSrc) avatarEl.src = avatarSrc
   }
   if (usernameEl) usernameEl.innerText = user.name
-  if (emailEl) emailEl.innerText = (user as any).email || 'Compte joueur officiel Modey'
-  if (uuidEl) uuidEl.innerText = user.uuid
-  if (roleBadgeEl) {
-    const rawRole = ((user as any).role || 'citizen').toLowerCase()
-    roleBadgeEl.innerText = (user as any).roleLabel || (rawRole.charAt(0).toUpperCase() + rawRole.slice(1))
-    if ((user as any).roleGradient) {
-      roleBadgeEl.style.background = (user as any).roleGradient
-      roleBadgeEl.style.color = '#ffffff'
-    } else if ((user as any).roleColor) {
-      roleBadgeEl.style.background = (user as any).roleColor
-      roleBadgeEl.style.color = '#ffffff'
+
+  // Email avec masquage avant l'arobase et affichage au clic
+  const rawEmail = ((user as any).email || '').trim()
+  let isEmailRevealed = false
+
+  function maskEmail(email: string): string {
+    if (!email || !email.includes('@')) return email || 'Compte joueur officiel Modey'
+    const atIndex = email.indexOf('@')
+    const localPart = email.substring(0, atIndex)
+    const domainPart = email.substring(atIndex)
+    const maskLen = Math.max(localPart.length, 12)
+    return '*'.repeat(maskLen) + domainPart
+  }
+
+  function updateEmailDisplay() {
+    if (!emailEl) return
+    if (!rawEmail) {
+      emailEl.innerText = 'Compte joueur officiel Modey'
+      if (btnRevealEmail) btnRevealEmail.style.display = 'none'
+      return
+    }
+
+    if (!rawEmail.includes('@')) {
+      emailEl.innerText = rawEmail
+      if (btnRevealEmail) btnRevealEmail.style.display = 'none'
+      return
+    }
+
+    if (btnRevealEmail) {
+      btnRevealEmail.style.display = 'inline-flex'
+      btnRevealEmail.innerText = isEmailRevealed ? 'Masquer' : 'Afficher'
+      btnRevealEmail.setAttribute('aria-label', isEmailRevealed ? "Masquer l'adresse e-mail" : "Afficher l'adresse e-mail")
+    }
+    emailEl.innerText = isEmailRevealed ? rawEmail : maskEmail(rawEmail)
+  }
+
+  updateEmailDisplay()
+
+  btnRevealEmail?.addEventListener('click', () => {
+    isEmailRevealed = !isEmailRevealed
+    updateEmailDisplay()
+  })
+
+  // Modification d'avatar -> Redirection vers le profil & casier
+  btnEditAvatar?.addEventListener('click', () => {
+    closeSettings()
+    showProfile()
+  })
+
+  // UUID Modey
+  const uuidEl = el('settings-account-uuid')
+  const btnCopyUuid = el('btn-copy-uuid') as HTMLButtonElement | null
+  const accountUuid = user.uuid || (user as any)?.id || ''
+  if (uuidEl) {
+    uuidEl.innerText = accountUuid || '—'
+  }
+  btnCopyUuid?.addEventListener('click', async () => {
+    if (!accountUuid) return
+    try {
+      await navigator.clipboard.writeText(accountUuid)
+      btnCopyUuid.setAttribute('title', 'Copié !')
+      btnCopyUuid.innerHTML = '<svg class="solar-icon solar-bold" style="color:var(--success);" aria-hidden="true"><use href="#solar-check-read-bold"></use></svg>'
+      setTimeout(() => {
+        btnCopyUuid.setAttribute('title', "Copier l'UUID Modey")
+        btnCopyUuid.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-copy-bold"></use></svg>'
+      }, 2000)
+    } catch (_) {
+      // fallback
+    }
+  })
+
+  // Statut Licence Propriétaire Minecraft
+  const mcEl = el('settings-account-minecraft')
+  if (mcEl) {
+    const isMsa = (user as any)?.meta?.type === 'msa'
+    if (isMsa) {
+      mcEl.innerText = 'Licence vérifiée'
+      mcEl.className = 'discord-row-status is-active'
+    } else {
+      mcEl.innerText = 'Non vérifié'
+      mcEl.className = 'discord-row-status is-inactive'
     }
   }
+
+  // Synchronisation Serveur Discord
+  const discordEl = el('settings-account-discord')
+  const btnSyncDiscord = el('btn-sync-discord') as HTMLButtonElement | null
+  const apiBase = getApiBase()
+
+  async function checkSettingsDiscordStatus() {
+    const token = (user as any)?.accessToken || shared.account?.accessToken
+    if (!token) {
+      if (discordEl) {
+        discordEl.innerText = 'Non synchronisé'
+        discordEl.className = 'discord-row-status is-inactive'
+      }
+      return
+    }
+    try {
+      const res = await fetch(`${apiBase}/api/auth/discord/status?token=${encodeURIComponent(token)}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data && data.linked) {
+          if (discordEl) {
+            discordEl.innerText = `@${data.discord_username || 'Synchronisé'}`
+            discordEl.className = 'discord-row-status is-active'
+          }
+          if (btnSyncDiscord) {
+            btnSyncDiscord.setAttribute('title', 'Compte Discord synchronisé')
+          }
+          return
+        }
+      }
+      if (discordEl) {
+        discordEl.innerText = 'Non synchronisé'
+        discordEl.className = 'discord-row-status is-inactive'
+      }
+    } catch {
+      if (discordEl) {
+        discordEl.innerText = 'Non synchronisé'
+        discordEl.className = 'discord-row-status is-inactive'
+      }
+    }
+  }
+
+  checkSettingsDiscordStatus()
+
+  btnSyncDiscord?.addEventListener('click', () => {
+    openDiscordConnect(shared.account?.accessToken)
+    setTimeout(checkSettingsDiscordStatus, 3000)
+    setTimeout(checkSettingsDiscordStatus, 8000)
+    setTimeout(checkSettingsDiscordStatus, 15000)
+  })
 
   // 2. Double Authentification (2FA)
   const badge2FA = el('settings-2fa-badge')
@@ -212,14 +503,20 @@ async function initAccountSettings() {
         badge2FA.className = `settings-2fa-badge ${isEnabled ? 'is-active' : 'is-inactive'}`
       }
 
+      const pill2FA = el('settings-2fa-status-pill')
+      if (pill2FA) {
+        pill2FA.innerText = isEnabled ? 'Activé' : 'Non activé'
+        pill2FA.className = `discord-row-status ${isEnabled ? 'is-active' : 'is-inactive'}`
+      }
+
       if (banner2FA) {
         banner2FA.className = `settings-2fa-status-banner ${isEnabled ? 'is-active' : 'is-inactive'}`
         if (isEnabled) {
           banner2FA.innerHTML = `
             <svg class="solar-icon solar-bold settings-2fa-banner-icon" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>
             <div class="settings-2fa-banner-text">
-              <strong>Votre compte est protégé par la double authentification.</strong>
-              <span class="settings-2fa-banner-desc">Chaque nouvelle connexion requiert un code temporaire généré par Google Authenticator sur votre smartphone.</span>
+              <strong>Votre compte est protégé par une application d'authentification (2FA).</strong>
+              <span class="settings-2fa-banner-desc">Chaque nouvelle connexion requiert un code temporaire généré sur votre smartphone (Google Authenticator, Authy, etc.).</span>
             </div>
           `
           if (btnSetup2FA) btnSetup2FA.style.display = 'none'
@@ -229,7 +526,7 @@ async function initAccountSettings() {
             <svg class="solar-icon solar-bold settings-2fa-banner-icon" aria-hidden="true"><use href="#solar-shield-warning-bold"></use></svg>
             <div class="settings-2fa-banner-text">
               <strong>Protection 2FA recommandée.</strong>
-              <span class="settings-2fa-banner-desc">Activez Google Authenticator pour sécuriser votre compte contre toute tentative d'accès non autorisée.</span>
+              <span class="settings-2fa-banner-desc">Activez une application d'authentification pour sécuriser votre compte citoyen contre les accès non autorisés.</span>
             </div>
           `
           if (btnSetup2FA) btnSetup2FA.style.display = 'inline-flex'
@@ -355,6 +652,12 @@ async function initAccountSettings() {
       const res = await auth.getSessions()
       const list = res.sessions || []
 
+      const pillSessions = el('settings-sessions-count-pill')
+      if (pillSessions) {
+        const count = list.length
+        pillSessions.innerText = `${count} appareil${count > 1 ? 's' : ''}`
+      }
+
       if (list.length === 0) {
         sessionsList.innerHTML = '<div style="text-align:center; padding:12px; color:var(--text-muted); font-size:12px;">Aucune session trouvée.</div>'
         return
@@ -423,8 +726,131 @@ async function initAccountSettings() {
     }
   })
 
+  // 4. Gestion des sous-pages (Style Discord)
+  const sub2fa = el('account-subpage-2fa')
+  const subSessions = el('account-subpage-sessions')
+  const subSso = el('account-subpage-sso')
+  const profileCard = el('account-profile-card')
+  const securityCard = el('account-security-card')
+  const dangerCard = el('account-danger-card')
+  const scrollEl = el('settings-scroll')
+
+  const openSubpage = (targetSubpage: HTMLElement | null, subpageLabel: string) => {
+    if (!targetSubpage) return
+    if (profileCard) profileCard.style.display = 'none'
+    if (securityCard) securityCard.style.display = 'none'
+    if (dangerCard) dangerCard.style.display = 'none'
+    if (sub2fa) sub2fa.style.display = 'none'
+    if (subSessions) subSessions.style.display = 'none'
+    if (subSso) subSso.style.display = 'none'
+
+    targetSubpage.style.display = 'flex'
+    targetSubpage.querySelectorAll<HTMLElement>('.settings-card').forEach((card) => {
+      card.hidden = false
+      card.style.display = 'flex'
+    })
+
+    document.querySelectorAll<HTMLElement>('.settings-subitem-tab').forEach((tab) => tab.classList.remove('active'))
+
+    setHeaderTitle('Compte & sécurité', subpageLabel, () => closeSubpages())
+    scrollEl?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const closeSubpages = () => {
+    closeAccountSubpages()
+    document.querySelectorAll<HTMLElement>('.settings-subitem-tab').forEach((tab, idx) => {
+      tab.classList.toggle('active', idx === 0)
+    })
+    scrollEl?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  el('btn-goto-2fa')?.addEventListener('click', () => {
+    openSubpage(sub2fa, 'Authentification à multi-facteurs')
+    refresh2FAStatus()
+  })
+  el('row-2fa-action')?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
+    openSubpage(sub2fa, 'Authentification à multi-facteurs')
+    refresh2FAStatus()
+  })
+
+  el('btn-goto-sessions')?.addEventListener('click', () => {
+    openSubpage(subSessions, 'Appareils connectés')
+    loadSessions()
+  })
+  el('row-sessions-action')?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
+    openSubpage(subSessions, 'Appareils connectés')
+    loadSessions()
+  })
+
+  el('btn-goto-sso')?.addEventListener('click', () => {
+    openSubpage(subSso, 'Connexion rapide (SSO)')
+  })
+  el('row-sso-action')?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
+    openSubpage(subSso, 'Connexion rapide (SSO)')
+  })
+
   await refresh2FAStatus()
   await loadSessions()
+}
+
+function initPrivacySettings() {
+  const toggleCrash = el('toggle-crash-reports') as HTMLInputElement | null
+  const toggleTelemetry = el('toggle-telemetry') as HTMLInputElement | null
+  const toggleDiscordRpc = el('toggle-discord-rpc') as HTMLInputElement | null
+
+  // Paramètres non fonctionnels pour l'instant : verrouillés et désactivés
+  if (toggleCrash) {
+    toggleCrash.checked = false
+    toggleCrash.disabled = true
+  }
+
+  if (toggleTelemetry) {
+    toggleTelemetry.checked = false
+    toggleTelemetry.disabled = true
+  }
+
+  if (toggleDiscordRpc) {
+    toggleDiscordRpc.checked = false
+    toggleDiscordRpc.disabled = true
+  }
+
+  const btnClearCache = el('btn-clear-web-cache')
+  btnClearCache?.addEventListener('click', async () => {
+    const confirmed = await Dialog.show(
+      'Voulez-vous vider le cache local du launcher ? Cela libérera de l\'espace disque sans affecter vos données de compte ni vos mondes de jeu.',
+      [
+        { text: 'Annuler', type: 'cancel' },
+        { text: 'Vider le cache', type: 'ok' }
+      ],
+      'Nettoyage du cache'
+    )
+    if (!confirmed) return
+
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key && (key.startsWith('skin_') || key.startsWith('cache_') || key.startsWith('cape_'))) {
+          localStorage.removeItem(key)
+        }
+      }
+      await Dialog.show('Le cache local et les données temporaires ont été réinitialisés avec succès.', [{ text: 'Parfait', type: 'ok' }], 'Cache vidé')
+    } catch (err: any) {
+      logger.error('Erreur lors du vidage du cache:', err)
+      await Dialog.show('Une erreur est survenue lors de la réinitialisation du cache.', [{ text: 'OK', type: 'ok' }])
+    }
+  })
+
+  const btnPrivacyPolicy = el('btn-view-privacy-policy')
+  btnPrivacyPolicy?.addEventListener('click', async () => {
+    await Dialog.show(
+      'Modey s\'engage à respecter votre vie privée. Vos identifiants sont chiffrés, aucune donnée personnelle sensible n\'est transmise à des tiers, et vos mots de passe ne sont jamais stockés en clair. Vous pouvez exercer vos droits d\'accès ou de suppression à tout moment.',
+      [{ text: 'Fermer', type: 'ok' }],
+      'Charte de Confidentialité'
+    )
+  })
 }
 
 export async function initSettings() {
@@ -440,6 +866,7 @@ export async function initSettings() {
   initUiScale()
   initFormValues(sysInfo.resolution)
   populateAbout(sysInfo)
+  initPrivacySettings()
   initUpdateCard(sysInfo.version ?? '', {
     betaChannel: !!currentSettings.betaChannel,
     autoUpdateCheck: currentSettings.autoUpdateCheck !== false,
@@ -461,13 +888,131 @@ export async function initSettings() {
     }
   }) as EventListener)
 
+  // Fermeture de la modale Paramètres (Bouton croix, Clic backdrop, Touche Échap)
+  el('btn-close-settings')?.addEventListener('click', closeSettings)
+
+  const backdrop = el('settings-page')
+  backdrop?.addEventListener('click', (e) => {
+    if (e.target === backdrop) {
+      closeSettings()
+    }
+  })
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = el('settings-page')
+      if (modal && modal.style.display !== 'none') {
+        const modal2fa = el('modal-setup-2fa')
+        if (modal2fa && modal2fa.style.display !== 'none') {
+          return
+        }
+        closeSettings()
+      }
+    }
+  })
+
   setRouterHooks({
     onShowSettings: () => {
       refreshFilesCard()
       refreshServerPillTabs()
       initAccountSettings()
+      refreshSidebarUserCard()
     }
   })
+
+  refreshSidebarUserCard()
+  initSettingsSearch()
+  initScrollSpy()
+}
+
+function refreshSidebarUserCard() {
+  const user = getUser()
+  const avatarEl = el('settings-sidebar-avatar') as HTMLImageElement | null
+  const usernameEl = el('settings-sidebar-username')
+
+  if (!user) return
+
+  if (avatarEl) {
+    const avatarSrc = getModeyAvatarSrc()
+    if (avatarSrc) avatarEl.src = avatarSrc
+  }
+  if (usernameEl) {
+    usernameEl.innerText = user.name
+  }
+
+  const btnGotoProfile = el('settings-btn-goto-profile')
+  if (btnGotoProfile && !btnGotoProfile.dataset.bound) {
+    btnGotoProfile.dataset.bound = 'true'
+    btnGotoProfile.addEventListener('click', () => {
+      closeSettings()
+      showProfile()
+    })
+  }
+}
+
+function initSettingsSearch() {
+  const input = el('settings-search-input') as HTMLInputElement | null
+  const clearBtn = el('settings-search-clear') as HTMLButtonElement | null
+  if (!input) return
+
+  input.addEventListener('input', () => {
+    const query = input.value.trim().toLowerCase()
+    if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none'
+
+    const viewId = currentViewKind() === 'global' ? 'global-settings-view' : 'server-settings-view'
+    const view = el(viewId)
+    if (!view) return
+
+    const cards = view.querySelectorAll<HTMLElement>('.settings-card')
+
+    if (!query) {
+      applyCategoryFilter()
+      return
+    }
+
+    cards.forEach((card) => {
+      const text = (card.textContent || '').toLowerCase()
+      const isMatch = text.includes(query)
+      card.hidden = !isMatch
+    })
+  })
+
+  clearBtn?.addEventListener('click', () => {
+    input.value = ''
+    clearBtn.style.display = 'none'
+    applyCategoryFilter()
+    input.focus()
+  })
+}
+
+function initScrollSpy() {
+  const scrollEl = el('settings-scroll')
+  if (!scrollEl) return
+
+  scrollEl.addEventListener('scroll', () => {
+    const subitems = document.querySelectorAll<HTMLElement>('.settings-subitem-tab')
+    if (!subitems.length) return
+
+    let currentCardId: string | null = null
+    const scrollRect = scrollEl.getBoundingClientRect()
+
+    subitems.forEach((subBtn) => {
+      const cardId = subBtn.dataset.targetCard
+      if (!cardId) return
+      const card = document.getElementById(cardId)
+      if (!card || card.hidden) return
+      const rect = card.getBoundingClientRect()
+      if (rect.top <= scrollRect.top + 160 && rect.bottom >= scrollRect.top + 60) {
+        currentCardId = cardId
+      }
+    })
+
+    if (currentCardId) {
+      subitems.forEach((subBtn) => {
+        subBtn.classList.toggle('active', subBtn.dataset.targetCard === currentCardId)
+      })
+    }
+  }, { passive: true })
 }
 
 function populateAbout(sysInfo: any) {
@@ -496,7 +1041,7 @@ async function initServerPillTabs() {
 }
 
 async function refreshServerPillTabs() {
-  const container = el('settings-pills-servers')
+  const container = el('settings-sidebar-servers') || el('settings-pills-servers')
   if (!container) return
 
   try {
@@ -520,46 +1065,84 @@ async function refreshServerPillTabs() {
   container.innerHTML = ''
 
   allKnownProfiles.forEach((p) => {
-    const btn = document.createElement('button')
-    btn.type = 'button'
-    btn.className = 'slot-pill-btn'
-    btn.dataset.target = p.slug
-    btn.id = `pill-tab-server-${p.slug}`
-
+    const isSelected = currentSelectedTarget === p.slug
     const srvName = p.name || launcherConfig.getServer(p.slug)?.name || p.slug
     const ramAllocated = currentSettings?.serverSettings?.[p.slug]?.memory?.max
     const badgeText = ramAllocated ? `${ramAllocated} Go` : 'Auto'
 
+    const group = document.createElement('div')
+    group.className = 'settings-server-group'
+    group.dataset.target = p.slug
+
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = `settings-server-item ${isSelected ? 'active' : ''}`
+    btn.dataset.target = p.slug
+    btn.id = `server-item-${p.slug}`
+
     btn.innerHTML = `
-      <svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-gamepad-bold"></use></svg>
-      <span>${srvName}</span>
-      <span class="slot-count-tag" id="pill-badge-${p.slug}" title="RAM allouée">${badgeText}</span>
+      <div class="server-item-left">
+        <svg class="solar-icon solar-bold server-item-icon" aria-hidden="true"><use href="#solar-gamepad-bold"></use></svg>
+        <span class="server-item-name">${srvName}</span>
+      </div>
+      <div class="server-item-right">
+        <span class="server-item-ram-badge" id="server-ram-tag-${p.slug}">${badgeText}</span>
+        <svg class="server-chevron ${isSelected ? 'is-open' : ''}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
     `
 
     btn.addEventListener('click', () => {
-      applyServerSelection(p.slug)
+      if (currentSelectedTarget === p.slug) {
+        applyServerSelection('global')
+      } else {
+        applyServerSelection(p.slug)
+      }
     })
 
-    container.appendChild(btn)
+    group.appendChild(btn)
+
+    // Arborescence dépliée avec les différentes zones du serveur
+    if (isSelected) {
+      const tree = document.createElement('div')
+      tree.className = 'settings-server-zones-tree'
+      SERVER_CATEGORIES.forEach((zone) => {
+        const isZoneActive = activeServerCategory === zone.id
+        const zoneBtn = document.createElement('button')
+        zoneBtn.type = 'button'
+        zoneBtn.className = `settings-server-zone-tab ${isZoneActive ? 'active' : ''}`
+        zoneBtn.dataset.zone = zone.id
+        zoneBtn.innerHTML = `
+          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#${zone.icon}"></use></svg>
+          <span>${zone.label}</span>
+        `
+        zoneBtn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          setServerCategory(zone.id)
+        })
+        tree.appendChild(zoneBtn)
+      })
+      group.appendChild(tree)
+    }
+
+    container.appendChild(group)
   })
 
-  // Synchroniser la classe active sur le bon onglet
-  updatePillsActiveState()
+  updateServerActiveState()
 }
 
-function updatePillsActiveState() {
-  document.querySelectorAll('.slot-pill-btn[data-target]').forEach((btn) => {
-    const target = (btn as HTMLElement).dataset.target
-    if (target === currentSelectedTarget) {
-      btn.classList.add('active')
-    } else {
-      btn.classList.remove('active')
-    }
+function updateServerActiveState() {
+  document.querySelectorAll<HTMLElement>('.settings-server-item[data-target]').forEach((btn) => {
+    const target = btn.dataset.target
+    btn.classList.toggle('active', target === currentSelectedTarget)
+  })
+  document.querySelectorAll<HTMLElement>('.slot-pill-btn[data-target]').forEach((btn) => {
+    const target = btn.dataset.target
+    btn.classList.toggle('active', target === currentSelectedTarget)
   })
 }
 
 function updateServerBadgeRam(slug: string, maxRam: number | null) {
-  const badge = el(`pill-badge-${slug}`)
+  const badge = el(`server-ram-tag-${slug}`) || el(`pill-badge-${slug}`)
   if (badge) {
     badge.innerText = maxRam ? `${maxRam} Go` : 'Auto'
   }
@@ -567,19 +1150,18 @@ function updateServerBadgeRam(slug: string, maxRam: number | null) {
 
 export async function applyServerSelection(targetSlug: string) {
   currentSelectedTarget = targetSlug
-  updatePillsActiveState()
+  updateServerActiveState()
 
-  const titleEl = el('settings-title')
-  const subtitleEl = el('settings-subtitle')
+  closeAccountSubpages()
   const globalView = el('global-settings-view')
   const serverView = el('server-settings-view')
 
   if (targetSlug === 'global') {
-    if (titleEl) titleEl.innerText = 'Paramètres généraux'
-    if (subtitleEl) subtitleEl.innerText = "Personnalise ton launcher, l'affichage, Java et tes fichiers de jeu généraux."
+    const currentCat = GLOBAL_CATEGORIES.find((c) => c.id === activeCategory)
+    setHeaderTitle(currentCat?.label || 'Compte & sécurité')
 
     if (globalView) {
-      globalView.style.display = 'contents'
+      globalView.style.display = 'flex'
       globalView.classList.remove('hidden')
     }
     if (serverView) {
@@ -598,24 +1180,25 @@ export async function applyServerSelection(targetSlug: string) {
       refreshServerPillTabs()
     }
     const serverName = profile?.name || launcherConfig.getServer(targetSlug)?.name || targetSlug
-
-    if (titleEl) titleEl.innerText = `Paramètres : ${serverName}`
-    if (subtitleEl) subtitleEl.innerText = `Personnalise la mémoire, les fichiers locaux et les extensions pour ${serverName}.`
+    const currentZone = SERVER_CATEGORIES.find((z) => z.id === activeServerCategory)
+    setHeaderTitle(serverName, currentZone?.label || 'Performance', () => {
+      applyServerSelection('global')
+    })
 
     if (globalView) {
       globalView.style.display = 'none'
       globalView.classList.add('hidden')
     }
     if (serverView) {
-      serverView.style.display = 'contents'
+      serverView.style.display = 'flex'
       serverView.classList.remove('hidden')
     }
   }
 
-  // Mettre à jour la navigation par catégories et filtrer les cartes
-  const kind: SettingsViewKind = targetSlug === 'global' ? 'global' : 'server'
-  activeCategory = lastCategoryByView[kind]
+  // Mettre à jour la navigation et filtrer les cartes
   renderCategoryTabs()
+  refreshServerPillTabs()
+  applyCategoryFilter()
 
   if (targetSlug !== 'global') {
     // Mettre à jour l'emplacement et charger les mods optionnels
