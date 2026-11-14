@@ -6,6 +6,7 @@
  */
 
 import '../static/styles/newsModal.scss'
+import { resolveNewsCategory } from '../services/news'
 
 export interface INewsModalItem {
   id?: string | number
@@ -141,23 +142,9 @@ export class NewsModal {
     const rawBanner = resolveMediaSrc(item.image || item.image_url)
     const rawIcon = resolveMediaSrc(item.icon || item.icon_url)
     const author = item.author || 'Équipe Modey'
-    const category = (item.category || 'announcement').toLowerCase()
-
-    let catLabel = 'Annonce'
-    let catClass = 'badge-announcement'
-    if (category === 'update' || category === 'patchnote' || (item.title || '').toLowerCase().includes('mise à jour')) {
-      catLabel = category === 'patchnote' ? 'Patchnote' : 'Mise à jour'
-      catClass = 'badge-update'
-    } else if (category === 'maintenance' || (item.title || '').toLowerCase().includes('maintenance')) {
-      catLabel = 'Maintenance'
-      catClass = 'badge-maintenance'
-    } else if (category === 'event' || (item.title || '').toLowerCase().includes('événement')) {
-      catLabel = 'Événement'
-      catClass = 'badge-event'
-    } else if (category === 'community') {
-      catLabel = 'Communauté'
-      catClass = 'badge-community'
-    }
+    const catInfo = resolveNewsCategory(item)
+    const catLabel = catInfo.label
+    const catClass = catInfo.className
 
     const dateStr = formatNewsDateTime(item.publishedAt || item.published_at || item.createdAt || item.created_at)
     const contentHtml = renderMarkdownToHtml(item.content || '')
@@ -194,10 +181,20 @@ export class NewsModal {
         ${rawBanner ? `
           <div class="news-modal-banner" style="background-image: url('${escapeHtml(rawBanner)}');">
             <div class="news-modal-banner-gradient"></div>
-            <button class="news-modal-close-btn" id="news-modal-close-x" aria-label="Fermer">✕</button>
+            <button class="news-modal-close-btn" id="news-modal-close-x" title="Fermer (Échap)" aria-label="Fermer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
         ` : `
-          <button class="news-modal-close-btn standalone" id="news-modal-close-x" aria-label="Fermer">✕</button>
+          <button class="news-modal-close-btn standalone" id="news-modal-close-x" title="Fermer (Échap)" aria-label="Fermer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         `}
 
         <div class="news-modal-scrollable">

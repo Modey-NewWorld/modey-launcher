@@ -56,36 +56,55 @@
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(15, 23, 42, 0.7);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid var(--line-strong, var(--line));
+  background: var(--bg-surface-alt, #FFFFFF);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
-  transition: all 0.15s ease;
+  padding: 0;
+  color: var(--ink-500);
+  flex-shrink: 0;
   z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: currentColor;
+    transition: transform 0.2s ease;
+  }
 
   &:hover {
-    background: #ef4444;
-    border-color: #ef4444;
-    transform: scale(1.08);
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.12);
+    color: #EF4444;
+    transform: scale(1.06);
+
+    svg {
+      transform: rotate(90deg);
+    }
+  }
+
+  &:active {
+    transform: scale(0.94);
   }
 
   &.standalone {
-    background: var(--bg-subtle, rgba(0,0,0,0.05));
-    color: var(--ink-700);
-    border-color: var(--line);
+    top: 16px;
+    right: 16px;
+    background: var(--bg-surface-alt, #FFFFFF);
+    border-color: var(--line-strong, var(--line));
+    color: var(--ink-500);
 
     &:hover {
-      background: #ef4444;
-      color: #fff;
-      border-color: #ef4444;
+      border-color: #EF4444;
+      background: rgba(239, 68, 68, 0.12);
+      color: #EF4444;
     }
   }
 }
@@ -122,32 +141,41 @@
   color: var(--ink-500);
 
   .news-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 9px;
-    border-radius: 6px;
+    border-radius: 999px;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
 
     &.badge-update {
       background: rgba(16, 185, 129, 0.15);
       color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
     &.badge-maintenance {
       background: rgba(239, 68, 68, 0.15);
       color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
     }
     &.badge-event {
       background: rgba(245, 158, 11, 0.15);
       color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
     }
     &.badge-community {
       background: rgba(139, 92, 246, 0.15);
       color: #8b5cf6;
+      border: 1px solid rgba(139, 92, 246, 0.3);
     }
     &.badge-announcement {
-      background: var(--accent-soft, rgba(59, 130, 246, 0.15));
-      color: var(--accent, #3b82f6);
+      background: rgba(30, 136, 229, 0.15);
+      color: #1e88e5;
+      border: 1px solid rgba(30, 136, 229, 0.3);
     }
   }
 
