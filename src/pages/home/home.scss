@@ -911,27 +911,48 @@
         width: 100%;
 
         .news-event-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
           font-size: 11px;
           font-weight: 700;
           padding: 3px 9px;
           border-radius: 999px;
           white-space: nowrap;
-          backdrop-filter: blur(8px);
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 
           &.badge-update {
-            background: rgba(27, 111, 214, 0.9);
-            color: #FFFFFF;
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.45);
           }
 
           &.badge-event {
-            background: rgba(16, 185, 129, 0.9);
-            color: #FFFFFF;
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.45);
+          }
+
+          &.badge-announcement {
+            background: rgba(30, 136, 229, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(30, 136, 229, 0.45);
           }
 
           &.badge-maintenance {
-            background: rgba(239, 68, 68, 0.9);
-            color: #FFFFFF;
+            background: rgba(239, 68, 68, 0.22);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+          }
+
+          &.badge-community {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.45);
           }
         }
 
@@ -995,23 +1016,45 @@
         width: 100%;
 
         .news-event-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
           font-size: 11px;
           font-weight: 700;
           padding: 3px 9px;
           border-radius: 999px;
           white-space: nowrap;
-          color: #FFFFFF;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
 
           &.badge-update {
-            background: #1B6FD6;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
           }
 
           &.badge-event {
-            background: #10B981;
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+          }
+
+          &.badge-announcement {
+            background: rgba(30, 136, 229, 0.15);
+            color: #1e88e5;
+            border: 1px solid rgba(30, 136, 229, 0.3);
           }
 
           &.badge-maintenance {
-            background: #EF4444;
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+          }
+
+          &.badge-community {
+            background: rgba(139, 92, 246, 0.15);
+            color: #8b5cf6;
+            border: 1px solid rgba(139, 92, 246, 0.3);
           }
         }
 

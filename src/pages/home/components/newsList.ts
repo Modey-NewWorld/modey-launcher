@@ -1,5 +1,5 @@
 import { NewsModal } from '../../../components/newsModal'
-import { fetchNews, stripMarkdown, formatDate } from '../../../services/news'
+import { fetchNews, stripMarkdown, formatDate, resolveNewsCategory } from '../../../services/news'
 import { homeState } from '../state'
 
 function escapeHtml(str: string): string {
@@ -68,28 +68,9 @@ export async function loadNews(silent = false) {
     const teaser = (item.summary && String(item.summary).trim())
       ? String(item.summary).trim()
       : stripMarkdown(rawContent).slice(0, 110)
-    const category = (item.category || '').toLowerCase()
-    const isUpdate =
-      category === 'update' ||
-      category === 'patchnote' ||
-      (item.title || '').toLowerCase().includes('mise à jour') ||
-      (item.badge || '').toLowerCase().includes('mise')
-    const isMaintenance = category === 'maintenance'
-    
-    let badgeLabel = item.badge
-    let badgeClass = item.badgeClass
-    if (!badgeLabel) {
-      if (isMaintenance) {
-        badgeLabel = 'Maintenance'
-        badgeClass = 'badge-maintenance'
-      } else if (isUpdate) {
-        badgeLabel = 'Mise à jour'
-        badgeClass = 'badge-update'
-      } else {
-        badgeLabel = 'Événement'
-        badgeClass = 'badge-event'
-      }
-    }
+    const catInfo = resolveNewsCategory(item)
+    const badgeLabel = catInfo.label
+    const badgeClass = catInfo.className
     const dateText = item.createdAt ? formatDate(item.createdAt) : 'Récent'
 
     const rawImg = item.image || item.image_url || item.icon || item.icon_url || ''
