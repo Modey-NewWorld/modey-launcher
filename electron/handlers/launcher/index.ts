@@ -15,7 +15,7 @@ import { getDynamicMemoryLimits } from '../../runtimeConfig'
 import { getAuthlibInjectorPath } from './authlib'
 import { killMinecraft, trackMinecraftPid, schedulePostLaunchAction } from './process'
 import { withPortableAppData } from '../../portable'
-import { pruneOrphanedOptionalMods } from '../optionalMods'
+import { pruneOrphanedOptionalMods, sanitizeFileName } from '../optionalMods'
 
 export { killMinecraft } from './process'
 
@@ -219,14 +219,22 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       if (!data) return { hasExtra: false, extraMods: [] }
 
       // Nettoyer les mods orphelins et vérifier les hashs SHA1
-      pruneOrphanedOptionalMods(cleanSlug, data.optionalMods || [], data.files || [])
+      const optModsList: any[] = (data.optional && Array.isArray(data.optional.mods))
+        ? data.optional.mods
+        : (Array.isArray(data.optionalMods) ? data.optionalMods : [])
+
+      pruneOrphanedOptionalMods(cleanSlug, optModsList, data.files || [])
 
       const officialFiles = (data.files || []).map((f: any) => f.name)
       const allowedOptionalFiles: string[] = []
-      for (const m of data.optionalMods || []) {
+      for (const m of optModsList) {
         if (m.name) {
-          allowedOptionalFiles.push(m.name)
-          allowedOptionalFiles.push(`${m.name}.disabled`)
+          const raw = m.name
+          const clean = sanitizeFileName(raw)
+          allowedOptionalFiles.push(raw)
+          allowedOptionalFiles.push(`${raw}.disabled`)
+          allowedOptionalFiles.push(clean)
+          allowedOptionalFiles.push(`${clean}.disabled`)
         }
       }
       const allowedSet = new Set([...officialFiles, ...allowedOptionalFiles])
@@ -452,12 +460,17 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
       logger.log(`Launching Minecraft ${targetMcVersion} (${targetLoaderType} ${targetLoaderVersion}) for profile ${profileSlug} with server target ${host}:${port} [RAM: ${ramMinMb}M-${ramMaxMb}M, Res: ${effectiveRes.fullscreen ? 'fullscreen' : `${effectiveRes.width}x${effectiveRes.height}`}]`)
 
+      // Synchroniser et contrôler l'intégrité SHA1 des mods optionnels autorisés (uniquement s'il y a des mods ou un loader moddé)
+      const remoteApprovedMods: any[] = (updaterManifest?.optional && Array.isArray(updaterManifest.optional.mods))
+        ? updaterManifest.optional.mods
+        : (Array.isArray(updaterManifest?.optionalMods) ? updaterManifest.optionalMods : [])
+
       // Purger immédiatement les mods supprimés du serveur (orphelins)
       if (updaterManifest) {
         try {
           pruneOrphanedOptionalMods(
             profileSlug,
-            updaterManifest.optionalMods || [],
+            remoteApprovedMods,
             updaterManifest.files || []
           )
         } catch (pruneErr) {
@@ -465,8 +478,6 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         }
       }
 
-      // Synchroniser et contrôler l'intégrité SHA1 des mods optionnels autorisés (uniquement s'il y a des mods ou un loader moddé)
-      const remoteApprovedMods: any[] = Array.isArray(updaterManifest?.optionalMods) ? updaterManifest.optionalMods : []
       const hasRemoteMods = remoteApprovedMods.length > 0 ||
         (Array.isArray(updaterManifest?.files) && updaterManifest.files.some((f: any) => String(f?.path || f?.fullRelPath || '').toLowerCase().startsWith('mods/')))
       const shouldPrepareModsDir = String(targetLoaderType).toLowerCase() !== 'vanilla' || hasRemoteMods
@@ -482,15 +493,35 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
         for (const m of remoteApprovedMods) {
           if (!m || !m.name) continue
-          const fileName = m.name
+          const rawFileName = m.name
+          const fileName = sanitizeFileName(rawFileName)
           const disabledFileName = `${fileName}.disabled`
-          const modId = m.id || fileName.replace(/\.jar$/i, '')
+          const modId = m.id || rawFileName.replace(/\.jar$/i, '')
+          const cleanModId = sanitizeFileName(modId)
           const activePath = path.join(modsDir, fileName)
           const disabledPath = path.join(modsDir, disabledFileName)
 
+          // Nettoyage/migration d'anciennes variantes brutes éventuelles sur disque
+          if (rawFileName !== fileName) {
+            try {
+              const oldActive = path.join(modsDir, rawFileName)
+              const oldDisabled = path.join(modsDir, `${rawFileName}.disabled`)
+              if (fs.existsSync(oldActive) && !fs.existsSync(activePath)) {
+                fs.renameSync(oldActive, activePath)
+              }
+              if (fs.existsSync(oldDisabled) && !fs.existsSync(disabledPath)) {
+                fs.renameSync(oldDisabled, disabledPath)
+              }
+            } catch (_) {}
+          }
+
           const isEnabled =
-            optModsConfig[modId] === true ||
-            (optModsConfig[modId] === undefined && optModsConfig[fileName] === true)
+            Boolean(
+              optModsConfig[modId] === true ||
+              optModsConfig[cleanModId] === true ||
+              optModsConfig[rawFileName] === true ||
+              optModsConfig[fileName] === true
+            )
 
           if (isEnabled) {
             // S'il est sous forme .disabled et non actif, on le réactive
@@ -520,7 +551,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
             // Si le mod est activé mais manquant ou altéré, téléchargement officiel certifié
             if (!valid && m.url) {
               try {
-                const dlResp = await fetch(m.url).catch(() => null)
+                const dlResp = await fetch(encodeURI(m.url)).catch(() => null)
                 if (dlResp && dlResp.ok) {
                   const buf = Buffer.from(await dlResp.arrayBuffer())
                   if (m.sha1) {
@@ -587,17 +618,25 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
         }
 
         // Protéger systématiquement les mods optionnels certifiés par le serveur
-        // (qu'ils soient actifs .jar ou désactivés .jar.disabled par le joueur)
+        // (qu'ils soient actifs .jar ou désactivés .jar.disabled par le joueur, noms bruts et nettoyés)
         for (const m of remoteApprovedMods) {
           if (!m || !m.name) continue
-          const activeModPath = `mods/${m.name}`
-          const disabledModPath = `mods/${m.name}.disabled`
+          const rawName = m.name
+          const cleanName = sanitizeFileName(rawName)
+          const activeModPath = `mods/${cleanName}`
+          const disabledModPath = `mods/${cleanName}.disabled`
 
           if (!serverCleaningIgnored.includes(activeModPath)) {
             serverCleaningIgnored.push(activeModPath)
           }
           if (!serverCleaningIgnored.includes(disabledModPath)) {
             serverCleaningIgnored.push(disabledModPath)
+          }
+          if (rawName !== cleanName) {
+            const rawActive = `mods/${rawName}`
+            const rawDisabled = `mods/${rawName}.disabled`
+            if (!serverCleaningIgnored.includes(rawActive)) serverCleaningIgnored.push(rawActive)
+            if (!serverCleaningIgnored.includes(rawDisabled)) serverCleaningIgnored.push(rawDisabled)
           }
         }
       }
@@ -845,8 +884,12 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       }
 
       // Purger également les mods facultatifs orphelins retirés du serveur
+      const optModsList: any[] = (manifest.optional && Array.isArray(manifest.optional.mods))
+        ? manifest.optional.mods
+        : (Array.isArray(manifest.optionalMods) ? manifest.optionalMods : [])
+
       try {
-        pruneOrphanedOptionalMods(cleanSlug, manifest.optionalMods || [], manifest.files || [])
+        pruneOrphanedOptionalMods(cleanSlug, optModsList, manifest.files || [])
       } catch (pruneErr) {
         logger.warn('[Integrity Repair] Échec du nettoyage des mods orphelins:', pruneErr)
       }
@@ -896,12 +939,13 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       logger.info(`[Integrity] Terminé pour ${cleanSlug}: ${validCount} valides, ${repairedCount} réparés sur ${filesList.length} fichiers`)
 
       // Vérifier et réparer également les mods optionnels présents contre les falsifications
-      const optModsList: any[] = Array.isArray(manifest.optionalMods) ? manifest.optionalMods : []
       const modsDir = path.join(instDir, 'mods')
       for (const optItem of optModsList) {
         if (!optItem || !optItem.name) continue
-        const activeFile = path.join(modsDir, optItem.name)
-        const disabledFile = path.join(modsDir, `${optItem.name}.disabled`)
+        const rawName = optItem.name
+        const cleanName = sanitizeFileName(rawName)
+        const activeFile = path.join(modsDir, cleanName)
+        const disabledFile = path.join(modsDir, `${cleanName}.disabled`)
         const existingPath = fs.existsSync(activeFile) ? activeFile : (fs.existsSync(disabledFile) ? disabledFile : null)
         if (existingPath && optItem.sha1) {
           try {
@@ -909,7 +953,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
             const sha1 = crypto.createHash('sha1').update(buf).digest('hex').toLowerCase()
             if (sha1 !== optItem.sha1.toLowerCase()) {
               if (optItem.url) {
-                const fResp = await fetch(optItem.url).catch(() => null)
+                const fResp = await fetch(encodeURI(optItem.url)).catch(() => null)
                 if (fResp && fResp.ok) {
                   fs.writeFileSync(existingPath, Buffer.from(await fResp.arrayBuffer()))
                   repairedCount++

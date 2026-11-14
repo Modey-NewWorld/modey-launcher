@@ -22,7 +22,7 @@ export interface IOptionalModItem {
   version?: string
 }
 
-function sanitizeFileName(filename: string): string {
+export function sanitizeFileName(filename: string): string {
   // Conserve les espaces, parenthèses, crochets, etc. Supprime uniquement les caractères interdits sur Windows/macOS/Linux: < > : " / \ | ? *
   return path.basename(filename).replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim()
 }
