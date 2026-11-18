@@ -57,8 +57,12 @@ export async function updateAvatarFromSkinUrl(skinUrl: string) {
     // Mettre à jour immédiatement les éléments DOM de photo de profil
     const homeAvatar = document.getElementById('user-avatar') as HTMLImageElement | null
     const profileAvatar = document.getElementById('profile-id-avatar') as HTMLImageElement | null
+    const settingsSidebarAvatar = document.getElementById('settings-sidebar-avatar') as HTMLImageElement | null
+    const settingsAccountAvatar = document.getElementById('settings-account-avatar') as HTMLImageElement | null
     if (homeAvatar) homeAvatar.src = avatarUrl
     if (profileAvatar) profileAvatar.src = avatarUrl
+    if (settingsSidebarAvatar) settingsSidebarAvatar.src = avatarUrl
+    if (settingsAccountAvatar) settingsAccountAvatar.src = avatarUrl
   } catch (err) {
     logger.warn('Failed to generate avatar from skin:', err)
   }

@@ -41,29 +41,29 @@ export function setActiveNav(active: HTMLElement | null) {
 }
 
 export function showAccueil() {
+  closeSettings()
   shared.pauseStudio()
   setActiveNav(el('nav-home'))
   if (el('modey-main')) el('modey-main')!.style.display = 'flex'
   if (el('servers-page')) el('servers-page')!.style.display = 'none'
   if (el('profile-page')) el('profile-page')!.style.display = 'none'
-  if (el('settings-page')) el('settings-page')!.style.display = 'none'
 }
 
 export function showServers() {
+  closeSettings()
   shared.pauseStudio()
   setActiveNav(el('nav-servers'))
   if (el('modey-main')) el('modey-main')!.style.display = 'none'
   if (el('servers-page')) el('servers-page')!.style.display = 'flex'
   if (el('profile-page')) el('profile-page')!.style.display = 'none'
-  if (el('settings-page')) el('settings-page')!.style.display = 'none'
   hooks.onShowServers?.()
 }
 
 export function showProfile() {
+  closeSettings()
   setActiveNav(el('nav-profile'))
   if (el('modey-main')) el('modey-main')!.style.display = 'none'
   if (el('servers-page')) el('servers-page')!.style.display = 'none'
-  if (el('settings-page')) el('settings-page')!.style.display = 'none'
   if (el('profile-page')) el('profile-page')!.style.display = 'flex'
   refreshProfileIdentity()
   refreshProfileServer()
@@ -74,13 +74,32 @@ export function showProfile() {
 
 export function showSettings(serverSlug?: string) {
   shared.pauseStudio()
-  if (el('modey-main')) el('modey-main')!.style.display = 'none'
-  if (el('servers-page')) el('servers-page')!.style.display = 'none'
-  if (el('profile-page')) el('profile-page')!.style.display = 'none'
-  if (el('settings-page')) el('settings-page')!.style.display = 'flex'
-  setActiveNav(null)
+
+  // S'assurer qu'une vue principale reste visible en arrière-plan flouté
+  if (el('modey-main')?.style.display === 'none' &&
+      el('servers-page')?.style.display === 'none' &&
+      el('profile-page')?.style.display === 'none') {
+    if (el('modey-main')) el('modey-main')!.style.display = 'flex'
+    setActiveNav(el('nav-home'))
+  }
+
+  const modal = el('settings-page')
+  if (modal) {
+    modal.style.display = 'flex'
+  }
   hooks.onShowSettings?.()
   applyServerSelection(serverSlug || 'global')
+}
+
+export function closeSettings() {
+  const modal = el('settings-page')
+  if (modal) {
+    modal.style.display = 'none'
+  }
+  // Reprendre le studio 3D si la page profil est active en arrière-plan
+  if (el('profile-page')?.style.display === 'flex') {
+    shared.resumeStudio()
+  }
 }
 
 export function showServerSettings(serverSlug: string) {

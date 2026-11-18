@@ -1,29 +1,73 @@
-        <main class="settings-page" id="settings-page" style="display:none">
-          <div class="settings-scroll" id="settings-scroll">
-            <section class="page-header page-header--wide" id="settings-header">
-              <div class="settings-header-inner">
-                <div>
-                  <h1 id="settings-title">Paramètres</h1>
-                  <p id="settings-subtitle">Personnalise ton launcher et tes fichiers de jeu.</p>
+        <div class="settings-modal-backdrop" id="settings-page" style="display:none">
+          <div class="settings-modal-card" id="settings-modal-card" role="dialog" aria-modal="true" aria-labelledby="settings-active-cat-title">
+
+            <!-- Colonne GAUCHE : Barre latérale de navigation (Discord-like) -->
+            <aside class="settings-modal-sidebar">
+              <!-- 1. En-tête : Mini carte profil citoyen -->
+              <div class="settings-sidebar-user-card" id="settings-sidebar-user-card">
+                <div class="sidebar-user-avatar-wrap">
+                  <img id="settings-sidebar-avatar" src="" alt="Avatar" class="sidebar-user-avatar" />
+                  <span class="sidebar-user-status-dot" title="En ligne"></span>
+                </div>
+                <div class="sidebar-user-info">
+                  <div class="sidebar-user-name-row">
+                    <span class="sidebar-user-name" id="settings-sidebar-username">Citoyen</span>
+                  </div>
+                  <button type="button" class="sidebar-user-profile-link" id="settings-btn-goto-profile" title="Voir mon casier et changer de skin">
+                    <span>Modifier le profil</span>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  </button>
                 </div>
               </div>
-            </section>
 
-            <!-- Navigation 2 niveaux : Contexte (Pilules) + Catégories (Onglets) -->
-            <div class="settings-nav" id="settings-nav">
-              <div class="settings-pills-bar" id="settings-pills-bar">
-                <button type="button" class="slot-pill-btn active" data-target="global" id="pill-tab-global">
-                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sliders-bold"></use></svg>&nbsp;Paramètres généraux
+              <!-- 2. Champ de recherche rapide -->
+              <div class="settings-sidebar-search-wrap">
+                <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="settings-search-input" placeholder="Rechercher" autocomplete="off" spellcheck="false" />
+                <button type="button" id="settings-search-clear" title="Effacer la recherche" aria-label="Effacer la recherche" style="display:none">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
-                <div class="settings-pills-servers" id="settings-pills-servers"></div>
               </div>
-              <nav class="settings-category-bar" id="settings-category-bar" role="tablist" aria-label="Catégories de paramètres"></nav>
-            </div>
+
+              <!-- 3. Navigation défilable avec catégories et sous-sections -->
+              <div class="settings-sidebar-nav-scroll" id="settings-sidebar-nav-scroll">
+                <!-- Section 1 : Paramètres du Launcher -->
+                <div class="sidebar-group-header" id="sidebar-group-launcher-title">Paramètres du launcher</div>
+                <nav class="settings-category-bar" id="settings-category-bar" role="tablist" aria-label="Catégories de paramètres"></nav>
+
+                <div class="sidebar-divider"></div>
+
+                <!-- Section 2 : Instances & Serveurs -->
+                <div class="sidebar-group-header" id="sidebar-group-servers-title">Serveurs &amp; Instances</div>
+                <div class="settings-sidebar-servers" id="settings-sidebar-servers"></div>
+              </div>
+            </aside>
+
+            <!-- Colonne DROITE : Contenu & Réglages -->
+            <section class="settings-modal-content">
+              <!-- En-tête de contenu avec titre de catégorie active et bouton Fermer / ESC -->
+              <header class="settings-content-header">
+                <div class="settings-category-heading">
+                  <h2 id="settings-active-cat-title" class="settings-header-title">Compte &amp; sécurité</h2>
+                </div>
+                <button type="button" class="settings-modal-close-btn" id="btn-close-settings" title="Fermer les paramètres (Échap)" aria-label="Fermer les paramètres">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </header>
+
+              <!-- Corps scrollable avec les cartes de réglages -->
+              <div class="settings-scroll" id="settings-scroll">
 
             <!-- ========================================== -->
             <!-- VUE DÉDIÉE : PAGE PROFIL / SERVEUR         -->
             <!-- ========================================== -->
-            <div id="server-settings-view" class="settings-view-section" style="grid-column: 1 / -1; display:none;">
+            <div id="server-settings-view" class="settings-view-section" style="display:none;">
               <!-- Catégorie: Performance -->
               <!-- Carte RAM spécifique à l'instance (1 colonne) -->
               <section class="settings-card" id="server-ram-card" data-cat="performance">
@@ -51,19 +95,21 @@
                 <div class="settings-card-head">
                   <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-window-bold"></use></svg>&nbsp;&nbsp;Résolution du jeu</h3>
                 </div>
-                <div class="select-wrapper">
-                  <select id="server-resolution-select">
-                    <option value="default">Par défaut (1280x720)</option>
-                    <option value="fullscreen">Plein écran</option>
-                    <option value="2560x1440">2560x1440 (1440p)</option>
-                    <option value="1920x1080">1920x1080 (1080p)</option>
-                    <option value="1600x900">1600x900</option>
-                    <option value="1366x768">1366x768</option>
-                    <option value="1280x720">1280x720 (720p)</option>
-                    <option value="854x480">854x480</option>
-                  </select>
+                <div class="settings-field">
+                  <label class="settings-label" for="server-resolution-select">Format d'affichage</label>
+                  <div class="select-wrapper">
+                    <select id="server-resolution-select">
+                      <option value="default">Par défaut (1280x720)</option>
+                      <option value="fullscreen">Plein écran</option>
+                      <option value="2560x1440">2560x1440 (1440p)</option>
+                      <option value="1920x1080">1920x1080 (1080p)</option>
+                      <option value="1600x900">1600x900</option>
+                      <option value="1366x768">1366x768</option>
+                      <option value="1280x720">1280x720 (720p)</option>
+                      <option value="854x480">854x480</option>
+                    </select>
+                  </div>
                 </div>
-                <p class="muted">Définit le format d'affichage Minecraft dédié à ce serveur (plein écran natif ou fenêtre personnalisée).</p>
               </section>
 
               <!-- Carte Arguments JVM & Optimisation Java (Pleine largeur) -->
@@ -159,63 +205,520 @@
             <!-- ========================================== -->
             <!-- VUE DÉDIÉE : PAGE PARAMÈTRES GÉNÉRAUX       -->
             <!-- ========================================== -->
-            <div id="global-settings-view" class="settings-view-section" style="grid-column: 1 / -1; display:contents;">
+            <div id="global-settings-view" class="settings-view-section">
               <!-- Catégorie: Compte & sécurité -->
-              <!-- Carte Profil & Identité -->
+              <!-- Carte Profil & Identité (Style Discord) -->
               <section class="settings-card settings-card--wide" id="account-profile-card" data-cat="account">
                 <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold" style="color:var(--primary);" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;&nbsp;Informations du compte citoyen</h3>
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--primary);" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;&nbsp;Informations du compte</h3>
                 </div>
-                <div class="account-profile-box" style="display:flex; align-items:center; gap:20px; padding:12px 0;">
-                  <img id="settings-account-avatar" src="" alt="Avatar" style="width:64px; height:64px; border-radius:14px; background:rgba(255,255,255,0.05); border:1px solid var(--accent-soft); object-fit:contain; image-rendering:pixelated;" onerror="this.src='https://minotar.net/avatar/steve/64.png';" />
-                  <div style="flex:1;">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
-                      <h4 id="settings-account-username" style="font-size:17px; font-weight:700; margin:0; color:var(--text-main);">—</h4>
-                      <span id="settings-account-role-badge" class="modey-role-badge" style="padding:2px 10px; font-size:11px; border-radius:12px; font-weight:700;">Joueur</span>
+                <div class="settings-discord-rows">
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>Avatar de jeu</strong>
                     </div>
-                    <div id="settings-account-email" style="font-size:12.5px; color:var(--text-muted); margin-bottom:6px;">—</div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                      <span style="font-size:11px; color:var(--text-muted);">UUID Modey :</span>
-                      <code id="settings-account-uuid" style="font-size:11px; font-family:monospace; color:var(--accent); background:rgba(255,255,255,0.04); padding:2px 8px; border-radius:6px;">—</code>
+                    <div class="row-middle">
+                      <img id="settings-account-avatar" src="" alt="Avatar" class="account-row-avatar" />
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-edit" id="btn-edit-avatar" title="Modifier votre apparence dans le casier" aria-label="Modifier l'avatar">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-pen-bold"></use></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>Nom d'utilisateur</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span id="settings-account-username" class="row-value-main">—</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-edit disabled" id="btn-edit-username" disabled title="Modification temporairement indisponible" aria-label="Modifier le nom d'utilisateur">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-pen-bold"></use></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>E-mail</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span id="settings-account-email" class="row-value-sub">—</span>
+                      <button type="button" class="btn-discord-reveal" id="btn-reveal-email">Afficher</button>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-edit disabled" id="btn-edit-email" disabled title="Modification temporairement indisponible" aria-label="Modifier l'e-mail">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-pen-bold"></use></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- UUID Modey -->
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>UUID Modey</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span id="settings-account-uuid" class="row-value-sub" style="font-family:var(--font-mono); font-size:13px; user-select:text;">—</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-edit" id="btn-copy-uuid" title="Copier l'UUID Modey" aria-label="Copier l'UUID Modey">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-copy-bold"></use></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Synchronisation Serveur Discord -->
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>Serveur Discord</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span id="settings-account-discord" class="discord-row-status is-inactive">Non synchronisé</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-edit" id="btn-sync-discord" title="Lier ou synchroniser votre compte Discord" aria-label="Synchroniser Discord">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-link-bold"></use></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Propriétaire Minecraft -->
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>Propriétaire Minecraft</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span id="settings-account-minecraft" class="discord-row-status is-inactive">Vérification...</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-edit disabled" id="btn-verify-minecraft" disabled title="Vérification officielle liée à votre compte Microsoft" aria-label="Propriétaire Minecraft">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>
+                      </button>
                     </div>
                   </div>
                 </div>
               </section>
 
-              <!-- Carte Double Authentification 2FA -->
-              <section class="settings-card settings-card--wide" id="account-2fa-card" data-cat="account">
+              <!-- Carte Mot de passe et sécurité (Style Discord) -->
+              <section class="settings-card settings-card--wide" id="account-security-card" data-cat="account">
                 <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;&nbsp;Double Authentification (Google Authenticator)</h3>
-                  <span id="settings-2fa-badge" class="settings-2fa-badge">Vérification...</span>
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>&nbsp;&nbsp;Mot de passe et sécurité</h3>
                 </div>
-                <p class="muted" style="margin-bottom:14px;">Protégez l'accès à votre compte et à vos serveurs avec une clé cryptographique unique générée sur votre smartphone via Google Authenticator ou une application TOTP compatible.</p>
-                
-                <div id="settings-2fa-status-banner" class="settings-2fa-status-banner">
-                  <svg class="solar-icon solar-bold settings-2fa-banner-icon" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>
-                  <div class="settings-2fa-banner-text" id="settings-2fa-status-text">Chargement du statut de sécurité...</div>
-                </div>
+                <div class="settings-discord-rows">
+                  <!-- Ligne Mot de passe -->
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>Mot de passe</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span class="row-value-sub">••••••••••••</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-edit disabled" id="btn-edit-password" disabled title="Modification temporairement indisponible" aria-label="Modifier le mot de passe">
+                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-pen-bold"></use></svg>
+                      </button>
+                    </div>
+                  </div>
 
-                <div class="settings-btn-row">
-                  <button type="button" class="settings-btn settings-btn--primary" id="btn-settings-setup-2fa">
-                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;Activer Google Authenticator
+                  <!-- Ligne Authentification à multi-facteurs -->
+                  <div class="settings-discord-row settings-discord-row--clickable" id="row-2fa-action">
+                    <div class="row-label">
+                      <strong>Authentification à multi-facteurs</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span id="settings-2fa-status-pill" class="discord-row-status">Vérification...</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-nav-row" id="btn-goto-2fa" title="Gérer l'authentification à multi-facteurs" aria-label="Gérer l'authentification à multi-facteurs">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Ligne Appareils connectés -->
+                  <div class="settings-discord-row settings-discord-row--clickable" id="row-sessions-action">
+                    <div class="row-label">
+                      <strong>Appareils connectés</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span id="settings-sessions-count-pill" class="discord-row-status">Chargement...</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-nav-row" id="btn-goto-sessions" title="Gérer les appareils connectés" aria-label="Gérer les appareils connectés">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Ligne Fournisseurs SSO -->
+                  <div class="settings-discord-row settings-discord-row--clickable" id="row-sso-action">
+                    <div class="row-label">
+                      <strong>Méthodes de connexion rapide (SSO)</strong>
+                    </div>
+                    <div class="row-middle">
+                      <span id="settings-sso-count-pill" class="discord-row-status">Gérer</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-nav-row" id="btn-goto-sso" title="Gérer vos comptes de connexion rapide" aria-label="Gérer vos comptes de connexion rapide">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Carte Zone de danger / Suppression du compte (Style Discord) -->
+              <section class="settings-card settings-card--wide settings-card--danger" id="account-danger-card" data-cat="account">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--danger);" aria-hidden="true"><use href="#solar-trash-bold"></use></svg>&nbsp;&nbsp;Suppression du compte</h3>
+                </div>
+                <p class="muted">La désactivation ou la suppression de votre compte est une action critique. La suppression effacera définitivement votre citoyen, vos inventaires, statistiques et cosmétiques.</p>
+                <div class="danger-zone-actions">
+                  <button type="button" class="btn-danger-action disabled" id="btn-disable-account" disabled title="Fonctionnalité temporairement indisponible">
+                    Désactiver le compte
                   </button>
-                  <button type="button" class="settings-btn" id="btn-settings-disable-2fa" style="display:none; color:var(--danger); border-color:rgba(239, 68, 68, 0.3);">
-                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-unlocked-bold"></use></svg>&nbsp;Désactiver la double authentification
+                  <button type="button" class="btn-danger-action btn-danger-action--delete disabled" id="btn-delete-account" disabled title="Fonctionnalité temporairement indisponible">
+                    Supprimer le compte
                   </button>
                 </div>
               </section>
 
-              <!-- Carte Sessions & Appareils connectés -->
-              <section class="settings-card settings-card--wide" id="account-sessions-card" data-cat="account">
-                <div class="settings-card-head" style="display:flex; justify-content:space-between; align-items:center;">
-                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-monitor-bold"></use></svg>&nbsp;&nbsp;Sessions Actives &amp; Appareils</h3>
-                  <button type="button" class="settings-btn" id="btn-settings-revoke-others" title="Déconnecte toutes les sessions sauf celle-ci">
-                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-logout-bold"></use></svg>&nbsp;Déconnecter les autres appareils
-                  </button>
+              <!-- ============================================== -->
+              <!-- SOUS-PAGE DISCORD : 2FA & CLÉS DE SÉCURITÉ     -->
+              <!-- ============================================== -->
+              <div id="account-subpage-2fa" class="settings-subpage" style="display:none;" data-cat="account">
+                <!-- 1. Application d'authentification (TOTP) -->
+                <section class="settings-card settings-card--wide" id="account-2fa-card" data-cat="account">
+                  <div class="settings-card-head">
+                    <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;&nbsp;Application d'authentification (TOTP)</h3>
+                    <span id="settings-2fa-badge" class="settings-2fa-badge">Vérification...</span>
+                  </div>
+                  <p class="muted">Recevez un code temporaire à 6 chiffres généré par une application TOTP sur votre smartphone (Google Authenticator, Authy, Microsoft Authenticator, 1Password).</p>
+                  
+                  <div id="settings-2fa-status-banner" class="settings-2fa-status-banner">
+                    <svg class="solar-icon solar-bold settings-2fa-banner-icon" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>
+                    <div class="settings-2fa-banner-text" id="settings-2fa-status-text">Chargement du statut de sécurité...</div>
+                  </div>
+
+                  <div class="settings-btn-row">
+                    <button type="button" class="settings-btn settings-btn--primary" id="btn-settings-setup-2fa">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;Activer une application d'authentification
+                    </button>
+                    <button type="button" class="settings-btn" id="btn-settings-disable-2fa" style="display:none; color:var(--danger); border-color:rgba(239, 68, 68, 0.3);">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-unlocked-bold"></use></svg>&nbsp;Désactiver l'application
+                    </button>
+                  </div>
+                </section>
+
+                <!-- 2. Clés de sécurité & Biométrie (WebAuthn / FIDO2 / Windows Hello) -->
+                <section class="settings-card settings-card--wide" id="account-security-keys-card" data-cat="account">
+                  <div class="settings-card-head">
+                    <h3><svg class="solar-icon solar-bold" style="color:var(--primary);" aria-hidden="true"><use href="#solar-key-bold"></use></svg>&nbsp;&nbsp;Clés de sécurité &amp; Biométrie</h3>
+                    <span class="discord-badge-soon">Bientôt disponible</span>
+                  </div>
+                  <p class="muted">Connectez-vous instantanément avec Windows Hello (empreinte digitale, code PIN, reconnaissance faciale), Touch ID ou une clé de sécurité matérielle USB (YubiKey / Passkey).</p>
+
+                  <div class="privacy-notice-banner">
+                    <svg class="solar-icon solar-bold privacy-notice-icon" aria-hidden="true"><use href="#solar-info-bold"></use></svg>
+                    <div class="privacy-notice-text">
+                      <strong>Support FIDO2 / WebAuthn en cours d'intégration</strong>
+                      <span>La prise en charge des passkeys et de Windows Hello est actuellement en cours de développement sur le serveur d'authentification Modey Core. Vous pourrez prochainement enregistrer plusieurs clés de sécurité sur votre compte.</span>
+                    </div>
+                  </div>
+
+                  <div class="settings-discord-rows">
+                    <div class="settings-discord-row">
+                      <div class="row-label">
+                        <strong>Clés de sécurité enregistrées</strong>
+                      </div>
+                      <div class="row-middle">
+                        <span class="discord-row-status is-inactive">0 clé active</span>
+                      </div>
+                      <div class="row-actions">
+                        <button type="button" class="btn-discord-action" id="btn-add-security-key" disabled title="Fonctionnalité en cours de raccordement à l'API Auth Core">
+                          Ajouter une clé
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- 3. Double Authentification par e-mail (Arrivera plus tard, facilement désactivable) -->
+                <section class="settings-card settings-card--wide" id="account-email-2fa-card" data-cat="account">
+                  <div class="settings-card-head">
+                    <h3>
+                      <svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                      </svg>&nbsp;&nbsp;Code de sécurité par e-mail
+                    </h3>
+                    <span class="discord-badge-soon">Bientôt disponible</span>
+                  </div>
+                  <p class="muted">Recevez un code de vérification à usage unique sur votre adresse e-mail lors de chaque nouvelle connexion suspecte ou depuis un nouvel appareil.</p>
+
+                  <div class="settings-discord-rows">
+                    <div class="settings-discord-row">
+                      <div class="row-label">
+                        <strong>Activer les codes de sécurité par e-mail</strong>
+                      </div>
+                      <div class="row-middle">
+                        <span id="settings-email-2fa-status-pill" class="discord-row-status is-inactive">Désactivé</span>
+                      </div>
+                      <div class="row-actions">
+                        <label class="discord-switch" title="La double authentification par e-mail sera activable dès la prochaine mise à jour du serveur Auth Core (arrivera prochainement et facilement désactivable)">
+                          <input type="checkbox" id="toggle-email-2fa" disabled />
+                          <span class="discord-switch-slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <!-- ============================================== -->
+              <!-- SOUS-PAGE DISCORD : SESSIONS & APPAREILS      -->
+              <!-- ============================================== -->
+              <div id="account-subpage-sessions" class="settings-subpage" style="display:none;" data-cat="account">
+                <section class="settings-card settings-card--wide" id="account-sessions-card" data-cat="account">
+                  <div class="settings-card-head" style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-monitor-bold"></use></svg>&nbsp;&nbsp;Sessions Actives &amp; Appareils</h3>
+                    <button type="button" class="settings-btn" id="btn-settings-revoke-others" title="Déconnecte toutes les sessions sauf celle-ci">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-logout-bold"></use></svg>&nbsp;Déconnecter les autres appareils
+                    </button>
+                  </div>
+                  <p class="muted" style="margin-bottom:14px;">Consultez les appareils et applications actuellement autorisés à utiliser votre compte Modey.</p>
+                  <div id="settings-sessions-list" style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="text-align:center; padding:16px; color:var(--ink-500); font-size:12px;">Chargement des sessions...</div>
+                  </div>
+                </section>
+              </div>
+
+              <!-- ============================================== -->
+              <!-- SOUS-PAGE DISCORD : FOURNISSEURS SSO           -->
+              <!-- ============================================== -->
+              <div id="account-subpage-sso" class="settings-subpage" style="display:none;" data-cat="account">
+                <!-- Carte : Fournisseurs de connexion rapide (SSO) -->
+                <section class="settings-card settings-card--wide" id="account-sso-card" data-cat="account">
+                  <div class="settings-card-head">
+                    <h3><svg class="solar-icon solar-bold" style="color:var(--primary);" aria-hidden="true"><use href="#solar-link-bold"></use></svg>&nbsp;&nbsp;Connexion Rapide (Fournisseurs SSO)</h3>
+                  </div>
+                  <p class="muted">Associez vos comptes tiers pour vous connecter instantanément à votre citoyen Modey sans retaper votre mot de passe.</p>
+
+                  <div class="privacy-notice-banner">
+                    <svg class="solar-icon solar-bold privacy-notice-icon" aria-hidden="true"><use href="#solar-info-bold"></use></svg>
+                    <div class="privacy-notice-text">
+                      <strong>Authentification SSO en cours d'intégration</strong>
+                      <span>Ces options de connexion seront prochainement reliées à l'API Auth Core. Vous pourrez alors lier votre compte Google, Discord ou Microsoft pour vous identifier en un clic.</span>
+                    </div>
+                  </div>
+
+                  <div class="settings-discord-rows">
+                    <!-- Google -->
+                    <div class="settings-discord-row settings-discord-row--disabled" title="L'authentification Google SSO est en cours de développement">
+                      <div class="row-brand-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                      </div>
+                      <div class="row-label">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <strong>Compte Google</strong>
+                          <span class="discord-badge-soon">Bientôt disponible</span>
+                        </div>
+                        <span>Connexion rapide et sécurisée avec votre compte Google</span>
+                      </div>
+                      <div class="row-actions">
+                        <button type="button" class="btn-discord-action" id="btn-link-google" disabled title="Fonctionnalité en cours de raccordement à l'API Auth Core">
+                          Associer
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Discord SSO -->
+                    <div class="settings-discord-row settings-discord-row--disabled" title="L'authentification Discord SSO est en cours de développement">
+                      <div class="row-brand-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                      </div>
+                      <div class="row-label">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <strong>Compte Discord (SSO)</strong>
+                          <span class="discord-badge-soon">Bientôt disponible</span>
+                        </div>
+                        <span>Connexion en un clic via votre compte Discord</span>
+                      </div>
+                      <div class="row-actions">
+                        <button type="button" class="btn-discord-action" id="btn-link-discord-sso" disabled title="Fonctionnalité en cours de raccordement à l'API Auth Core">
+                          Associer
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Microsoft SSO -->
+                    <div class="settings-discord-row settings-discord-row--disabled" title="L'authentification Microsoft SSO est en cours de développement">
+                      <div class="row-brand-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#F25022" d="M1 1h10v10H1z"/><path fill="#7FBA00" d="M13 1h10v10H13z"/><path fill="#00A4EF" d="M1 13h10v10H1z"/><path fill="#FFB900" d="M13 13h10v10H13z"/></svg>
+                      </div>
+                      <div class="row-label">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <strong>Compte Microsoft (SSO)</strong>
+                          <span class="discord-badge-soon">Bientôt disponible</span>
+                        </div>
+                        <span>Connexion avec votre identifiant Microsoft officiel</span>
+                      </div>
+                      <div class="row-actions">
+                        <button type="button" class="btn-discord-action" id="btn-link-microsoft-sso" disabled title="Fonctionnalité en cours de raccordement à l'API Auth Core">
+                          Associer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <!-- ============================================== -->
+              <!-- CATÉGORIE : DONNÉES & CONFIDENTIALITÉ           -->
+              <!-- ============================================== -->
+
+              <!-- Carte Télémétrie & diagnostics -->
+              <section class="settings-card settings-card--wide" id="privacy-telemetry-card" data-cat="privacy">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>&nbsp;&nbsp;Télémétrie &amp; diagnostics</h3>
                 </div>
-                <p class="muted" style="margin-bottom:14px;">Consultez les appareils et applications actuellement autorisés à utiliser votre compte Modey.</p>
-                <div id="settings-sessions-list" style="display:flex; flex-direction:column; gap:8px;">
-                  <div style="text-align:center; padding:16px; color:var(--ink-500); font-size:12px;">Chargement des sessions...</div>
+                <p class="muted">Participez à l'amélioration de la stabilité et des performances du launcher et des serveurs de jeu Modey.</p>
+
+                <div class="privacy-notice-banner">
+                  <svg class="solar-icon solar-bold privacy-notice-icon" aria-hidden="true"><use href="#solar-info-bold"></use></svg>
+                  <div class="privacy-notice-text">
+                    <strong>Paramètres en cours d'intégration — Aucune donnée transmise</strong>
+                    <span>Nous sommes sincèrement désolés, mais ces options ne sont pour l'instant pas fonctionnelles. Rassurez-vous : aucun rapport technique ni métrique n'est envoyé vers l'extérieur pour le moment (pas de panique !).</span>
+                  </div>
+                </div>
+
+                <div class="settings-discord-rows">
+                  <div class="settings-discord-row settings-discord-row--disabled" title="Nous sommes sincèrement désolés, mais ce paramètre n'est pour l'instant pas fonctionnel. Aucune donnée n'est transmise pour le moment vers l'extérieur (pas de panique !).">
+                    <div class="row-label">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <strong>Rapports de crash automatiques</strong>
+                        <span class="discord-badge-soon">Inactif</span>
+                      </div>
+                      <span>Transmettre anonymement les stacktraces techniques en cas de plantage inopiné du client (désactivé pour le moment)</span>
+                    </div>
+                    <div class="row-actions">
+                      <label class="discord-switch" title="Ce paramètre n'est pas encore fonctionnel (aucune donnée envoyée)">
+                        <input type="checkbox" id="toggle-crash-reports" disabled />
+                        <span class="discord-switch-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="settings-discord-row settings-discord-row--disabled" title="Nous sommes sincèrement désolés, mais ce paramètre n'est pour l'instant pas fonctionnel. Aucune donnée n'est transmise pour le moment vers l'extérieur (pas de panique !).">
+                    <div class="row-label">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <strong>Métriques d'utilisation anonymisées</strong>
+                        <span class="discord-badge-soon">Inactif</span>
+                      </div>
+                      <span>Aider l'équipe à analyser les temps de chargement et la compatibilité matérielle (désactivé pour le moment)</span>
+                    </div>
+                    <div class="row-actions">
+                      <label class="discord-switch" title="Ce paramètre n'est pas encore fonctionnel (aucune donnée envoyée)">
+                        <input type="checkbox" id="toggle-telemetry" disabled />
+                        <span class="discord-switch-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Carte Visibilité & présence sociale -->
+              <section class="settings-card settings-card--wide" id="privacy-social-card" data-cat="privacy">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--primary);" aria-hidden="true"><use href="#solar-eye-bold"></use></svg>&nbsp;&nbsp;Visibilité &amp; présence sociale</h3>
+                </div>
+                <p class="muted">Contrôlez les informations visibles par vos amis et par la communauté en temps réel.</p>
+
+                <div class="settings-discord-rows">
+                  <div class="settings-discord-row settings-discord-row--disabled" title="Nous sommes sincèrement désolés, mais l'intégration RPC en jeu n'est pour l'instant pas fonctionnelle. Aucune information n'est partagée (pas de panique !).">
+                    <div class="row-label">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <strong>Statut d'activité externe (Rich Presence)</strong>
+                        <span class="discord-badge-soon">Inactif</span>
+                      </div>
+                      <span>Partager automatiquement le serveur actif et votre durée de jeu sur Discord (en cours de raccordement)</span>
+                    </div>
+                    <div class="row-actions">
+                      <label class="discord-switch" title="Ce paramètre n'est pas encore fonctionnel (aucune information partagée)">
+                        <input type="checkbox" id="toggle-discord-rpc" disabled />
+                        <span class="discord-switch-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="settings-discord-row settings-discord-row--disabled">
+                    <div class="row-label">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <strong>Statut de présence public</strong>
+                        <span class="discord-badge-soon">Bientôt disponible</span>
+                      </div>
+                      <span>Permettre aux autres citoyens de voir si vous êtes actuellement en ligne</span>
+                    </div>
+                    <div class="row-actions">
+                      <label class="discord-switch">
+                        <input type="checkbox" id="toggle-public-status" disabled />
+                        <span class="discord-switch-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Carte Données personnelles & RGPD -->
+              <section class="settings-card settings-card--wide" id="privacy-data-card" data-cat="privacy">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>&nbsp;&nbsp;Données personnelles &amp; RGPD</h3>
+                </div>
+                <p class="muted">Gérez vos données personnelles conformément aux réglementations de protection de la vie privée (RGPD).</p>
+
+                <div class="settings-discord-rows">
+                  <div class="settings-discord-row settings-discord-row--disabled">
+                    <div class="row-label">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <strong>Exportation des données personnelles</strong>
+                        <span class="discord-badge-soon">Bientôt disponible</span>
+                      </div>
+                      <span>Télécharger une archive au format JSON/ZIP contenant l'intégralité de vos données de compte</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-action" id="btn-export-rgpd" disabled title="Fonctionnalité en cours de développement">
+                        Demander l'archive
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>Cache et données locales</strong>
+                      <span>Réinitialiser les images temporaires, le cache des skins 3D et les sessions locales</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-action" id="btn-clear-web-cache" title="Vider le cache temporaire">
+                        Vider le cache
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="settings-discord-row">
+                    <div class="row-label">
+                      <strong>Charte de confidentialité Modey</strong>
+                      <span>Consulter nos engagements sur la sécurité des données et les droits des citoyens</span>
+                    </div>
+                    <div class="row-actions">
+                      <button type="button" class="btn-discord-action" id="btn-view-privacy-policy" title="Consulter la charte de confidentialité">
+                        Consulter
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </section>
 
@@ -242,13 +745,15 @@
                 <div class="settings-card-head">
                   <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cup-bold"></use></svg>&nbsp;&nbsp;Version de Java</h3>
                 </div>
-                <div class="java-selector">
-                  <select id="java-select">
-                    <option value="bundled">Java fourni (recommandé)</option>
-                    <option value="system">Java système (PATH)</option>
-                  </select>
+                <div class="settings-field">
+                  <label class="settings-label" for="java-select">Exécutable Java</label>
+                  <div class="select-wrapper">
+                    <select id="java-select">
+                      <option value="bundled">Java fourni (recommandé)</option>
+                      <option value="system">Java système (PATH)</option>
+                    </select>
+                  </div>
                 </div>
-                <p class="muted">Le launcher détecte automatiquement Java 21. Le mode fourni garantit la compatibilité.</p>
               </section>
 
               <!-- Catégorie: Interface & comportement -->
@@ -519,4 +1024,6 @@
               </div>
             </div>
           </div>
-        </main>
+        </section>
+      </div>
+    </div>
