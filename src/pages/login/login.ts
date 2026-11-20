@@ -77,6 +77,8 @@ export async function initLogin() {
       tabLogin?.classList.add('active')
       tabRegister?.classList.remove('active')
       if (groupEmail) groupEmail.style.display = 'none'
+      const groupCGU = el('group-cgu')
+      if (groupCGU) groupCGU.style.display = 'none'
       if (labelUsername) labelUsername.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg> Pseudo ou Email'
       if (inputUsername) inputUsername.placeholder = 'Votre pseudo ou email'
       if (usernameHint) usernameHint.innerText = 'Votre identifiant de joueur'
@@ -85,6 +87,8 @@ export async function initLogin() {
       tabRegister?.classList.add('active')
       tabLogin?.classList.remove('active')
       if (groupEmail) groupEmail.style.display = 'flex'
+      const groupCGU = el('group-cgu')
+      if (groupCGU) groupCGU.style.display = 'block'
       if (labelUsername) labelUsername.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg> Nom de joueur (Pseudo unique)'
       if (inputUsername) inputUsername.placeholder = 'Ex: Alex_75, JeanMartin'
       if (usernameHint) usernameHint.innerText = '3 à 16 caractères (unique pour chaque joueur)'
@@ -114,6 +118,11 @@ export async function initLogin() {
       const email = inputEmail ? inputEmail.value.trim() : ''
 
       if (mode === 'register') {
+        const checkboxCGU = el('checkbox-cgu') as HTMLInputElement | null
+        if (!checkboxCGU || !checkboxCGU.checked) {
+          await Dialog.show('Vous devez accepter les CGU et attester avoir au moins 15 ans pour créer un compte.', [{ text: 'Compris', type: 'ok' }])
+          return
+        }
         if (!email) {
           await Dialog.show('Veuillez renseigner votre adresse email.', [{ text: 'OK', type: 'ok' }])
           return
@@ -212,5 +221,100 @@ export async function initLogin() {
     if (form) form.style.display = 'flex'
     const tabs = el('view-login')?.querySelector('.auth-tabs') as HTMLElement | null
     if (tabs) tabs.style.display = 'flex'
+  })
+
+  // Gestion des providers sociaux (Google, Microsoft) et Onboarding
+  const btnGoogle = el('btn-oauth-google') as HTMLButtonElement | null
+  const btnMicrosoft = el('btn-oauth-microsoft') as HTMLButtonElement | null
+  const modalOnboarding = el('modal-oauth-onboarding') as HTMLDivElement | null
+  const formOnboarding = el('form-oauth-onboarding') as HTMLFormElement | null
+  const inputOnboardingEmail = el('input-onboarding-email') as HTMLInputElement | null
+  const inputOnboardingUsername = el('input-onboarding-username') as HTMLInputElement | null
+  const checkboxOnboardingCGU = el('checkbox-onboarding-cgu') as HTMLInputElement | null
+  const btnCancelOnboarding = el('btn-cancel-onboarding') as HTMLButtonElement | null
+
+  if (inputOnboardingEmail) {
+    // référence pour l'affectation dynamique de l'email lors d'un flow OAuth
+  }
+
+  let currentOnboardingToken: string | null = null
+
+  // Vérifier la disponibilité des providers OAuth
+  try {
+    const providers = await auth.getOAuthProviders()
+    if (providers?.google?.enabled && btnGoogle) {
+      btnGoogle.disabled = false
+      btnGoogle.classList.remove('disabled')
+      btnGoogle.style.opacity = '1'
+      btnGoogle.style.cursor = 'pointer'
+      btnGoogle.title = 'Se connecter avec Google'
+      const badge = btnGoogle.querySelector('span:last-child')
+      if (badge) badge.remove()
+    }
+    if (providers?.microsoft?.enabled && btnMicrosoft) {
+      btnMicrosoft.disabled = false
+      btnMicrosoft.classList.remove('disabled')
+      btnMicrosoft.style.opacity = '1'
+      btnMicrosoft.style.cursor = 'pointer'
+      btnMicrosoft.title = 'Se connecter avec Microsoft'
+      const badge = btnMicrosoft.querySelector('span:last-child')
+      if (badge) badge.remove()
+    }
+  } catch (_) {}
+
+  const handleOAuthClick = async (provider: 'google' | 'microsoft') => {
+    try {
+      const res = await auth.startOAuth(provider)
+      if (!res.success) {
+        await Dialog.show(res.error || `L'authentification ${provider} arrive très bientôt !`, [{ text: 'Compris', type: 'ok' }])
+      }
+    } catch (err: any) {
+      await Dialog.show(err.message || 'Erreur lors du lancement de la connexion sociale.', [{ text: 'OK', type: 'ok' }])
+    }
+  }
+
+  btnGoogle?.addEventListener('click', () => handleOAuthClick('google'))
+  btnMicrosoft?.addEventListener('click', () => handleOAuthClick('microsoft'))
+
+  // Fermeture modale onboarding
+  btnCancelOnboarding?.addEventListener('click', () => {
+    currentOnboardingToken = null
+    if (modalOnboarding) modalOnboarding.style.display = 'none'
+  })
+
+  // Soumission finalisation onboarding
+  formOnboarding?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    if (!currentOnboardingToken) return
+
+    const username = inputOnboardingUsername?.value.trim() || ''
+    const cguAccepted = Boolean(checkboxOnboardingCGU?.checked)
+
+    if (!cguAccepted) {
+      await Dialog.show('Vous devez accepter les CGU et attester avoir au moins 15 ans pour créer votre compte.', [{ text: 'Compris', type: 'ok' }])
+      return
+    }
+
+    if (!/^[a-zA-Z0-9_]{3,32}$/.test(username)) {
+      await Dialog.show('Le pseudo doit comporter entre 3 et 32 caractères (lettres, chiffres et underscores uniquement).', [{ text: 'Compris', type: 'ok' }])
+      return
+    }
+
+    try {
+      const res = await auth.completeOAuthRegistration({
+        onboardingToken: currentOnboardingToken,
+        username,
+        cguAccepted
+      })
+
+      if (res.success) {
+        if (modalOnboarding) modalOnboarding.style.display = 'none'
+        await finalizeSession(res)
+      } else {
+        await Dialog.show(res.error || 'Erreur lors de la création du compte.', [{ text: 'Réessayer', type: 'ok' }])
+      }
+    } catch (err: any) {
+      await Dialog.show('Une erreur inattendue est survenue : ' + err.message, [{ text: 'OK', type: 'ok' }])
+    }
   })
 }

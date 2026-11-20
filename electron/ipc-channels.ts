@@ -24,6 +24,9 @@ export const IPC = {
     getSessions: 'auth:get-sessions',
     revokeSession: 'auth:revoke-session',
     revokeOtherSessions: 'auth:revoke-other-sessions',
+    getOAuthProviders: 'auth:get-oauth-providers',
+    startOAuth: 'auth:start-oauth',
+    completeOAuthRegistration: 'auth:complete-oauth-registration',
     /** @internal — multi-comptes EML, pas d'UI Modey */
     listAccounts: 'auth:list-accounts',
     /** @internal */
