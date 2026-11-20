@@ -27,6 +27,9 @@ declare global {
         getSessions: () => Promise<{ success: boolean; sessions: any[]; error?: string }>
         revokeSession: (token: string) => Promise<{ success: boolean; message?: string; error?: string }>
         revokeOtherSessions: () => Promise<{ success: boolean; message?: string; error?: string }>
+        getOAuthProviders: () => Promise<{ google: { enabled: boolean; status: string }; microsoft: { enabled: boolean; status: string } }>
+        startOAuth: (provider: 'google' | 'microsoft') => Promise<{ success: boolean; authUrl?: string; state?: string; error?: string; code?: string }>
+        completeOAuthRegistration: (params: { onboardingToken: string; username: string; cguAccepted: boolean }) => Promise<IAuthResponse>
         refresh: () => Promise<IAuthResponse>
         logout: () => Promise<{ success: boolean }>
       }
@@ -154,6 +157,10 @@ export const auth = {
   getSessions: async () => await window.api.auth.getSessions(),
   revokeSession: async (token: string) => await window.api.auth.revokeSession(token),
   revokeOtherSessions: async () => await window.api.auth.revokeOtherSessions(),
+  getOAuthProviders: async () => await window.api.auth.getOAuthProviders(),
+  startOAuth: async (provider: 'google' | 'microsoft') => await window.api.auth.startOAuth(provider),
+  completeOAuthRegistration: async (params: { onboardingToken: string; username: string; cguAccepted: boolean }) =>
+    await window.api.auth.completeOAuthRegistration(params),
   logout: async () => await window.api.auth.logout(),
   refresh: async () => await window.api.auth.refresh()
 }

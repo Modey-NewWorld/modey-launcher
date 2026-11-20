@@ -460,4 +460,72 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
       return { success: false, error: err.message }
     }
   })
+
+  // Récupérer le statut des providers OAuth (Google, Microsoft)
+  ipcMain.handle(IPC.auth.getOAuthProviders, async () => {
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/oauth/providers`)
+      if (!resp.ok) {
+        return {
+          google: { enabled: false, status: 'coming_soon' },
+          microsoft: { enabled: false, status: 'coming_soon' }
+        }
+      }
+      return await resp.json()
+    } catch (_) {
+      return {
+        google: { enabled: false, status: 'coming_soon' },
+        microsoft: { enabled: false, status: 'coming_soon' }
+      }
+    }
+  })
+
+  // Démarrer un flux OAuth
+  ipcMain.handle(IPC.auth.startOAuth, async (_event, provider: 'google' | 'microsoft') => {
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/oauth/${provider}/start`)
+      const data = await resp.json()
+      if (!resp.ok) {
+        return { success: false, error: data.error || 'Connexion sociale indisponible.', code: data.code }
+      }
+      return { success: true, authUrl: data.authUrl, state: data.state }
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  })
+
+  // Finaliser l'onboarding citoyen après authentification sociale
+  ipcMain.handle(IPC.auth.completeOAuthRegistration, async (_event, params: { onboardingToken: string; username: string; cguAccepted: boolean }) => {
+    try {
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/oauth/complete-registration`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      })
+      const data = await resp.json()
+      if (!resp.ok) {
+        return { success: false, error: data.error || 'Échec de finalisation du compte.' }
+      }
+
+      const account: Account = {
+        name: data.user.username,
+        uuid: data.user.uuid,
+        clientToken: data.clientToken,
+        accessToken: data.accessToken,
+        meta: {
+          online: true,
+          type: 'yggdrasil',
+          url: AUTH_SERVER_URL
+        }
+      }
+      ;(account as any).email = data.user.email
+      ;(account as any).role = data.user.role || 'citizen'
+
+      fs.writeFileSync(sessionPath(), JSON.stringify(account))
+      saveAccount(account.name, account.uuid, data.user.email)
+      return { success: true, account }
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  })
 }

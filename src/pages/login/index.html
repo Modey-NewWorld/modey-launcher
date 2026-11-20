@@ -26,6 +26,14 @@
               <input type="password" id="input-password" class="input-field" placeholder="••••••••" required minlength="6" autocomplete="current-password" />
             </div>
 
+            <!-- Validation obligatoire CGU et majorité numérique (Inscription) -->
+            <div class="input-group" id="group-cgu" style="display:none;margin-top:4px;">
+              <label style="display:flex;align-items:flex-start;gap:8px;font-size:11px;font-weight:400;color:var(--text-muted);cursor:pointer;line-height:1.4;">
+                <input type="checkbox" id="checkbox-cgu" style="margin-top:2px;accent-color:var(--primary);cursor:pointer;" />
+                <span>J'accepte les <a href="https://modey.flowcrea.fr/cgu" target="_blank" style="color:var(--primary);text-decoration:underline;">CGU</a> et atteste avoir au moins 15 ans (majorité numérique).</span>
+              </label>
+            </div>
+
             <button type="submit" id="btn-login-custom" class="btn btn-primary btn-submit-custom">
               <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-login-bold"></use></svg>
               <span id="btn-submit-text">Se connecter à Modey</span>
@@ -35,6 +43,38 @@
               <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-key-bold"></use></svg>
               <span>Mot de passe oublié</span>
             </button>
+
+            <!-- Séparateur Social Auth -->
+            <div class="auth-divider" style="display:flex;align-items:center;margin:16px 0;gap:12px;">
+              <div style="flex:1;height:1px;background:var(--border-color, rgba(255,255,255,0.08));"></div>
+              <span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Ou continuer avec</span>
+              <div style="flex:1;height:1px;background:var(--border-color, rgba(255,255,255,0.08));"></div>
+            </div>
+
+            <!-- Boutons de connexion sociale (Google / Microsoft) -->
+            <div class="social-auth-grid" style="display:flex;flex-direction:column;gap:8px;">
+              <button type="button" id="btn-oauth-google" class="btn btn-secondary btn-oauth disabled" disabled title="Authentification Google bientôt disponible" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 14px;font-size:12px;font-weight:600;opacity:0.6;cursor:not-allowed;">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
+                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+                  <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9c-.2-.7-.4-1.5-.4-2.3z"/>
+                  <path fill="#34A853" d="M12 23.4c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.8C3.7 20.6 7.5 23.4 12 23.4z"/>
+                </svg>
+                <span>Continuer avec Google</span>
+                <span style="font-size:9px;background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;color:var(--text-muted);margin-left:auto;">Bientôt</span>
+              </button>
+
+              <button type="button" id="btn-oauth-microsoft" class="btn btn-secondary btn-oauth disabled" disabled title="Authentification Microsoft bientôt disponible" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 14px;font-size:12px;font-weight:600;opacity:0.6;cursor:not-allowed;">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#F25022" d="M1 1h10v10H1z"/>
+                  <path fill="#7FBA00" d="M13 1h10v10H13z"/>
+                  <path fill="#00A4EF" d="M1 13h10v10H1z"/>
+                  <path fill="#FFB900" d="M13 13h10v10H13z"/>
+                </svg>
+                <span>Continuer avec Microsoft</span>
+                <span style="font-size:9px;background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;color:var(--text-muted);margin-left:auto;">Bientôt</span>
+              </button>
+            </div>
           </form>
 
           <form id="form-login-2fa" class="login-custom-form" style="display:none;">
@@ -64,5 +104,49 @@
 
           <div class="login-footer">
             <small>Plateforme de jeu <strong>Modey</strong></small>
+          </div>
+        </div>
+
+        <!-- Modale d'Onboarding pour l'authentification sociale (Google / Microsoft) -->
+        <div class="modal-backdrop" id="modal-oauth-onboarding" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+          <div class="modal-card" style="background:var(--bg-surface, #1e2029);border:1px solid var(--border-color, rgba(255,255,255,0.1));border-radius:16px;padding:24px;width:100%;max-width:400px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+              <div style="width:40px;height:40px;border-radius:10px;background:rgba(30,136,229,0.15);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+                <svg class="solar-icon solar-bold" style="font-size:24px;" aria-hidden="true"><use href="#solar-user-plus-bold"></use></svg>
+              </div>
+              <div>
+                <h3 style="margin:0;font-size:16px;font-weight:700;color:var(--text-main);">Finalisation du compte</h3>
+                <p style="margin:2px 0 0 0;font-size:12px;color:var(--text-muted);">Bienvenue ! Choisissez votre identité sur Modey</p>
+              </div>
+            </div>
+
+            <form id="form-oauth-onboarding" style="display:flex;flex-direction:column;gap:14px;">
+              <div class="input-group">
+                <label style="font-size:12px;font-weight:600;color:var(--text-main);"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-letter-bold"></use></svg> Adresse Email</label>
+                <input type="email" id="input-onboarding-email" class="input-field" readonly disabled style="opacity:0.7;cursor:not-allowed;" />
+                <small style="font-size:11px;color:var(--text-muted);">Adresse e-mail vérifiée par votre fournisseur</small>
+              </div>
+
+              <div class="input-group">
+                <label for="input-onboarding-username" style="font-size:12px;font-weight:600;color:var(--text-main);"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg> Votre Pseudo de joueur</label>
+                <input type="text" id="input-onboarding-username" class="input-field" placeholder="Ex: CitoyenAventurier" required minlength="3" maxlength="32" autocomplete="off" />
+                <small style="font-size:11px;color:var(--text-muted);">Entre 3 et 32 caractères (lettres, chiffres, _)</small>
+              </div>
+
+              <div class="input-group">
+                <label style="display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--text-muted);cursor:pointer;line-height:1.4;">
+                  <input type="checkbox" id="checkbox-onboarding-cgu" required style="margin-top:2px;accent-color:var(--primary);cursor:pointer;" />
+                  <span>J'accepte les <a href="https://modey.flowcrea.fr/cgu" target="_blank" style="color:var(--primary);text-decoration:underline;">CGU</a> et j'atteste avoir au moins 15 ans (majorité numérique).</span>
+                </label>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button type="button" id="btn-cancel-onboarding" class="btn btn-secondary" style="flex:1;">Annuler</button>
+                <button type="submit" id="btn-submit-onboarding" class="btn btn-primary" style="flex:2;">
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-read-bold"></use></svg>
+                  <span>Créer mon compte</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
