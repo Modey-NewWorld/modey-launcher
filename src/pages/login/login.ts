@@ -4,6 +4,7 @@ import { renderMaintenanceView } from '../../init'
 import { Dialog } from '../../components/dialog'
 import { loadSkinAssets } from '../../services/skin'
 import { isOnlineState } from '../../services/connectivity'
+import { openDiscordConnect } from '../../services/discord'
 import logger from 'electron-log/renderer'
 import logoUrl from '../../static/images/logo.png'
 import loginHtmlRaw from './index.html?raw'
@@ -226,6 +227,7 @@ export async function initLogin() {
   // Gestion des providers sociaux (Google, Microsoft) et Onboarding
   const btnGoogle = el('btn-oauth-google') as HTMLButtonElement | null
   const btnMicrosoft = el('btn-oauth-microsoft') as HTMLButtonElement | null
+  const btnDiscord = el('btn-oauth-discord') as HTMLButtonElement | null
   const modalOnboarding = el('modal-oauth-onboarding') as HTMLDivElement | null
   const formOnboarding = el('form-oauth-onboarding') as HTMLFormElement | null
   const inputOnboardingEmail = el('input-onboarding-email') as HTMLInputElement | null
@@ -275,6 +277,9 @@ export async function initLogin() {
 
   btnGoogle?.addEventListener('click', () => handleOAuthClick('google'))
   btnMicrosoft?.addEventListener('click', () => handleOAuthClick('microsoft'))
+  btnDiscord?.addEventListener('click', () => {
+    openDiscordConnect()
+  })
 
   // Fermeture modale onboarding
   btnCancelOnboarding?.addEventListener('click', () => {
