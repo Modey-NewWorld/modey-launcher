@@ -39,6 +39,12 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke(IPC.auth.revokeSession, token),
     revokeOtherSessions: (): Promise<{ success: boolean; message?: string; error?: string }> =>
       ipcRenderer.invoke(IPC.auth.revokeOtherSessions),
+    getOAuthProviders: (): Promise<{ google: { enabled: boolean; status: string }; microsoft: { enabled: boolean; status: string } }> =>
+      ipcRenderer.invoke(IPC.auth.getOAuthProviders),
+    startOAuth: (provider: 'google' | 'microsoft'): Promise<{ success: boolean; authUrl?: string; state?: string; error?: string; code?: string }> =>
+      ipcRenderer.invoke(IPC.auth.startOAuth, provider),
+    completeOAuthRegistration: (params: { onboardingToken: string; username: string; cguAccepted: boolean }): Promise<IAuthResponse> =>
+      ipcRenderer.invoke(IPC.auth.completeOAuthRegistration, params),
     refresh: (): Promise<IAuthResponse> => ipcRenderer.invoke(IPC.auth.refresh),
     logout: (): Promise<{ success: boolean }> => ipcRenderer.invoke(IPC.auth.logout)
   },
