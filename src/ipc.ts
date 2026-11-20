@@ -30,6 +30,8 @@ declare global {
         getOAuthProviders: () => Promise<{ google: { enabled: boolean; status: string }; microsoft: { enabled: boolean; status: string } }>
         startOAuth: (provider: 'google' | 'microsoft') => Promise<{ success: boolean; authUrl?: string; state?: string; error?: string; code?: string }>
         completeOAuthRegistration: (params: { onboardingToken: string; username: string; cguAccepted: boolean }) => Promise<IAuthResponse>
+        sendEmailVerification: (email?: string) => Promise<{ success: boolean; message?: string; error?: string }>
+        confirmEmailVerification: (email: string, code: string) => Promise<{ success: boolean; emailVerified?: boolean; message?: string; error?: string; account?: any }>
         refresh: () => Promise<IAuthResponse>
         getCurrentSession: () => Promise<{ success: boolean; account: any }>
         logout: () => Promise<{ success: boolean }>
@@ -163,6 +165,8 @@ export const auth = {
   startOAuth: async (provider: 'google' | 'microsoft') => await window.api.auth.startOAuth(provider),
   completeOAuthRegistration: async (params: { onboardingToken: string; username: string; cguAccepted: boolean }) =>
     await window.api.auth.completeOAuthRegistration(params),
+  sendEmailVerification: async (email?: string) => await window.api.auth.sendEmailVerification(email),
+  confirmEmailVerification: async (email: string, code: string) => await window.api.auth.confirmEmailVerification(email, code),
   logout: async () => await window.api.auth.logout(),
   refresh: async () => await window.api.auth.refresh(),
   getCurrentSession: async () => await window.api.auth.getCurrentSession()

@@ -109,6 +109,39 @@
             </button>
           </form>
 
+          <form id="form-email-otp" class="login-custom-form" style="display:none;flex-direction:column;gap:14px;">
+            <div style="background:rgba(30,136,229,0.08);border:1px solid rgba(30,136,229,0.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;">
+              <svg class="solar-icon solar-bold" style="color:var(--primary);font-size:24px;flex-shrink:0;" aria-hidden="true"><use href="#solar-letter-bold"></use></svg>
+              <div style="font-size:12px;color:var(--text-main);line-height:1.4;">
+                <strong style="color:var(--text-main);">Vérification de l'adresse email</strong><br />
+                <span style="color:var(--text-muted);font-size:11px;">Un code à 6 chiffres a été envoyé à <strong id="otp-target-email" style="color:var(--primary);word-break:break-all;">votre email</strong>.</span>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="input-email-otp-code"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-key-bold"></use></svg> Code de vérification</label>
+              <input type="text" id="input-email-otp-code" class="input-field" placeholder="000 000" maxlength="7" autocomplete="one-time-code" style="text-align:center;font-size:22px;font-weight:700;letter-spacing:6px;" />
+              <small class="input-hint">Code valide pendant 10 minutes</small>
+            </div>
+
+            <button type="submit" id="btn-submit-email-otp" class="btn btn-primary btn-submit-custom">
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-read-bold"></use></svg>
+              <span id="btn-submit-email-otp-text">Confirmer mon inscription</span>
+            </button>
+
+            <div style="display:flex;gap:8px;margin-top:2px;">
+              <button type="button" id="btn-resend-email-otp" class="btn btn-secondary" style="flex:1;font-size:11px;padding:8px 10px;">
+                <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-restart-linear"></use></svg>
+                <span id="btn-resend-email-otp-text">Renvoyer le code</span>
+              </button>
+
+              <button type="button" id="btn-back-email-otp" class="btn btn-secondary" style="flex:1;font-size:11px;padding:8px 10px;">
+                <svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-arrow-left-linear"></use></svg>
+                <span>Modifier l'email</span>
+              </button>
+            </div>
+          </form>
+
           <div class="login-footer">
             <small>Plateforme de jeu <strong>Modey</strong></small>
           </div>

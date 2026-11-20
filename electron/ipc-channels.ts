@@ -27,6 +27,8 @@ export const IPC = {
     getOAuthProviders: 'auth:get-oauth-providers',
     startOAuth: 'auth:start-oauth',
     completeOAuthRegistration: 'auth:complete-oauth-registration',
+    sendEmailVerification: 'auth:send-email-verification',
+    confirmEmailVerification: 'auth:confirm-email-verification',
     /** @internal — multi-comptes EML, pas d'UI Modey */
     listAccounts: 'auth:list-accounts',
     /** @internal */

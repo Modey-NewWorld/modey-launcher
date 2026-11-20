@@ -11,12 +11,15 @@ import { IPC } from '../ipc-channels'
 const sessionPath = () => path.join(app.getPath('userData'), 'session.json')
 const accountsPath = () => path.join(app.getPath('userData'), 'accounts.json')
 
-export type IAuthResponse = { success: true; account: Account } | { success: false; error?: string; requires2FA?: boolean; tempToken?: string }
+export type IAuthResponse =
+  | { success: true; account: Account; requiresEmailVerification?: boolean; email?: string }
+  | { success: false; error?: string; requires2FA?: boolean; tempToken?: string; isServiceUnavailable?: boolean; account?: Account }
 
 export interface IStoredAccount {
   name: string
   uuid: string
   email?: string
+  emailVerified?: boolean
   lastUsed: number
 }
 
@@ -55,6 +58,7 @@ function buildAccountFromAuthData(data: any): Account {
     }
   }
   ;(account as any).email = data.user?.email
+  ;(account as any).emailVerified = Boolean(data.user?.email_verified ?? data.user?.emailVerified)
   ;(account as any).role = data.user?.role || 'citizen'
   ;(account as any).roleLabel = data.user?.roleLabel
   ;(account as any).roleColor = data.user?.roleColor
@@ -66,13 +70,14 @@ function buildAccountFromAuthData(data: any): Account {
   ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
   return account
 }
-function saveAccount(name: string, uuid: string, email?: string) {
+function saveAccount(name: string, uuid: string, email?: string, emailVerified?: boolean) {
   try {
     const list = loadSavedAccounts().filter((acc) => acc.name.toLowerCase() !== name.toLowerCase())
     list.unshift({
       name,
       uuid,
       email,
+      emailVerified,
       lastUsed: Date.now()
     })
     fs.writeFileSync(accountsPath(), JSON.stringify(list, null, 2))
@@ -113,34 +118,11 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
           return { success: false, error: data.error || 'Identifiant ou mot de passe incorrect.' } as IAuthResponse
         }
 
-        const account: Account = {
-          name: data.selectedProfile.name,
-          uuid: data.selectedProfile.id,
-          clientToken: data.clientToken,
-          accessToken: data.accessToken,
-          meta: {
-            online: true,
-            type: 'yggdrasil',
-            url: AUTH_SERVER_URL
-          }
-        }
-        ;(account as any).email = data.user?.email
-        ;(account as any).role = data.user?.role || 'citizen'
-        ;(account as any).roleLabel = data.user?.roleLabel
-        ;(account as any).roleColor = data.user?.roleColor
-        ;(account as any).roleGradient = data.user?.roleGradient
-        ;(account as any).roleShadow = data.user?.roleShadow
-        ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
-      ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
-      ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
-      ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
-        ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
-        ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
-
+        const account = buildAccountFromAuthData(data)
         fs.writeFileSync(sessionPath(), JSON.stringify(account))
-        saveAccount(account.name, account.uuid, data.user?.email)
+        saveAccount(account.name, account.uuid, (account as any).email, (account as any).emailVerified)
 
-        logger.info(`Connexion sécurisée validée pour le joueur : ${account.name} (Rôle: ${(account as any).role})`)
+        logger.info(`Connexion sécurisée validée pour le joueur : ${account.name} (Rôle: ${(account as any).role}, EmailVerified: ${(account as any).emailVerified})`)
         return { success: true, account } as IAuthResponse
       } catch (apiErr) {
         logger.error('Serveur Modey Auth injoignable :', apiErr)
@@ -169,32 +151,16 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         return { success: false, error: data.error || 'Erreur lors de l\'inscription.' } as IAuthResponse
       }
 
-      const account: Account = {
-        name: data.selectedProfile.name,
-        uuid: data.selectedProfile.id,
-        clientToken: data.clientToken,
-        accessToken: data.accessToken,
-        meta: {
-          online: true,
-          type: 'yggdrasil',
-          url: AUTH_SERVER_URL
-        }
-      }
-      ;(account as any).email = data.user.email
-      ;(account as any).role = data.user?.role || 'citizen'
-      ;(account as any).roleLabel = data.user?.roleLabel
-      ;(account as any).roleColor = data.user?.roleColor
-      ;(account as any).roleGradient = data.user?.roleGradient
-      ;(account as any).roleShadow = data.user?.roleShadow
-      ;(account as any).canBypassMaintenance = Boolean(data.user?.canBypassMaintenance)
-      ;(account as any).hasNoCleaning = Boolean(data.user?.hasNoCleaning)
-      ;(account as any).permissions = Array.isArray(data.user?.permissions) ? data.user.permissions : []
-      ;(account as any).maxSkins = typeof data.user?.maxSkins === 'number' ? data.user.maxSkins : undefined
-
+      const account = buildAccountFromAuthData(data)
       fs.writeFileSync(sessionPath(), JSON.stringify(account))
-      saveAccount(account.name, account.uuid, data.user.email)
+      saveAccount(account.name, account.uuid, (account as any).email, (account as any).emailVerified)
 
-      return { success: true, account } as IAuthResponse
+      return {
+        success: true,
+        requiresEmailVerification: Boolean(data.requiresEmailVerification),
+        email: data.user?.email,
+        account
+      } as any
     } catch (err: any) {
       logger.error('Failed register:', err)
       return { success: false, error: 'Désolé, les serveurs d\'authentification Modey sont momentanément indisponibles. Cela ne vient pas de vous, réessayez dans quelques instants.' } as IAuthResponse
@@ -295,7 +261,14 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
               } else if (!(savedSession as any).role) {
                 (savedSession as any).role = 'citizen'
               }
+              if (valData.user?.email) {
+                ;(savedSession as any).email = valData.user.email
+              }
+              if (typeof valData.user?.email_verified === 'boolean' || typeof valData.user?.emailVerified === 'boolean') {
+                ;(savedSession as any).emailVerified = Boolean(valData.user?.email_verified ?? valData.user?.emailVerified)
+              }
               fs.writeFileSync(sessionPath(), JSON.stringify(savedSession))
+              saveAccount(savedSession.name, savedSession.uuid, (savedSession as any).email, (savedSession as any).emailVerified)
               return { success: true, account: savedSession } as IAuthResponse
             }
             // Réponse explicite du serveur : la session est révoquée ou invalide
@@ -358,7 +331,7 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
 
       const account = buildAccountFromAuthData(data)
       fs.writeFileSync(sessionPath(), JSON.stringify(account))
-      saveAccount(account.name, account.uuid, data.user?.email)
+      saveAccount(account.name, account.uuid, (account as any).email, (account as any).emailVerified)
 
       logger.info(`Connexion 2FA validée pour le joueur : ${account.name}`)
       return { success: true, account }
@@ -533,13 +506,96 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
         }
       }
       ;(account as any).email = data.user.email
+      ;(account as any).emailVerified = Boolean(data.user.email_verified ?? data.user.emailVerified)
       ;(account as any).role = data.user.role || 'citizen'
 
       fs.writeFileSync(sessionPath(), JSON.stringify(account))
-      saveAccount(account.name, account.uuid, data.user.email)
+      saveAccount(account.name, account.uuid, data.user.email, (account as any).emailVerified)
       return { success: true, account }
     } catch (err: any) {
       return { success: false, error: err.message }
+    }
+  })
+
+  // Demande d'envoi d'un code de vérification par email
+  ipcMain.handle(IPC.auth.sendEmailVerification, async (_event, targetEmail?: string) => {
+    try {
+      let email = targetEmail?.trim()
+      if (!email && fs.existsSync(sessionPath())) {
+        try {
+          const session = JSON.parse(fs.readFileSync(sessionPath(), 'utf-8'))
+          email = session?.email
+        } catch (_) {}
+      }
+
+      if (!email) {
+        return { success: false, error: 'Aucune adresse email spécifiée pour l\'envoi du code.' }
+      }
+
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/send-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      const data = await resp.json()
+      if (!resp.ok || !data.success) {
+        return { success: false, error: data.error || 'Impossible d\'envoyer le code de vérification.' }
+      }
+
+      return { success: true, message: data.message || 'Code envoyé avec succès.' }
+    } catch (err: any) {
+      logger.error('Failed to send verification email:', err)
+      return { success: false, error: err.message || 'Erreur réseau lors de l\'envoi de l\'email.' }
+    }
+  })
+
+  // Confirmation du code de vérification OTP par email
+  ipcMain.handle(IPC.auth.confirmEmailVerification, async (_event, email: string, code: string) => {
+    try {
+      const cleanEmail = email?.trim()
+      const cleanCode = code?.trim()
+
+      if (!cleanEmail || !cleanCode) {
+        return { success: false, error: 'Email et code de vérification requis.' }
+      }
+
+      const resp = await fetch(`${AUTH_API_URL}/api/auth/confirm-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, code: cleanCode })
+      })
+
+      const data = await resp.json()
+      if (!resp.ok || !data.success) {
+        return { success: false, error: data.error || 'Code de vérification invalide.' }
+      }
+
+      // Mise à jour de la session locale si le compte correspond
+      let updatedAccount: Account | null = null
+      if (fs.existsSync(sessionPath())) {
+        try {
+          const current = JSON.parse(fs.readFileSync(sessionPath(), 'utf-8'))
+          if (!current.email || current.email.toLowerCase() === cleanEmail.toLowerCase()) {
+            current.emailVerified = true
+            fs.writeFileSync(sessionPath(), JSON.stringify(current, null, 2))
+            updatedAccount = current
+            saveAccount(current.name, current.uuid, current.email, true)
+          }
+        } catch (e) {
+          logger.warn('Failed to update session with emailVerified:', e)
+        }
+      }
+
+      return {
+        success: true,
+        emailVerified: true,
+        message: data.message || 'Adresse email vérifiée avec succès !',
+        account: updatedAccount
+      }
+    } catch (err: any) {
+      logger.error('Failed to confirm verification code:', err)
+      return { success: false, error: err.message || 'Erreur réseau lors de la validation du code.' }
     }
   })
 }

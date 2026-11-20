@@ -45,6 +45,10 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke(IPC.auth.startOAuth, provider),
     completeOAuthRegistration: (params: { onboardingToken: string; username: string; cguAccepted: boolean }): Promise<IAuthResponse> =>
       ipcRenderer.invoke(IPC.auth.completeOAuthRegistration, params),
+    sendEmailVerification: (email?: string): Promise<{ success: boolean; message?: string; error?: string }> =>
+      ipcRenderer.invoke(IPC.auth.sendEmailVerification, email),
+    confirmEmailVerification: (email: string, code: string): Promise<{ success: boolean; emailVerified?: boolean; message?: string; error?: string; account?: any }> =>
+      ipcRenderer.invoke(IPC.auth.confirmEmailVerification, email, code),
     refresh: (): Promise<IAuthResponse> => ipcRenderer.invoke(IPC.auth.refresh),
     getCurrentSession: (): Promise<{ success: boolean; account: any }> =>
       ipcRenderer.invoke(IPC.auth.getCurrentSession),

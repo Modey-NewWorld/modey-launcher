@@ -45,11 +45,51 @@ export async function initLogin() {
   const btnSubmit2FAText = el('btn-submit-2fa-text') as HTMLElement | null
   const btnCancel2FA = el('btn-cancel-2fa') as HTMLButtonElement | null
 
+  const formEmailOtp = el('form-email-otp') as HTMLFormElement | null
+  const inputEmailOtpCode = el('input-email-otp-code') as HTMLInputElement | null
+  const btnSubmitEmailOtp = el('btn-submit-email-otp') as HTMLButtonElement | null
+  const btnSubmitEmailOtpText = el('btn-submit-email-otp-text') as HTMLElement | null
+  const btnResendEmailOtp = el('btn-resend-email-otp') as HTMLButtonElement | null
+  const btnResendEmailOtpText = el('btn-resend-email-otp-text') as HTMLElement | null
+  const btnBackEmailOtp = el('btn-back-email-otp') as HTMLButtonElement | null
+  const otpTargetEmail = el('otp-target-email') as HTMLElement | null
+
   const tabLogin = el('tab-auth-login') as HTMLButtonElement | null
   const tabRegister = el('tab-auth-register') as HTMLButtonElement | null
 
   let mode: 'login' | 'register' = 'login'
   let active2FATempToken: string | null = null
+  let pendingRegistrationEmail: string | null = null
+  let pendingRegistrationAccount: any = null
+  let resendCooldownSeconds = 0
+  let resendInterval: any = null
+
+  function startResendCooldown(seconds = 60) {
+    if (resendInterval) clearInterval(resendInterval)
+    resendCooldownSeconds = seconds
+    if (btnResendEmailOtp) btnResendEmailOtp.disabled = true
+
+    const updateLabel = () => {
+      if (btnResendEmailOtpText) {
+        if (resendCooldownSeconds > 0) {
+          btnResendEmailOtpText.innerText = `Renvoyer (${resendCooldownSeconds}s)`
+        } else {
+          btnResendEmailOtpText.innerText = 'Renvoyer le code'
+        }
+      }
+    }
+
+    updateLabel()
+    resendInterval = setInterval(() => {
+      resendCooldownSeconds--
+      if (resendCooldownSeconds <= 0) {
+        clearInterval(resendInterval)
+        resendInterval = null
+        if (btnResendEmailOtp) btnResendEmailOtp.disabled = false
+      }
+      updateLabel()
+    }, 1000)
+  }
 
   async function finalizeSession(session: any) {
     const mn = await maintenance.get()
@@ -168,6 +208,24 @@ export async function initLogin() {
         }
 
         if (session.success) {
+          if (mode === 'register' && ((session as any).requiresEmailVerification || !(session.account as any)?.emailVerified)) {
+            pendingRegistrationEmail = email
+            pendingRegistrationAccount = session.account
+            if (otpTargetEmail) otpTargetEmail.innerText = email
+            form.style.display = 'none'
+            const tabs = el('view-login')?.querySelector('.auth-tabs') as HTMLElement | null
+            if (tabs) tabs.style.display = 'none'
+            if (formEmailOtp) {
+              formEmailOtp.style.display = 'flex'
+              if (inputEmailOtpCode) {
+                inputEmailOtpCode.value = ''
+                setTimeout(() => inputEmailOtpCode.focus(), 100)
+              }
+            }
+            startResendCooldown(60)
+            return
+          }
+
           await finalizeSession(session)
         } else {
           logger.error(session.error)
@@ -182,6 +240,80 @@ export async function initLogin() {
       }
     })
   }
+
+  // Formatage du code OTP email
+  inputEmailOtpCode?.addEventListener('input', () => {
+    const raw = inputEmailOtpCode.value.replace(/\D/g, '').slice(0, 6)
+    if (raw.length > 3) {
+      inputEmailOtpCode.value = `${raw.slice(0, 3)} ${raw.slice(3)}`
+    } else {
+      inputEmailOtpCode.value = raw
+    }
+  })
+
+  // Soumission validation OTP Email (Inscription)
+  if (formEmailOtp && inputEmailOtpCode && btnSubmitEmailOtp) {
+    formEmailOtp.addEventListener('submit', async (e) => {
+      e.preventDefault()
+
+      const cleanCode = inputEmailOtpCode.value.replace(/\s+/g, '').trim()
+      if (cleanCode.length !== 6 || !pendingRegistrationEmail) {
+        await Dialog.show('Veuillez renseigner le code à 6 chiffres reçu sur votre boîte email.', [{ text: 'OK', type: 'ok' }])
+        return
+      }
+
+      const originalText = btnSubmitEmailOtpText?.innerText || 'Confirmer mon inscription'
+      btnSubmitEmailOtp.disabled = true
+      if (btnSubmitEmailOtpText) btnSubmitEmailOtpText.innerText = 'Validation en cours...'
+
+      try {
+        const res = await auth.confirmEmailVerification(pendingRegistrationEmail, cleanCode)
+        if (res.success) {
+          if (resendInterval) clearInterval(resendInterval)
+          if (pendingRegistrationAccount) {
+            pendingRegistrationAccount.emailVerified = true
+          }
+          await finalizeSession({ success: true, account: res.account || pendingRegistrationAccount })
+        } else {
+          await Dialog.show(res.error || 'Code de vérification incorrect ou expiré.', [{ text: 'Réessayer', type: 'ok' }])
+        }
+      } catch (err: any) {
+        logger.error(err)
+        await Dialog.show('Une erreur inattendue est survenue lors de la vérification.', [{ text: 'OK', type: 'ok' }])
+      } finally {
+        btnSubmitEmailOtp.disabled = false
+        if (btnSubmitEmailOtpText) btnSubmitEmailOtpText.innerText = originalText
+      }
+    })
+  }
+
+  // Renvoyer le code OTP Email
+  btnResendEmailOtp?.addEventListener('click', async () => {
+    if (resendCooldownSeconds > 0 || !pendingRegistrationEmail) return
+    btnResendEmailOtp.disabled = true
+    try {
+      const res = await auth.sendEmailVerification(pendingRegistrationEmail)
+      if (res.success) {
+        startResendCooldown(60)
+        await Dialog.show('Un nouveau code de vérification vous a été envoyé.', [{ text: 'Compris', type: 'ok' }])
+      } else {
+        btnResendEmailOtp.disabled = false
+        await Dialog.show(res.error || 'Impossible de renvoyer le code pour le moment.', [{ text: 'OK', type: 'ok' }])
+      }
+    } catch (err: any) {
+      btnResendEmailOtp.disabled = false
+      await Dialog.show(err.message || 'Erreur lors du renvoi du code.', [{ text: 'OK', type: 'ok' }])
+    }
+  })
+
+  // Retour / Modification email depuis l'écran OTP
+  btnBackEmailOtp?.addEventListener('click', () => {
+    if (resendInterval) clearInterval(resendInterval)
+    if (formEmailOtp) formEmailOtp.style.display = 'none'
+    if (form) form.style.display = 'flex'
+    const tabs = el('view-login')?.querySelector('.auth-tabs') as HTMLElement | null
+    if (tabs) tabs.style.display = 'flex'
+  })
 
   // Soumission 2FA
   if (form2FA && input2FACode && btnSubmit2FA) {

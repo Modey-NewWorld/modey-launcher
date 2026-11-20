@@ -1,7 +1,7 @@
 import { checkAndShowUpdateToast } from '../../services/updateToast'
 import { startLiveSync } from '../../services/liveSync'
 import shared from '../../shared'
-import { settings, system } from '../../ipc'
+import { settings, system, game, auth } from '../../ipc'
 import { Dialog } from '../../components/dialog'
 import { createProgressBar } from '../../components/progressBar'
 import { setRouterHooks, showServerSettings, showServers } from '../../router'
@@ -9,7 +9,7 @@ import { fetchProfiles, isComingSoonProfile } from '../../services/profiles'
 import { targetFor } from '../../services/serverStatus'
 import { FALLBACK_MC_VERSION, FALLBACK_LOADER_VERSION } from '../../services/launcherConfig'
 import { startLaunch, bindLaunch } from '../../services/launch'
-import { game } from '../../ipc'
+import { EmailVerificationModal } from '../../components/emailVerificationModal'
 import { refreshProfileServer } from '../profile/profile'
 import { refreshServerCard } from '../servers/servers'
 import { homeState } from './state'
@@ -161,13 +161,40 @@ export function initHome() {
     }
   })
   
-  const handleLaunch = () => {
+  const proceedLaunch = () => {
     const current = homeState.selectedProfile
     if (current) {
       recordPlayedServer(current.slug || 'athena', current.name || 'Athéna')
       renderResumeAndHistory(selectProfile)
     }
     startLaunch()
+  }
+
+  const handleLaunch = async () => {
+    const user = shared.account
+    // Si c'est un compte Modey (non crack) et que l'email n'a pas encore été validé
+    if (user && (user as any).email && (user as any).emailVerified !== true) {
+      // Rafraîchissement préventif au cas où la vérification a eu lieu récemment
+      try {
+        const refreshed = await auth.refresh()
+        if (refreshed.success && (refreshed.account as any)?.emailVerified === true) {
+          ;(user as any).emailVerified = true
+          proceedLaunch()
+          return
+        }
+      } catch (_) {}
+
+      // Affichage de la modale bloquante de sécurité
+      EmailVerificationModal.show({
+        email: (user as any).email,
+        onVerified: () => {
+          proceedLaunch()
+        }
+      })
+      return
+    }
+
+    proceedLaunch()
   }
 
   playBtn?.addEventListener('click', handleLaunch)
