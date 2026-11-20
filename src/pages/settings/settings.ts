@@ -514,12 +514,57 @@ async function initAccountSettings() {
       }
     })
 
-    btnSyncDiscord?.addEventListener('click', () => {
+    const btnLinkDiscordSSO = el('btn-link-discord-sso') as HTMLButtonElement | null
+    const badgeDiscordSSO = el('badge-discord-sso-status')
+
+    const triggerDiscordSync = () => {
       openDiscordConnect(shared.account?.accessToken)
-      setTimeout(checkSettingsDiscordStatus, 3000)
-      setTimeout(checkSettingsDiscordStatus, 8000)
-      setTimeout(checkSettingsDiscordStatus, 15000)
-    })
+      const poll = () => {
+        checkSettingsDiscordStatus()
+        updateSSODiscordUI()
+      }
+      setTimeout(poll, 3000)
+      setTimeout(poll, 8000)
+      setTimeout(poll, 15000)
+    }
+
+    const updateSSODiscordUI = async () => {
+      const token = (user as any)?.accessToken || shared.account?.accessToken
+      if (!token) return
+      try {
+        const res = await fetch(`${apiBase}/api/auth/discord/status?token=${encodeURIComponent(token)}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data && data.linked) {
+            if (badgeDiscordSSO) {
+              badgeDiscordSSO.innerText = `@${data.discord_username || 'Lié'}`
+              badgeDiscordSSO.className = 'discord-row-status is-active'
+            }
+            if (btnLinkDiscordSSO) {
+              btnLinkDiscordSSO.innerText = 'Synchronisé'
+              btnLinkDiscordSSO.classList.add('disabled')
+              btnLinkDiscordSSO.disabled = true
+              btnLinkDiscordSSO.title = 'Compte Discord déjà associé'
+            }
+            return
+          }
+        }
+        if (badgeDiscordSSO) {
+          badgeDiscordSSO.innerText = 'Non synchronisé'
+          badgeDiscordSSO.className = 'discord-row-status is-inactive'
+        }
+        if (btnLinkDiscordSSO) {
+          btnLinkDiscordSSO.innerText = 'Associer'
+          btnLinkDiscordSSO.classList.remove('disabled')
+          btnLinkDiscordSSO.disabled = false
+          btnLinkDiscordSSO.title = 'Associer mon compte Discord'
+        }
+      } catch (_) {}
+    }
+
+    btnSyncDiscord?.addEventListener('click', triggerDiscordSync)
+    btnLinkDiscordSSO?.addEventListener('click', triggerDiscordSync)
+    updateSSODiscordUI()
 
     el('btn-goto-2fa')?.addEventListener('click', () => {
       openSubpage(sub2fa, 'Authentification à multi-facteurs')
