@@ -40,6 +40,8 @@ contextBridge.exposeInMainWorld('api', {
     revokeOtherSessions: (): Promise<{ success: boolean; message?: string; error?: string }> =>
       ipcRenderer.invoke(IPC.auth.revokeOtherSessions),
     refresh: (): Promise<IAuthResponse> => ipcRenderer.invoke(IPC.auth.refresh),
+    getCurrentSession: (): Promise<{ success: boolean; account: any }> =>
+      ipcRenderer.invoke(IPC.auth.getCurrentSession),
     logout: (): Promise<{ success: boolean }> => ipcRenderer.invoke(IPC.auth.logout)
   },
   profiles: {
@@ -95,6 +97,7 @@ contextBridge.exposeInMainWorld('api', {
     launched: (callback: () => void) => ipcRenderer.on(IPC.game.launched, (_event) => callback()),
 
     launchClose: (callback: (value: number | null) => void) => ipcRenderer.on(IPC.game.launchClose, (_event, value) => callback(value)),
+    kill: (): Promise<{ success: boolean }> => ipcRenderer.invoke(IPC.game.kill),
     verifyIntegrity: (slug: string) => ipcRenderer.invoke(IPC.game.verifyIntegrity, slug)
   },
   skin: {

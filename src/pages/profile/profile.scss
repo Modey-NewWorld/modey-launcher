@@ -709,6 +709,251 @@
   }
 }
 
+/* --- Cartes de Services & Intégrations (Discord, Microsoft Minecraft) --- */
+.identity-service-card {
+  margin-top: 14px;
+  background: var(--bg-surface-alt, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--line-strong, rgba(255, 255, 255, 0.16));
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .service-card-header {
+    margin-bottom: 12px;
+
+    .service-brand {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      .service-icon-wrap {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+
+        &.discord-icon-wrap {
+          background: rgba(88, 101, 242, 0.15);
+          color: #5865F2;
+          border: 1px solid rgba(88, 101, 242, 0.3);
+        }
+
+        &.minecraft-icon-wrap {
+          background: rgba(34, 197, 94, 0.12);
+          color: #4ade80;
+          border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+      }
+
+      .service-title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+        flex: 1;
+
+        .service-title-line {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          strong {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-main, #ffffff);
+          }
+
+          .service-pill,
+          .discord-status-badge {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--bg-sunken, rgba(0, 0, 0, 0.3));
+            color: var(--ink-400, #94a3b8);
+            border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+
+            &.linked {
+              background: rgba(34, 197, 94, 0.15);
+              color: #4ade80;
+              border-color: rgba(34, 197, 94, 0.3);
+            }
+          }
+        }
+
+        .service-caption {
+          font-size: 11.5px;
+          color: var(--ink-400, #94a3b8);
+          line-height: 1.4;
+        }
+      }
+    }
+  }
+
+  .service-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .service-perks-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      .perk-tag {
+        font-size: 11px;
+        color: var(--ink-300, #cbd5e1);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 3px 8px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+
+        svg {
+          width: 12px;
+          height: 12px;
+          color: var(--accent, #3b82f6);
+        }
+      }
+    }
+
+    .service-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+
+      .service-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 7px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+
+        svg {
+          width: 14px;
+          height: 14px;
+        }
+
+        &.primary.discord-btn-main {
+          background: #5865F2;
+          color: #ffffff;
+          border: 1px solid #5865F2;
+
+          &:hover {
+            background: #4752c4;
+            border-color: #4752c4;
+            transform: translateY(-1px);
+          }
+        }
+
+        &.primary.mc-btn-main {
+          background: rgba(34, 197, 94, 0.15);
+          color: #4ade80;
+          border: 1px solid rgba(34, 197, 94, 0.3);
+
+          &:hover:not(:disabled) {
+            background: #22c55e;
+            color: #ffffff;
+          }
+
+          &.disabled,
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+            filter: grayscale(0.4);
+          }
+        }
+
+        &.secondary {
+          background: var(--bg-surface, #0f172a);
+          color: var(--ink-200, #e2e8f0);
+          border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+
+          &:hover {
+            background: var(--bg-sunken, #1e293b);
+            border-color: var(--line-strong, rgba(255, 255, 255, 0.16));
+            color: #ffffff;
+          }
+        }
+
+        &.danger-outline {
+          background: transparent;
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+
+          &:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+          }
+        }
+      }
+    }
+
+    .linked-account-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-sunken, rgba(0, 0, 0, 0.25));
+      border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+      border-radius: 10px;
+      padding: 8px 12px;
+
+      .linked-account-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid #5865F2;
+      }
+
+      .linked-account-info {
+        display: flex;
+        flex-direction: column;
+
+        strong {
+          font-size: 13px;
+          color: var(--text-main, #ffffff);
+        }
+
+        .linked-sync-status {
+          font-size: 11px;
+          color: #4ade80;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          svg {
+            width: 12px;
+            height: 12px;
+          }
+        }
+      }
+    }
+  }
+}
+
 /* --- Section Synchronisation Discord intégrée dans la carte d'identité --- */
 .identity-discord-block,
 .identity-minecraft-block,

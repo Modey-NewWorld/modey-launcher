@@ -53,13 +53,26 @@
                 <div class="settings-category-heading">
                   <h2 id="settings-active-cat-title" class="settings-header-title">Compte &amp; sécurité</h2>
                 </div>
-                <button type="button" class="settings-modal-close-btn" id="btn-close-settings" title="Fermer les paramètres (Échap)" aria-label="Fermer les paramètres">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
+                <div class="settings-header-actions">
+                  <button type="button" class="settings-modal-close-btn" id="btn-close-settings" title="Fermer les paramètres (Échap)" aria-label="Fermer les paramètres">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
               </header>
+
+              <!-- Volet de recherche plein panneau (Overlay élégant Discord/Spotlight) -->
+              <div id="settings-search-overlay" class="settings-search-overlay" style="display:none;">
+                <div class="settings-search-overlay-head">
+                  <div class="settings-search-overlay-meta">
+                    <span id="settings-search-results-count" class="settings-search-count-pill">0 résultat</span>
+                    <span class="settings-search-hint">Cliquez sur un résultat pour y accéder directement</span>
+                  </div>
+                </div>
+                <div id="settings-search-results-list" class="settings-search-results-list"></div>
+              </div>
 
               <!-- Corps scrollable avec les cartes de réglages -->
               <div class="settings-scroll" id="settings-scroll">
@@ -69,6 +82,17 @@
             <!-- ========================================== -->
             <div id="server-settings-view" class="settings-view-section" style="display:none;">
               <!-- Catégorie: Performance -->
+              <!-- Bannière Annonce Statistiques & Recommandations Intelligentes -->
+              <section class="settings-card settings-card--wide" id="server-stats-notice-card" data-cat="performance">
+                <div class="privacy-notice-banner" style="margin-bottom:0;">
+                  <svg class="solar-icon solar-bold privacy-notice-icon" style="color:var(--accent);" aria-hidden="true"><use href="#solar-tuning-bold"></use></svg>
+                  <div class="privacy-notice-text">
+                    <strong>Recommandations intelligentes &amp; Statistiques de performance</strong>
+                    <span>La gestion de la RAM et de Java se fait désormais individuellement par serveur. Les statistiques en jeu (FPS moyens, consommation mémoire) et les profils de recommandation automatique basés sur votre matériel arrivent très prochainement.</span>
+                  </div>
+                </div>
+              </section>
+
               <!-- Carte RAM spécifique à l'instance (1 colonne) -->
               <section class="settings-card" id="server-ram-card" data-cat="performance">
                 <div class="settings-card-head">
@@ -84,10 +108,24 @@
                   <span id="server-ram-min-label">Min : 2 Go</span>
                   <span id="server-ram-max-label">Max : 8 Go</span>
                 </div>
-                <div class="btn-row" style="margin-top:8px;">
-                  <button type="button" class="settings-btn" id="server-reset-ram-btn" title="Réinitialiser la RAM de ce serveur sur les valeurs globales"><svg class="solar-icon solar-linear" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>&nbsp;Hériter de la RAM générale</button>
+                <p class="muted">Ajustez la mémoire vive dédiée selon vos mods et shaders pour ce serveur.</p>
+              </section>
+
+              <!-- Carte Version de Java spécifique au serveur (1 colonne) -->
+              <section class="settings-card" id="server-java-card" data-cat="performance">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-cup-bold"></use></svg>&nbsp;&nbsp;Moteur d'exécution Java</h3>
                 </div>
-                <p class="muted">Sans réglage explicite, ce serveur utilise automatiquement la mémoire générale.</p>
+                <div class="settings-field">
+                  <label class="settings-label" for="server-java-select">Exécutable Java</label>
+                  <div class="select-wrapper">
+                    <select id="server-java-select">
+                      <option value="bundled">Java 21 fourni par Modey (recommandé)</option>
+                      <option value="system">Java système (PATH)</option>
+                    </select>
+                  </div>
+                </div>
+                <p class="muted">Exécutable Java utilisé pour lancer cette instance de jeu.</p>
               </section>
 
               <!-- Carte Résolution du Jeu propre au serveur (1 colonne) -->
@@ -722,40 +760,6 @@
                 </div>
               </section>
 
-              <!-- Catégorie: Jeu & performance -->
-              <!-- Carte RAM générale par défaut -->
-              <section class="settings-card" id="ram-card" data-cat="game">
-                <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cpu-bold"></use></svg>&nbsp;&nbsp;Mémoire générale par défaut</h3>
-                </div>
-                <div class="dual-slider-container" id="ram-slider">
-                  <div class="slider-track"></div>
-                  <div class="slider-fill" id="ram-track-fill"></div>
-                  <input type="range" id="ram-min" min="0.5" max="16" step="0.5" value="2" />
-                  <input type="range" id="ram-max" min="0.5" max="16" step="0.5" value="8" />
-                </div>
-                <div class="ram-labels">
-                  <span id="ram-min-label">Min : 2 Go</span>
-                  <span id="ram-max-label">Max : 8 Go</span>
-                </div>
-              </section>
-
-              <!-- Carte Version de Java -->
-              <section class="settings-card" id="java-card" data-cat="game">
-                <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cup-bold"></use></svg>&nbsp;&nbsp;Version de Java</h3>
-                </div>
-                <div class="settings-field">
-                  <label class="settings-label" for="java-select">Exécutable Java</label>
-                  <div class="select-wrapper">
-                    <select id="java-select">
-                      <option value="bundled">Java fourni (recommandé)</option>
-                      <option value="system">Java système (PATH)</option>
-                    </select>
-                  </div>
-                </div>
-              </section>
-
               <!-- Catégorie: Interface & comportement -->
               <!-- Fusion Apparence (Thème + Taille) -->
               <section class="settings-card" id="appearance-card" data-cat="interface">
@@ -763,21 +767,34 @@
                   <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sun-bold"></use></svg>&nbsp;&nbsp;Apparence &amp; interface</h3>
                 </div>
 
-                <div class="settings-field">
-                  <label class="settings-label" for="theme-select">Thème</label>
-                  <div class="select-wrapper">
-                    <select id="theme-select">
+                <div class="settings-field theme-field-row">
+                  <label class="settings-label">Thème de l'interface</label>
+                  <div class="theme-segmented-group" id="theme-segmented-group" role="radiogroup" aria-label="Thème">
+                    <button type="button" class="theme-chip-btn" data-theme="system" role="radio" aria-checked="false" title="Suit les préférences de votre système d'exploitation">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-monitor-bold"></use></svg>
+                      <span>Auto</span>
+                    </button>
+                    <button type="button" class="theme-chip-btn" data-theme="dark" role="radio" aria-checked="false" title="Mode sombre immersif">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-moon-bold"></use></svg>
+                      <span>Sombre</span>
+                    </button>
+                    <button type="button" class="theme-chip-btn" data-theme="light" role="radio" aria-checked="false" title="Mode clair épuré">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-sun-bold"></use></svg>
+                      <span>Clair</span>
+                    </button>
+                    <!-- Fallback select synchronisé pour accessibilité et compatibilité -->
+                    <select id="theme-select" class="visually-hidden" tabindex="-1" aria-hidden="true">
                       <option value="system">Automatique (suit le système)</option>
-                      <option value="light">Clair</option>
                       <option value="dark">Sombre</option>
+                      <option value="light">Clair</option>
                     </select>
                   </div>
                 </div>
 
-                <div class="settings-field">
-                  <label class="settings-label" for="ui-scale">Taille du launcher</label>
+                <div class="settings-field ui-scale-field-row">
+                  <label class="settings-label" for="ui-scale">Échelle &amp; Zoom de l'interface</label>
                   <div class="ui-scale-row">
-                    <button type="button" class="ui-scale-btn" id="ui-scale-minus" title="Réduire l'interface">
+                    <button type="button" class="ui-scale-btn" id="ui-scale-minus" title="Réduire l'interface (-5%)" aria-label="Réduire l'interface">
                       <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-minus-bold"></use></svg>
                     </button>
                     <div class="ui-scale-slider" id="ui-scale-slider">
@@ -785,14 +802,15 @@
                       <div class="slider-fill" id="ui-scale-fill"></div>
                       <input type="range" id="ui-scale" min="75" max="150" step="5" value="100" />
                     </div>
-                    <button type="button" class="ui-scale-btn" id="ui-scale-plus" title="Agrandir l'interface">
+                    <button type="button" class="ui-scale-btn" id="ui-scale-plus" title="Agrandir l'interface (+5%)" aria-label="Agrandir l'interface">
                       <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-add-bold"></use></svg>
                     </button>
-                    <span class="ui-scale-value" id="ui-scale-value">100 %</span>
+                    <button type="button" class="ui-scale-reset-btn" id="ui-scale-reset" title="Réinitialiser l'échelle à 100%" aria-label="Réinitialiser l'échelle">
+                      <span class="ui-scale-value" id="ui-scale-value">100 %</span>
+                      <svg class="solar-icon solar-linear reset-icon" aria-hidden="true"><use href="#solar-refresh-linear"></use></svg>
+                    </button>
                   </div>
                 </div>
-
-                <p class="muted">Le thème et l'échelle sont appliqués immédiatement et mémorisés localement.</p>
               </section>
 
               <!-- Fusion Comportement (Action après lancement + Veille + Démarrage système) -->
@@ -896,62 +914,161 @@
                 <p class="muted">Mods, configs, sauvegardes et Java sont téléchargés ici, un dossier par serveur. Le changement peut déplacer plusieurs Gio : ne fermez pas le launcher pendant l'opération.</p>
               </section>
 
-              <!-- Catégorie: À propos & licences -->
-              <!-- Fusion À propos & licences (Pleine largeur) -->
+              <!-- Catégorie: À propos & licences (Cartes dédiées et aérées) -->
+              
+              <!-- 1. Carte Identité & Liens du projet -->
               <section class="settings-card settings-card--wide" id="about-card" data-cat="about">
                 <div class="settings-card-head">
-                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg>&nbsp;&nbsp;À propos &amp; licences</h3>
+                  <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-info-bold"></use></svg>&nbsp;&nbsp;À propos de Modey</h3>
                 </div>
+                
+                <!-- Spécifications et versions -->
                 <div class="about-grid">
                   <div><span>Version launcher</span><strong id="settings-version">—</strong></div>
                   <div><span>EML Lib</span><strong id="settings-emllib">2.3.5</strong></div>
                   <div><span>Electron</span><strong id="settings-electron">—</strong></div>
-                  <div><span>OS</span><strong id="settings-os">—</strong></div>
+                  <div><span>Système</span><strong id="settings-os">—</strong></div>
                 </div>
+
+                <!-- Présentation du projet -->
                 <div class="about-project">
                   <h4>Modey Launcher</h4>
-                  <p>Le <strong>Modey Launcher</strong> est construit à partir du <strong>EML Template</strong>, le template officiel de l'écosystème open-source <strong>EML (Electron Minecraft Launcher)</strong>, puis entièrement adapté à la plateforme Modey : interface sur-mesure, authentification Modey, architecture multi-serveurs et fichiers isolés par serveur.</p>
-                  <p>Toute la logique Minecraft — authentification, téléchargements vérifiés, lancement du jeu — est assurée par <strong>EML Lib</strong>, dans une architecture « 1 compte, 1 launcher, N serveurs ».</p>
-                </div>
-                <div class="about-links">
-                  <a href="https://emlproject.com/" target="_blank" rel="noopener noreferrer" class="about-link">
-                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-up-right-bold"></use></svg>&nbsp;EML Project — https://emlproject.com/
-                  </a>
-                  <a href="https://github.com/Electron-Minecraft-Launcher/EML-Template" target="_blank" rel="noopener noreferrer" class="about-link">
-                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>&nbsp;EML Template sur GitHub
-                  </a>
-                  <a href="https://github.com/Electron-Minecraft-Launcher/EML-Lib" target="_blank" rel="noopener noreferrer" class="about-link">
-                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>&nbsp;EML Lib sur GitHub
-                  </a>
+                  <p>Le <strong>Modey Launcher</strong> est le client officiel de connexion et de synchronisation développé pour l'univers <strong>Modey</strong>. Construit sur le socle open-source <strong>EML (Electron Minecraft Launcher)</strong> et propulsé par <strong>EML Lib</strong> (« 1 compte, 1 launcher, N serveurs »), il intègre une architecture multi-instances isolée, une authentification moderne et un système de mise à jour certifié SHA1.</p>
                 </div>
 
-                <details class="settings-disclosure" style="margin-top:12px;">
-                  <summary>Licence, services et composants tiers</summary>
-                  <div class="about-legal" style="margin-top:10px;">
-                    <p><strong>Licence du Launcher :</strong> Modey Launcher est un logiciel libre et open-source sous licence <strong>MIT</strong> (dérivé de EML Template © GoldFrite, enrichi par FlowCreativeStudio).</p>
-                    <p><strong>Services distants :</strong> Les serveurs de jeu Minecraft, l'infrastructure d'administration et les services back-office associés restent privés et propriétaires (Tous droits réservés © FlowCreativeStudio).</p>
-                    <p><strong>Composants tiers :</strong> skinview3d (MIT), Solar Icons (CC BY 4.0), bg.png (CC BY-ND 3.0), authlib-injector (AGPL-3.0 avec exception d'exécution).</p>
-                    <div style="margin: 8px 0 12px 0;">
-                      <button type="button" class="settings-btn" id="btn-view-third-party-notices">
-                        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-file-text-bold"></use></svg>&nbsp;Consulter les notices des licences tierces
-                      </button>
+                <!-- Liens officiels Modey & écosystème -->
+                <div class="about-links-grid">
+                  <a href="https://modey.flowcrea.fr" target="_blank" rel="noopener noreferrer" class="about-card-link">
+                    <div class="about-card-link-icon" style="background:var(--accent-soft); color:var(--accent);">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                      </svg>
                     </div>
-                    <p><strong>Données :</strong> Aucune donnée personnelle n'est collectée sans consentement. Les réglages sont stockés localement.</p>
-                    <p><strong>Studio :</strong> FlowCreativeStudio · <strong>Contact :</strong> <a href="mailto:contact@flowcrea.fr">contact@flowcrea.fr</a> · <strong>Discord :</strong> <a href="#" id="settings-discord-link">Rejoindre la communauté</a></p>
-                  </div>
-                </details>
+                    <div class="about-card-link-content">
+                      <strong>Site officiel Modey</strong>
+                      <span>modey.flowcrea.fr</span>
+                    </div>
+                    <svg class="solar-icon solar-linear ext-arrow" aria-hidden="true"><use href="#solar-arrow-up-right-linear"></use></svg>
+                  </a>
+                  <a href="https://github.com/Modey-NewWorld" target="_blank" rel="noopener noreferrer" class="about-card-link">
+                    <div class="about-card-link-icon" style="background:rgba(234, 88, 12, 0.12); color:#ea580c;">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-git-branch-bold"></use></svg>
+                    </div>
+                    <div class="about-card-link-content">
+                      <strong>GitHub Modey</strong>
+                      <span>Modey-NewWorld</span>
+                    </div>
+                    <svg class="solar-icon solar-linear ext-arrow" aria-hidden="true"><use href="#solar-arrow-up-right-linear"></use></svg>
+                  </a>
+                  <a href="https://emlproject.com/" target="_blank" rel="noopener noreferrer" class="about-card-link">
+                    <div class="about-card-link-icon" style="background:rgba(59, 130, 246, 0.12); color:#3b82f6;">
+                      <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-cup-bold"></use></svg>
+                    </div>
+                    <div class="about-card-link-content">
+                      <strong>EML Project</strong>
+                      <span>emlproject.com (Base open-source)</span>
+                    </div>
+                    <svg class="solar-icon solar-linear ext-arrow" aria-hidden="true"><use href="#solar-arrow-up-right-linear"></use></svg>
+                  </a>
+                </div>
+              </section>
 
-                <details class="settings-disclosure" style="margin-top:10px;">
-                  <summary>Infrastructure &amp; services Modey</summary>
-                  <div class="about-infra" style="margin-top:10px;">
-                    <ul>
-                      <li><strong>Authentification :</strong> Modey Auth Server (compatible avec le protocole Yggdrasil et authlib-injector) — gestion des comptes citoyens, sessions, skins</li>
-                      <li><strong>Distribution modpacks :</strong> Files Updater Modey Core API — synchronisation certifiée mods, configs et optional-mods</li>
-                      <li><strong>Launcher :</strong> EML Lib 2.3.5 (Electron + eml-lib) — installation, vérification d'intégrité, lancement</li>
-                      <li><strong>Hébergement :</strong> Serveurs dédiés européens haute performance</li>
-                    </ul>
+              <!-- 2. Carte Écosystème & Infrastructure Technique -->
+              <section class="settings-card settings-card--wide" id="about-infra-card" data-cat="about">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--accent);" aria-hidden="true"><use href="#solar-server-bold"></use></svg>&nbsp;&nbsp;Écosystème &amp; Infrastructure Technique</h3>
+                </div>
+                <div class="about-specs-list">
+                  <div class="about-spec-row">
+                    <span class="spec-label">Moteurs &amp; Chargeurs</span>
+                    <span class="spec-value">Multi-chargeurs dynamiques (Vanilla, NeoForge, Forge, Fabric, Quilt selon l'instance)</span>
                   </div>
-                </details>
+                  <div class="about-spec-row">
+                    <span class="spec-label">Runtime Java</span>
+                    <span class="spec-value">Détection &amp; approvisionnement automatique (Java 8 / 17 / 21+) par serveur</span>
+                  </div>
+                  <div class="about-spec-row">
+                    <span class="spec-label">Distribution &amp; Intégrité</span>
+                    <span class="spec-value">Modey Sync API (Téléchargement différentiel et vérification SHA-1 des fichiers)</span>
+                  </div>
+                  <div class="about-spec-row">
+                    <span class="spec-label">Isolation des instances</span>
+                    <span class="spec-value">Sous-dossiers dédiés et étanches (.modey/&lt;serveur&gt;) sans interférence</span>
+                  </div>
+                  <div class="about-spec-row">
+                    <span class="spec-label">Authentification &amp; Sécurité</span>
+                    <span class="spec-value">Modey Auth Core (Yggdrasil API, authlib-injector, sessions et 2FA TOTP)</span>
+                  </div>
+                  <div class="about-spec-row">
+                    <span class="spec-label">Éditeur &amp; Studio</span>
+                    <span class="spec-value">FlowCreativeStudio — Florian (NayrolfRdgs)</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 3. Carte Licences Logicielles & Composants Tiers -->
+              <section class="settings-card settings-card--wide" id="about-licenses-card" data-cat="about">
+                <div class="settings-card-head">
+                  <h3><svg class="solar-icon solar-bold" style="color:var(--success);" aria-hidden="true"><use href="#solar-shield-bold"></use></svg>&nbsp;&nbsp;Licences Logicielles &amp; Propriété Intellectuelle</h3>
+                </div>
+                <p class="about-legal-text">
+                  Le <strong>Modey Launcher</strong> est distribué sous licence libre <strong>MIT</strong>. Les composants open-source intégrés respectent leurs licences respectives, tandis que l'univers de jeu et les serveurs Modey restent la propriété exclusive de FlowCreativeStudio.
+                </p>
+
+                <!-- Liste des licences : Texte à gauche, badges à droite -->
+                <div class="about-licenses-list">
+                  <div class="about-license-item">
+                    <div class="about-license-details">
+                      <strong>EML Template &amp; Lib</strong>
+                      <span>© 2026 GoldFrite — Socle architectural, gestion des instances et synchronisation</span>
+                    </div>
+                    <div class="about-license-badge">MIT</div>
+                  </div>
+                  <div class="about-license-item">
+                    <div class="about-license-details">
+                      <strong>skinview3d</strong>
+                      <span>© 2020-2023 invis_ghost — Rendu 3D temps réel du personnage, skins et capes</span>
+                    </div>
+                    <div class="about-license-badge">MIT</div>
+                  </div>
+                  <div class="about-license-item">
+                    <div class="about-license-details">
+                      <strong>Solar Icons</strong>
+                      <span>© 480 Design — Iconographie vectorielle et interface utilisateur</span>
+                    </div>
+                    <div class="about-license-badge">CC BY 4.0</div>
+                  </div>
+                  <div class="about-license-item">
+                    <div class="about-license-details">
+                      <strong>authlib-injector</strong>
+                      <span>© yushijinhun &amp; contributeurs — Pont d'authentification Yggdrasil du client</span>
+                    </div>
+                    <div class="about-license-badge">AGPLv3</div>
+                  </div>
+                </div>
+
+                <!-- Avertissement officiel Mojang & Vie privée -->
+                <div class="about-disclaimer-card">
+                  <div class="about-disclaimer-row">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-danger-circle-bold"></use></svg>
+                    <p><strong>Avertissement Mojang Studios :</strong> Modey n'est ni affilié, ni approuvé, ni associé à Mojang Studios ou Microsoft. <em>Minecraft</em> est une marque déposée de Mojang AB.</p>
+                  </div>
+                  <div class="about-disclaimer-row">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>
+                    <p><strong>Confidentialité &amp; Sécurité :</strong> Aucune télémétrie invasive. Vos identifiants de session et réglages sont chiffrés et conservés localement sur votre appareil.</p>
+                  </div>
+                </div>
+
+                <div class="about-legal-actions">
+                  <button type="button" class="settings-btn" id="btn-view-third-party-notices">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-notes-bold"></use></svg>&nbsp;Consulter les notices des licences tierces
+                  </button>
+                  <a href="#" id="settings-discord-link" class="settings-btn settings-btn--secondary">
+                    <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-link-bold"></use></svg>&nbsp;Rejoindre la communauté Discord
+                  </a>
+                </div>
               </section>
             </div>
 

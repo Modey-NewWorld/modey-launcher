@@ -16,7 +16,7 @@ import { Dialog } from '../../components/dialog'
 import { showAccueil } from '../../router'
 import { pingServer, setCachedServerInfo } from '../../services/serverStatus'
 import { homeState } from '../home/state'
-import { profiles } from '../../ipc'
+import { profiles, files } from '../../ipc'
 import { launcherConfig } from '../../services/launcherConfig'
 import { BRAND } from '../../config/brand'
 import { openDiscordInvite } from '../../services/discord'
@@ -545,83 +545,57 @@ function renderServerCardHtml(s: ServerItem): string {
   let statusHtml = ''
   let playersHtml = ''
   let pingHtml = ''
-  let joinBtnHtml = ''
 
   if (s.isProtected) {
     statusHtml = `<span class="card-badge card-badge-status" style="border-color:rgba(245,158,11,0.35); color:#f59e0b;"><svg class="solar-icon solar-bold" style="width:12px;height:12px;display:inline-block;vertical-align:-1px;margin-right:3px;" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>Protégé</span>`
     playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;${s.online ? `${s.playersOnline ?? 0}/${s.playersMax ?? 40}` : '—'}</span>`
     pingHtml = s.online ? `${getLatencySignalSvg()}<span>${s.pingMs ?? 0} ms</span>` : `<span>Privé</span>`
-    joinBtnHtml = `
-      <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
-        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-bold"></use></svg>
-        <span>Déverrouiller</span>
-      </button>
-    `
   } else if (s.isComingSoon) {
     statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot coming-soon"></span>&nbsp;Arrive bientôt</span>`
     playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;—</span>`
     pingHtml = `<span>—</span>`
-    joinBtnHtml = `
-      <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
-        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>
-        <span>Sélectionner</span>
-      </button>
-    `
   } else if (s.online) {
     statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot online"></span>&nbsp;En ligne</span>`
     playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;${s.playersOnline ?? 0}/${s.playersMax ?? 40}</span>`
     pingHtml = `${getLatencySignalSvg()}<span>${s.pingMs ?? 0} ms</span>`
-    joinBtnHtml = `
-      <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
-        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>
-        <span>Rejoindre</span>
-      </button>
-    `
   } else {
     statusHtml = `<span class="card-badge card-badge-status"><span class="status-dot offline"></span>&nbsp;Hors ligne</span>`
     playersHtml = `<span class="card-badge card-badge-players"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-user-bold"></use></svg>&nbsp;—</span>`
     pingHtml = `<span>—</span>`
-    joinBtnHtml = `
-      <button class="btn-card-join" data-action="join" data-server-id="${s.id}">
-        <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg>
-        <span>Rejoindre</span>
-      </button>
-    `
-  }
-
-  let badgeHtml = ''
-  if (s.isOfficial) {
-    badgeHtml = `<span class="badge-cert badge-official" title="Serveur Officiel Modey" style="font-size:10px; font-weight:800; background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><svg style="width:10px; height:10px; fill:currentColor;" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg> Officiel</span>`
-  } else if (s.isVerified) {
-    badgeHtml = `<span class="badge-cert badge-verified" title="Serveur Partenaire Vérifié" style="font-size:10px; font-weight:800; background:#0284c7; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;"><svg style="width:10px; height:10px; fill:currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg> Vérifié</span>`
-  } else if (s.isCustom && s.requiresPassword) {
-    badgeHtml = `<span class="badge-cert" title="Serveur privé protégé par mot de passe" style="font-size:10px; font-weight:800; background:#d97706; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;">Privé · Mot de passe</span>`
-  } else if (s.isCustom) {
-    badgeHtml = `<span class="badge-cert" title="Serveur personnalisé local / IP directe" style="font-size:10px; font-weight:800; background:#475569; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center;">Personnalisé</span>`
-  } else {
-    badgeHtml = `<span class="badge-cert" title="Serveur tiers communautaire" style="font-size:10px; font-weight:800; background:#334155; color:#fff; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center;">Tiers</span>`
   }
 
   const tagsHtml = s.tags.map((tag) => `<span class="server-tag-chip">${escapeHtml(tag)}</span>`).join('')
+
+  const removeBtnHtml = s.isCustom
+    ? `
+      <button type="button" class="btn-remove-custom-server" data-action="remove-custom" data-server-id="${s.id}" title="Retirer ce serveur de votre liste" aria-label="Retirer">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    `
+    : ''
+
+  const bannerRightHtml = s.isCustom ? '' : playersHtml
 
   return `
     <article class="server-card-item ${isSelected ? 'is-selected' : ''}" data-server-id="${s.id}">
       <div class="card-banner" style="background-image: url('${s.bannerUrl}')">
         <div class="card-banner-overlay"></div>
-        ${s.isCustom ? `<button type="button" class="btn-remove-custom-server" data-action="remove-custom" data-server-id="${s.id}" title="Retirer ce serveur de votre liste" aria-label="Retirer">&times; Retirer</button>` : ''}
+        ${removeBtnHtml}
         <div class="card-banner-top">
           ${statusHtml}
-          ${playersHtml}
+          ${bannerRightHtml}
         </div>
       </div>
       <div class="card-content">
         <div class="card-header-row">
           <div class="card-title-group">
             <span class="card-icon">${s.iconSvg}</span>
-            <div>
-              <h3 class="card-name" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <div class="card-name-wrap">
+              <h3 class="card-name">
                 <span>${escapeHtml(s.name)}</span>
-                ${badgeHtml}
               </h3>
               <span class="card-subtitle">${escapeHtml(s.subtitle)}</span>
             </div>
@@ -630,15 +604,7 @@ function renderServerCardHtml(s: ServerItem): string {
             ${pingHtml}
           </div>
         </div>
-        <p class="card-description">${escapeHtml(s.description)}</p>
         ${s.tags && s.tags.length > 0 ? `<div class="card-tags-list">${tagsHtml}</div>` : ''}
-        <div class="card-footer-row">
-          ${joinBtnHtml}
-          <button class="btn-card-details" data-action="details" data-server-id="${s.id}">
-            <span>Voir les détails</span>
-            <span class="arrow-right">→</span>
-          </button>
-        </div>
       </div>
     </article>
   `
@@ -734,6 +700,17 @@ function renderCards() {
       renderCards()
       renderInspector(server)
     })
+
+    card.addEventListener('dblclick', (e) => {
+      const target = e.target as HTMLElement
+      if (target.closest('[data-action="remove-custom"]')) return
+      const serverId = card.getAttribute('data-server-id')
+      if (!serverId) return
+      const currentServers = buildServersList()
+      const server = currentServers.find((s) => s.id === serverId)
+      if (!server) return
+      handleJoinServer(server)
+    })
   })
 }
 
@@ -752,9 +729,6 @@ function renderInspector(server: ServerItem) {
 
   const descEl = el('inspector-description')
   const locEl = el('inspector-info-location')
-  const verEl = el('inspector-info-version')
-  const plEl = el('inspector-info-players')
-  const latEl = el('inspector-info-latency')
 
   const joinBtn = el('btn-inspector-join')
 
@@ -806,23 +780,37 @@ function renderInspector(server: ServerItem) {
 
   if (descEl) descEl.textContent = server.description
   if (locEl) locEl.textContent = server.location
-  if (verEl) verEl.textContent = server.version
-  if (plEl) {
-    plEl.textContent = server.isComingSoon
-      ? '—'
-      : (server.online ? `${server.playersOnline} / ${server.playersMax}` : '—')
+
+  // Caractéristiques techniques dynamiques
+  const specModloader = el('inspector-spec-modloader')
+  const specRam = el('inspector-spec-ram')
+  const specMods = el('inspector-spec-mods')
+
+  if (specModloader) {
+    if (server.isCustom) {
+      specModloader.textContent = 'Auto (Selon serveur)'
+    } else if (server.id === 'athena') {
+      specModloader.textContent = 'NeoForge 21.1+'
+    } else {
+      specModloader.textContent = 'Forge / NeoForge'
+    }
   }
-  if (latEl) {
-    latEl.textContent = server.online ? `${server.pingMs} ms` : '—'
+
+  if (specRam) {
+    specRam.textContent = server.isCustom ? '4 à 8 Go conseillés' : '6 à 8 Go conseillés'
+  }
+
+  if (specMods) {
+    specMods.textContent = server.isCustom ? 'Mods personnalisés' : 'Certifié SHA-1'
   }
 
   if (joinBtn) {
     if (server.isProtected) {
-      joinBtn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-bold"></use></svg><span>Déverrouiller le serveur</span>`
+      joinBtn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-lock-bold"></use></svg><span>Déverrouiller ${escapeHtml(server.name)}</span>`
     } else if (server.isComingSoon) {
-      joinBtn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg><span>Sélectionner ce serveur</span>`
+      joinBtn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg><span>Sélectionner ${escapeHtml(server.name)}</span>`
     } else {
-      joinBtn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg><span>Rejoindre ce serveur</span>`
+      joinBtn.innerHTML = `<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg><span>Jouer à ${escapeHtml(server.name)}</span>`
     }
   }
 
@@ -1025,6 +1013,35 @@ export function initServers(hooks: { onSelectProfile: (profile: any) => void }) 
     const server = servers.find((s) => s.id === selectedServerId)
     const url = server?.websiteUrl || BRAND.websiteUrl
     window.open(url, '_blank')
+  })
+
+  // Fichiers d'instance & Logs
+  el('btn-inspector-open-folder')?.addEventListener('click', async () => {
+    const servers = buildServersList()
+    const server = servers.find((s) => s.id === selectedServerId)
+    const slug = server?.slug || 'athena'
+    const res = await files.openInstance(slug).catch(() => ({ success: false, error: 'Erreur inconnue' }))
+    if (!res.success && res.error) {
+      await Dialog.show(
+        `Impossible d'ouvrir le dossier du serveur : ${res.error}\nIl est possible que le jeu n'ait pas encore été lancé pour cette instance.`,
+        [{ text: 'Compris', type: 'ok' }],
+        'Dossier Instance'
+      )
+    }
+  })
+
+  el('btn-inspector-open-logs')?.addEventListener('click', async () => {
+    const servers = buildServersList()
+    const server = servers.find((s) => s.id === selectedServerId)
+    const slug = server?.slug || 'athena'
+    const res = await files.openServerLogs(slug).catch(() => ({ success: false, error: 'Erreur inconnue' }))
+    if (!res.success && res.error) {
+      await Dialog.show(
+        `Aucun fichier de journalisation trouvé pour cette instance : ${res.error}`,
+        [{ text: 'Compris', type: 'ok' }],
+        'Logs du Serveur'
+      )
+    }
   })
 
   // Modale d'ajout de serveur personnalisé / privé

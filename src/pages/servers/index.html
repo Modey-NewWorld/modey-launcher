@@ -1,11 +1,9 @@
 <main class="servers-page" id="servers-page" style="display:none">
   <div class="servers-scroll-container" id="servers-scroll-container">
-    <!-- Header -->
-    <header class="servers-header page-header">
-      <div class="servers-header-info">
-        <h1>Serveurs</h1>
-        <p>Rejoins l'un des mondes Modey et vis une expérience unique !</p>
-      </div>
+    <!-- Header (Identique aux autres pages) -->
+    <header class="page-header">
+      <h1>Serveurs</h1>
+      <p>Rejoins l'un des mondes Modey et vis une expérience unique !</p>
     </header>
 
         <!-- Two-column main layout: Inspector at left (larger & full height), Server cards at right -->
@@ -126,46 +124,53 @@
 
             <!-- Description -->
             <div class="inspector-section">
-              <h4>Description</h4>
               <p id="inspector-description">
                 Un monde vivant centré sur l'aventure communautaire et la construction de cités prospères. Fonde ta ville, commerce et écris ton histoire.
               </p>
             </div>
 
-            <!-- Informations -->
+            <!-- Fiche technique & Environnement -->
             <div class="inspector-section">
-              <h4>Informations</h4>
-              <dl class="inspector-info-list">
-                <div class="info-row">
-                  <dt><span class="info-icon">📍</span> Localisation</dt>
-                  <dd id="inspector-info-location">Europe (France)</dd>
+              <h4>Fiche technique</h4>
+              <div class="inspector-specs-card">
+                <div class="inspector-spec-item">
+                  <span class="spec-label">Moteur &amp; Mods</span>
+                  <span class="spec-value" id="inspector-spec-modloader">NeoForge 21.1+</span>
                 </div>
-                <div class="info-row">
-                  <dt><svg class="solar-icon solar-bold info-icon" aria-hidden="true"><use href="#solar-box-bold"></use></svg> Version</dt>
-                  <dd id="inspector-info-version">—</dd>
+                <div class="inspector-spec-item">
+                  <span class="spec-label">Mémoire recommandée</span>
+                  <span class="spec-value" id="inspector-spec-ram">6 à 8 Go</span>
                 </div>
-                <div class="info-row">
-                  <dt><svg class="solar-icon solar-bold info-icon" aria-hidden="true"><use href="#solar-user-bold"></use></svg> Joueurs</dt>
-                  <dd id="inspector-info-players">0 / 40</dd>
+                <div class="inspector-spec-item">
+                  <span class="spec-label">Pack de mods</span>
+                  <span class="spec-value" id="inspector-spec-mods">Synchronisation SHA-1</span>
                 </div>
-                <div class="info-row">
-                  <dt><svg class="latency-signal info-icon text-green" viewBox="0 0 16 12" width="13" height="11" fill="currentColor"><rect x="0" y="9" width="3" height="3" rx="1"/><rect x="4.5" y="6" width="3" height="6" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg> Latence moyenne</dt>
-                  <dd id="inspector-info-latency">5 ms</dd>
+                <div class="inspector-spec-item">
+                  <span class="spec-label">Localisation</span>
+                  <span class="spec-value" id="inspector-info-location">Europe (France)</span>
                 </div>
-              </dl>
+              </div>
             </div>
 
-            <!-- Raccourcis -->
+            <!-- Fichiers & Raccourcis -->
             <div class="inspector-section">
-              <h4>Raccourcis</h4>
-              <div class="inspector-shortcuts-grid">
-                <button class="btn-shortcut" id="btn-shortcut-discord">
-                  <svg class="shortcut-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
-                  <span>Rejoindre Discord</span>
+              <h4>Raccourcis &amp; Outils</h4>
+              <div class="inspector-actions-grid">
+                <button type="button" class="btn-inspector-action" id="btn-inspector-open-folder" title="Ouvrir le dossier local du serveur">
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-folder-bold"></use></svg>
+                  <span>Dossier</span>
                 </button>
-                <button class="btn-shortcut" id="btn-shortcut-website">
+                <button type="button" class="btn-inspector-action" id="btn-inspector-open-logs" title="Consulter les logs et rapports">
+                  <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-notes-bold"></use></svg>
+                  <span>Logs</span>
+                </button>
+                <button type="button" class="btn-shortcut" id="btn-shortcut-discord" title="Rejoindre le Discord">
+                  <svg class="shortcut-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+                  <span>Discord</span>
+                </button>
+                <button type="button" class="btn-shortcut" id="btn-shortcut-website" title="Visiter le site officiel">
                   <svg class="solar-icon solar-bold shortcut-icon" aria-hidden="true"><use href="#solar-link-bold"></use></svg>
-                  <span>Voir le site du serveur</span>
+                  <span>Site web</span>
                 </button>
               </div>
             </div>

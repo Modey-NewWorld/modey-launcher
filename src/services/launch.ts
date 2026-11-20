@@ -22,6 +22,7 @@ export interface LaunchUi {
   progress: LaunchProgressSink
   setPlayVisible(visible: boolean): void
   setPlayEnabled(enabled: boolean): void
+  setGameRunning?(running: boolean): void
   getProfile: () => any
   isComingSoon: () => boolean
   showBlockedDetails: () => Promise<void>
@@ -331,6 +332,7 @@ export function bindLaunch(launchUi: LaunchUi) {
   game.launched(() => {
     progress.setIndeterminate(true)
     progress.setLabel('Minecraft est lancé — Connexion au serveur...')
+    launchUi.setGameRunning?.(true)
   })
 
   game.launchClose(async (payload: any) => {
@@ -340,6 +342,7 @@ export function bindLaunch(launchUi: LaunchUi) {
     isLaunching = false
     progress.setIndeterminate(false)
     progress.hide()
+    launchUi.setGameRunning?.(false)
     launchUi.setPlayVisible(true)
     launchUi.setPlayEnabled(true)
     launchUi.onGameClosed()

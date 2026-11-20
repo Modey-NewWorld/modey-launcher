@@ -61,6 +61,18 @@
 
             <button id="btn-play" class="modey-play-btn"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-play-bold"></use></svg><span>Jouer à Athéna</span></button>
 
+            <!-- Bloc état de jeu actif & Arrêt forcé (Kill) -->
+            <div class="game-running-bar" id="game-running-bar" style="display:none;">
+              <div class="game-running-info">
+                <span class="game-running-dot"></span>
+                <span class="game-running-text" id="game-running-label">Jeu en cours...</span>
+              </div>
+              <button type="button" class="btn-game-kill" id="btn-game-kill" title="Forcer l'arrêt du jeu Minecraft" aria-label="Forcer l'arrêt de Minecraft">
+                <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-close-circle-bold"></use></svg>
+                <span>Arrêter</span>
+              </button>
+            </div>
+
             <div class="progress-container hidden" id="launch-progress-container" role="status" aria-live="polite">
               <div class="progress-info">
                 <span id="launch-progress-label">Préparation...</span>

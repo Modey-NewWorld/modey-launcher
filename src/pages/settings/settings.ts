@@ -56,7 +56,6 @@ interface SettingsSubitem {
 const GLOBAL_CATEGORIES: SettingsCategory[] = [
   { id: 'account', label: 'Compte & sécurité', icon: 'solar-user-bold' },
   { id: 'privacy', label: 'Données & confidentialité', icon: 'solar-shield-bold' },
-  { id: 'game', label: 'Jeu & performance', icon: 'solar-gamepad-bold' },
   { id: 'interface', label: 'Interface & comportement', icon: 'solar-monitor-bold' },
   { id: 'storage', label: 'Mises à jour & stockage', icon: 'solar-download-bold' },
   { id: 'about', label: 'À propos & licences', icon: 'solar-info-bold' }
@@ -72,10 +71,6 @@ const GLOBAL_SUBITEMS: Record<string, SettingsSubitem[]> = {
     { cardId: 'privacy-telemetry-card', label: 'Télémétrie & diagnostics' },
     { cardId: 'privacy-social-card', label: 'Visibilité & présence' },
     { cardId: 'privacy-data-card', label: 'Données personnelles & RGPD' }
-  ],
-  game: [
-    { cardId: 'ram-card', label: 'Mémoire RAM' },
-    { cardId: 'java-card', label: 'Moteur Java & Lancement' }
   ],
   interface: [
     { cardId: 'appearance-card', label: 'Thème & Apparence' },
@@ -326,9 +321,55 @@ function getModeyAvatarSrc(): string {
   return shared.avatar?.url || ''
 }
 
+let accountListenersBound = false
+
+async function resolveEffectiveUser() {
+  let user = getUser() ?? shared.account
+  if (!user) {
+    try {
+      const res = await auth.getCurrentSession()
+      if (res?.success && res.account) {
+        user = res.account
+        shared.account = res.account
+      }
+    } catch (_) {}
+  }
+  return user
+}
+
 async function initAccountSettings() {
-  const user = getUser()
-  if (!user) return
+  const user = await resolveEffectiveUser()
+  if (!user) {
+    // Si aucun compte n'est trouvé, masquer ou afficher l'état hors-ligne / déconnecté
+    const usernameEl = el('settings-account-username')
+    const emailEl = el('settings-account-email')
+    const uuidEl = el('settings-account-uuid')
+    const mcEl = el('settings-account-minecraft')
+    const discordEl = el('settings-account-discord')
+    const pill2FA = el('settings-2fa-status-pill')
+    const pillSessions = el('settings-sessions-count-pill')
+
+    if (usernameEl) usernameEl.innerText = 'Non connecté'
+    if (emailEl) emailEl.innerText = 'Mode hors-ligne'
+    if (uuidEl) uuidEl.innerText = '—'
+    if (mcEl) {
+      mcEl.innerText = 'Non connecté'
+      mcEl.className = 'discord-row-status is-inactive'
+    }
+    if (discordEl) {
+      discordEl.innerText = 'Non disponible'
+      discordEl.className = 'discord-row-status is-inactive'
+    }
+    if (pill2FA) {
+      pill2FA.innerText = 'Indisponible'
+      pill2FA.className = 'discord-row-status is-inactive'
+    }
+    if (pillSessions) {
+      pillSessions.innerText = '0 appareil'
+      pillSessions.className = 'discord-row-status is-inactive'
+    }
+    return
+  }
 
   // 1. Profil joueur
   const avatarEl = el('settings-account-avatar') as HTMLImageElement | null
@@ -336,85 +377,29 @@ async function initAccountSettings() {
   const emailEl = el('settings-account-email')
   const btnRevealEmail = el('btn-reveal-email') as HTMLButtonElement | null
   const btnEditAvatar = el('btn-edit-avatar') as HTMLButtonElement | null
+  const uuidEl = el('settings-account-uuid')
+  const btnCopyUuid = el('btn-copy-uuid') as HTMLButtonElement | null
+  const accountUuid = user.uuid || (user as any)?.id || ''
+  const mcEl = el('settings-account-minecraft')
+  const discordEl = el('settings-account-discord')
+  const btnSyncDiscord = el('btn-sync-discord') as HTMLButtonElement | null
+  const apiBase = getApiBase()
+
+  const sub2fa = el('account-subpage-2fa')
+  const subSessions = el('account-subpage-sessions')
+  const subSso = el('account-subpage-sso')
+  const profileCard = el('account-profile-card')
+  const securityCard = el('account-security-card')
+  const dangerCard = el('account-danger-card')
+  const scrollEl = el('settings-scroll')
 
   if (avatarEl) {
     const avatarSrc = getModeyAvatarSrc()
     if (avatarSrc) avatarEl.src = avatarSrc
   }
   if (usernameEl) usernameEl.innerText = user.name
+  if (uuidEl) uuidEl.innerText = accountUuid || '—'
 
-  // Email avec masquage avant l'arobase et affichage au clic
-  const rawEmail = ((user as any).email || '').trim()
-  let isEmailRevealed = false
-
-  function maskEmail(email: string): string {
-    if (!email || !email.includes('@')) return email || 'Compte joueur officiel Modey'
-    const atIndex = email.indexOf('@')
-    const localPart = email.substring(0, atIndex)
-    const domainPart = email.substring(atIndex)
-    const maskLen = Math.max(localPart.length, 12)
-    return '*'.repeat(maskLen) + domainPart
-  }
-
-  function updateEmailDisplay() {
-    if (!emailEl) return
-    if (!rawEmail) {
-      emailEl.innerText = 'Compte joueur officiel Modey'
-      if (btnRevealEmail) btnRevealEmail.style.display = 'none'
-      return
-    }
-
-    if (!rawEmail.includes('@')) {
-      emailEl.innerText = rawEmail
-      if (btnRevealEmail) btnRevealEmail.style.display = 'none'
-      return
-    }
-
-    if (btnRevealEmail) {
-      btnRevealEmail.style.display = 'inline-flex'
-      btnRevealEmail.innerText = isEmailRevealed ? 'Masquer' : 'Afficher'
-      btnRevealEmail.setAttribute('aria-label', isEmailRevealed ? "Masquer l'adresse e-mail" : "Afficher l'adresse e-mail")
-    }
-    emailEl.innerText = isEmailRevealed ? rawEmail : maskEmail(rawEmail)
-  }
-
-  updateEmailDisplay()
-
-  btnRevealEmail?.addEventListener('click', () => {
-    isEmailRevealed = !isEmailRevealed
-    updateEmailDisplay()
-  })
-
-  // Modification d'avatar -> Redirection vers le profil & casier
-  btnEditAvatar?.addEventListener('click', () => {
-    closeSettings()
-    showProfile()
-  })
-
-  // UUID Modey
-  const uuidEl = el('settings-account-uuid')
-  const btnCopyUuid = el('btn-copy-uuid') as HTMLButtonElement | null
-  const accountUuid = user.uuid || (user as any)?.id || ''
-  if (uuidEl) {
-    uuidEl.innerText = accountUuid || '—'
-  }
-  btnCopyUuid?.addEventListener('click', async () => {
-    if (!accountUuid) return
-    try {
-      await navigator.clipboard.writeText(accountUuid)
-      btnCopyUuid.setAttribute('title', 'Copié !')
-      btnCopyUuid.innerHTML = '<svg class="solar-icon solar-bold" style="color:var(--success);" aria-hidden="true"><use href="#solar-check-read-bold"></use></svg>'
-      setTimeout(() => {
-        btnCopyUuid.setAttribute('title', "Copier l'UUID Modey")
-        btnCopyUuid.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-copy-bold"></use></svg>'
-      }, 2000)
-    } catch (_) {
-      // fallback
-    }
-  })
-
-  // Statut Licence Propriétaire Minecraft
-  const mcEl = el('settings-account-minecraft')
   if (mcEl) {
     const isMsa = (user as any)?.meta?.type === 'msa'
     if (isMsa) {
@@ -425,11 +410,6 @@ async function initAccountSettings() {
       mcEl.className = 'discord-row-status is-inactive'
     }
   }
-
-  // Synchronisation Serveur Discord
-  const discordEl = el('settings-account-discord')
-  const btnSyncDiscord = el('btn-sync-discord') as HTMLButtonElement | null
-  const apiBase = getApiBase()
 
   async function checkSettingsDiscordStatus() {
     const token = (user as any)?.accessToken || shared.account?.accessToken
@@ -469,12 +449,106 @@ async function initAccountSettings() {
 
   checkSettingsDiscordStatus()
 
-  btnSyncDiscord?.addEventListener('click', () => {
-    openDiscordConnect(shared.account?.accessToken)
-    setTimeout(checkSettingsDiscordStatus, 3000)
-    setTimeout(checkSettingsDiscordStatus, 8000)
-    setTimeout(checkSettingsDiscordStatus, 15000)
-  })
+  // Email avec masquage avant l'arobase et affichage au clic
+  const rawEmail = ((user as any).email || '').trim()
+  let isEmailRevealed = false
+
+  function maskEmail(email: string): string {
+    if (!email || !email.includes('@')) return email || 'Compte joueur officiel Modey'
+    const atIndex = email.indexOf('@')
+    const localPart = email.substring(0, atIndex)
+    const domainPart = email.substring(atIndex)
+    const maskLen = Math.max(localPart.length, 12)
+    return '*'.repeat(maskLen) + domainPart
+  }
+
+  function updateEmailDisplay() {
+    if (!emailEl) return
+    if (!rawEmail) {
+      emailEl.innerText = 'Compte joueur officiel Modey'
+      if (btnRevealEmail) btnRevealEmail.style.display = 'none'
+      return
+    }
+
+    if (!rawEmail.includes('@')) {
+      emailEl.innerText = rawEmail
+      if (btnRevealEmail) btnRevealEmail.style.display = 'none'
+      return
+    }
+
+    if (btnRevealEmail) {
+      btnRevealEmail.style.display = 'inline-flex'
+      btnRevealEmail.innerText = isEmailRevealed ? 'Masquer' : 'Afficher'
+      btnRevealEmail.setAttribute('aria-label', isEmailRevealed ? "Masquer l'adresse e-mail" : "Afficher l'adresse e-mail")
+    }
+    emailEl.innerText = isEmailRevealed ? rawEmail : maskEmail(rawEmail)
+  }
+
+  updateEmailDisplay()
+
+  if (!accountListenersBound) {
+    accountListenersBound = true
+
+    btnRevealEmail?.addEventListener('click', () => {
+      isEmailRevealed = !isEmailRevealed
+      updateEmailDisplay()
+    })
+
+    btnEditAvatar?.addEventListener('click', () => {
+      closeSettings()
+      showProfile()
+    })
+
+    btnCopyUuid?.addEventListener('click', async () => {
+      if (!accountUuid) return
+      try {
+        await navigator.clipboard.writeText(accountUuid)
+        btnCopyUuid.setAttribute('title', 'Copié !')
+        btnCopyUuid.innerHTML = '<svg class="solar-icon solar-bold" style="color:var(--success);" aria-hidden="true"><use href="#solar-check-read-bold"></use></svg>'
+        setTimeout(() => {
+          btnCopyUuid.setAttribute('title', "Copier l'UUID Modey")
+          btnCopyUuid.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-copy-bold"></use></svg>'
+        }, 2000)
+      } catch (_) {
+        // fallback
+      }
+    })
+
+    btnSyncDiscord?.addEventListener('click', () => {
+      openDiscordConnect(shared.account?.accessToken)
+      setTimeout(checkSettingsDiscordStatus, 3000)
+      setTimeout(checkSettingsDiscordStatus, 8000)
+      setTimeout(checkSettingsDiscordStatus, 15000)
+    })
+
+    el('btn-goto-2fa')?.addEventListener('click', () => {
+      openSubpage(sub2fa, 'Authentification à multi-facteurs')
+      refresh2FAStatus()
+    })
+    el('row-2fa-action')?.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
+      openSubpage(sub2fa, 'Authentification à multi-facteurs')
+      refresh2FAStatus()
+    })
+
+    el('btn-goto-sessions')?.addEventListener('click', () => {
+      openSubpage(subSessions, 'Appareils connectés')
+      loadSessions()
+    })
+    el('row-sessions-action')?.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
+      openSubpage(subSessions, 'Appareils connectés')
+      loadSessions()
+    })
+
+    el('btn-goto-sso')?.addEventListener('click', () => {
+      openSubpage(subSso, 'Connexion rapide (SSO)')
+    })
+    el('row-sso-action')?.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
+      openSubpage(subSso, 'Connexion rapide (SSO)')
+    })
+  }
 
   // 2. Double Authentification (2FA)
   const badge2FA = el('settings-2fa-badge')
@@ -727,14 +801,6 @@ async function initAccountSettings() {
   })
 
   // 4. Gestion des sous-pages (Style Discord)
-  const sub2fa = el('account-subpage-2fa')
-  const subSessions = el('account-subpage-sessions')
-  const subSso = el('account-subpage-sso')
-  const profileCard = el('account-profile-card')
-  const securityCard = el('account-security-card')
-  const dangerCard = el('account-danger-card')
-  const scrollEl = el('settings-scroll')
-
   const openSubpage = (targetSubpage: HTMLElement | null, subpageLabel: string) => {
     if (!targetSubpage) return
     if (profileCard) profileCard.style.display = 'none'
@@ -763,34 +829,6 @@ async function initAccountSettings() {
     })
     scrollEl?.scrollTo({ top: 0, behavior: 'smooth' })
   }
-
-  el('btn-goto-2fa')?.addEventListener('click', () => {
-    openSubpage(sub2fa, 'Authentification à multi-facteurs')
-    refresh2FAStatus()
-  })
-  el('row-2fa-action')?.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
-    openSubpage(sub2fa, 'Authentification à multi-facteurs')
-    refresh2FAStatus()
-  })
-
-  el('btn-goto-sessions')?.addEventListener('click', () => {
-    openSubpage(subSessions, 'Appareils connectés')
-    loadSessions()
-  })
-  el('row-sessions-action')?.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
-    openSubpage(subSessions, 'Appareils connectés')
-    loadSessions()
-  })
-
-  el('btn-goto-sso')?.addEventListener('click', () => {
-    openSubpage(subSso, 'Connexion rapide (SSO)')
-  })
-  el('row-sso-action')?.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('.btn-discord-nav-row')) return
-    openSubpage(subSso, 'Connexion rapide (SSO)')
-  })
 
   await refresh2FAStatus()
   await loadSessions()
@@ -950,36 +988,678 @@ function refreshSidebarUserCard() {
   }
 }
 
+interface SearchIndexItem {
+  id: string
+  title: string
+  category: string
+  categoryLabel: string
+  targetSelector: string
+  keywords: string[]
+  subpage?: '2fa' | 'sessions' | 'sso'
+  isServerOnly?: boolean
+  icon: string
+}
+
+const SETTINGS_SEARCH_INDEX: SearchIndexItem[] = [
+  // Compte & sécurité
+  {
+    id: 'account-avatar',
+    title: 'Photo de profil & Avatar citoyen',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-profile-card',
+    keywords: ['avatar', 'photo', 'profil', 'skin', 'tete', 'image', 'citoyen', 'modifier', 'changer'],
+    icon: 'solar-user-bold'
+  },
+  {
+    id: 'account-username',
+    title: 'Pseudonyme Modey',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-profile-card',
+    keywords: ['pseudo', 'pseudonyme', 'nom', 'username', 'joueur', 'compte'],
+    icon: 'solar-user-bold'
+  },
+  {
+    id: 'account-email',
+    title: 'Adresse e-mail',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-profile-card',
+    keywords: ['email', 'mail', 'courriel', 'adresse', 'changer email'],
+    icon: 'solar-user-bold'
+  },
+  {
+    id: 'account-uuid',
+    title: 'UUID Modey (Identifiant unique)',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#settings-account-uuid',
+    keywords: ['uuid', 'identifiant', 'id', 'copier uuid', 'unique'],
+    icon: 'solar-user-bold'
+  },
+  {
+    id: 'account-discord-sync',
+    title: 'Synchronisation Discord',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#settings-account-discord',
+    keywords: ['discord', 'serveur discord', 'sync', 'lier discord', 'synchroniser', 'role discord'],
+    icon: 'solar-user-bold'
+  },
+  {
+    id: 'account-minecraft-license',
+    title: 'Propriétaire Minecraft (Licence)',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#settings-account-minecraft',
+    keywords: ['minecraft', 'licence', 'officiel', 'mojang', 'proprietaire', 'premium', 'lier minecraft'],
+    icon: 'solar-user-bold'
+  },
+  {
+    id: 'account-password',
+    title: 'Mot de passe du compte',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-security-card',
+    keywords: ['mot de passe', 'password', 'mdp', 'modifier mot de passe', 'changer code', 'securite'],
+    icon: 'solar-shield-bold'
+  },
+  {
+    id: 'account-2fa-totp',
+    title: 'Application d\'authentification (2FA / Google Authenticator)',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-2fa-card',
+    keywords: ['2fa', 'double authentification', 'authenticator', 'totp', 'google authenticator', 'qr code', 'securite', 'deux facteurs'],
+    subpage: '2fa',
+    icon: 'solar-shield-check-bold'
+  },
+  {
+    id: 'account-security-keys',
+    title: 'Clés de sécurité & Biométrie (Windows Hello / FIDO2)',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-security-keys-card',
+    keywords: ['cle de securite', 'cle fido', 'fido2', 'webauthn', 'windows hello', 'biometrie', 'empreinte', 'passkey'],
+    subpage: '2fa',
+    icon: 'solar-shield-check-bold'
+  },
+  {
+    id: 'account-email-2fa',
+    title: 'Code de sécurité par e-mail (2FA Mail)',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-email-2fa-card',
+    keywords: ['mail 2fa', 'email 2fa', 'code par email', 'verification email', 'double authentification email'],
+    subpage: '2fa',
+    icon: 'solar-shield-check-bold'
+  },
+  {
+    id: 'account-sessions',
+    title: 'Appareils connectés & Sessions actives',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-sessions-card',
+    keywords: ['sessions', 'appareils', 'devices', 'deconnecter', 'ordinateur', 'connexions actives', 'pc'],
+    subpage: 'sessions',
+    icon: 'solar-monitor-bold'
+  },
+  {
+    id: 'account-sso',
+    title: 'Méthodes de connexion rapide (SSO)',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-sso-card',
+    keywords: ['sso', 'connexion rapide', 'google', 'discord', 'microsoft', 'comptes lies', 'lier'],
+    subpage: 'sso',
+    icon: 'solar-user-bold'
+  },
+  {
+    id: 'account-danger-disable',
+    title: 'Désactiver temporairement le compte',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-danger-card',
+    keywords: ['desactiver', 'desactivation', 'pause', 'bloquer compte', 'danger'],
+    icon: 'solar-danger-triangle-bold'
+  },
+  {
+    id: 'account-danger-delete',
+    title: 'Suppression définitive du compte',
+    category: 'account',
+    categoryLabel: 'Compte & sécurité',
+    targetSelector: '#account-danger-card',
+    keywords: ['supprimer compte', 'suppression', 'delete', 'effacer', 'rgpd suppression', 'adieu'],
+    icon: 'solar-danger-triangle-bold'
+  },
+
+  // Données & confidentialité
+  {
+    id: 'privacy-crash',
+    title: 'Rapports de plantage automatiques',
+    category: 'privacy',
+    categoryLabel: 'Données & confidentialité',
+    targetSelector: '#privacy-telemetry-card',
+    keywords: ['crash', 'plantage', 'rapports', 'erreur', 'logs', 'diagnostic'],
+    icon: 'solar-shield-bold'
+  },
+  {
+    id: 'privacy-telemetry',
+    title: 'Télémétrie d\'utilisation anonyme',
+    category: 'privacy',
+    categoryLabel: 'Données & confidentialité',
+    targetSelector: '#privacy-telemetry-card',
+    keywords: ['telemetrie', 'statistiques', 'donnees', 'suivi', 'anonyme'],
+    icon: 'solar-shield-bold'
+  },
+  {
+    id: 'privacy-discord-rpc',
+    title: 'Rich Presence Discord (Statut de jeu)',
+    category: 'privacy',
+    categoryLabel: 'Données & confidentialité',
+    targetSelector: '#privacy-social-card',
+    keywords: ['discord rpc', 'rich presence', 'presence', 'statut de jeu', 'activite discord', 'afficher le jeu'],
+    icon: 'solar-shield-bold'
+  },
+  {
+    id: 'privacy-rgpd-export',
+    title: 'Exporter mes données personnelles (RGPD)',
+    category: 'privacy',
+    categoryLabel: 'Données & confidentialité',
+    targetSelector: '#privacy-data-card',
+    keywords: ['rgpd', 'donnees personnelles', 'exporter', 'telecharger donnees', 'archive', 'confidentialite'],
+    icon: 'solar-shield-bold'
+  },
+  {
+    id: 'privacy-cache-clear',
+    title: 'Vider le cache local du launcher',
+    category: 'privacy',
+    categoryLabel: 'Données & confidentialité',
+    targetSelector: '#privacy-data-card',
+    keywords: ['cache', 'vider cache', 'nettoyer', 'stockage web', 'reinitialiser cache', 'effacer cache'],
+    icon: 'solar-shield-bold'
+  },
+
+  // Interface & comportement
+  {
+    id: 'interface-theme',
+    title: 'Thème & Apparence (Sombre / Clair)',
+    category: 'interface',
+    categoryLabel: 'Interface & comportement',
+    targetSelector: '#appearance-card',
+    keywords: ['theme', 'sombre', 'clair', 'dark', 'light', 'mode nuit', 'apparence', 'couleur'],
+    icon: 'solar-monitor-bold'
+  },
+  {
+    id: 'interface-ui-scale',
+    title: 'Échelle & Zoom de l\'interface (UI Scale)',
+    category: 'interface',
+    categoryLabel: 'Interface & comportement',
+    targetSelector: '#appearance-card',
+    keywords: ['zoom', 'echelle', 'scale', 'ui scale', 'grand', 'petit', 'taille texte', 'taille interface', '100%'],
+    icon: 'solar-monitor-bold'
+  },
+  {
+    id: 'interface-launcher-action',
+    title: 'Action après le lancement du jeu',
+    category: 'interface',
+    categoryLabel: 'Interface & comportement',
+    targetSelector: '#behavior-card',
+    keywords: ['lancement', 'apres lancement', 'fermer launcher', 'reduire', 'laisser ouvert', 'action', 'fenetre'],
+    icon: 'solar-monitor-bold'
+  },
+  {
+    id: 'interface-sleep-mode',
+    title: 'Mise en veille en arrière-plan',
+    category: 'interface',
+    categoryLabel: 'Interface & comportement',
+    targetSelector: '#behavior-card',
+    keywords: ['veille', 'arriere-plan', 'economie', 'ressources', 'batterie', 'sommeil', 'fps launcher'],
+    icon: 'solar-monitor-bold'
+  },
+  {
+    id: 'interface-startup',
+    title: 'Démarrage automatique avec Windows',
+    category: 'interface',
+    categoryLabel: 'Interface & comportement',
+    targetSelector: '#behavior-card',
+    keywords: ['demarrage', 'startup', 'windows', 'lancement automatique', 'boot', 'demarrer avec le pc'],
+    icon: 'solar-monitor-bold'
+  },
+
+  // Mises à jour & stockage
+  {
+    id: 'storage-update',
+    title: 'Mises à jour du Launcher & Canaux (Stable / Bêta)',
+    category: 'storage',
+    categoryLabel: 'Mises à jour & stockage',
+    targetSelector: '#update-card',
+    keywords: ['mise a jour', 'update', 'canal', 'beta', 'stable', 'version', 'rechercher mise a jour'],
+    icon: 'solar-download-bold'
+  },
+  {
+    id: 'storage-files-root',
+    title: 'Emplacement des fichiers & Répertoire racine (.modey)',
+    category: 'storage',
+    categoryLabel: 'Mises à jour & stockage',
+    targetSelector: '#files-card',
+    keywords: ['fichiers', 'dossier', 'emplacement', 'stockage', 'repertoire', 'changer dossier', 'disque', 'chemin'],
+    icon: 'solar-download-bold'
+  },
+
+  // À propos & licences
+  {
+    id: 'about-version-info',
+    title: 'À propos de Modey & Versions des composants',
+    category: 'about',
+    categoryLabel: 'À propos & licences',
+    targetSelector: '#about-card',
+    keywords: ['version', 'electron', 'node', 'systeme', 'os', 'a propos', 'eml', 'site', 'github'],
+    icon: 'solar-info-bold'
+  },
+  {
+    id: 'about-infra-info',
+    title: 'Écosystème & Infrastructure Technique',
+    category: 'about',
+    categoryLabel: 'À propos & licences',
+    targetSelector: '#about-infra-card',
+    keywords: ['infrastructure', 'serveur', 'moteur', 'forge', 'neoforge', 'fabric', 'quilt', 'java', 'sha1', 'isolation', 'instances', 'auth core', 'yggdrasil'],
+    icon: 'solar-server-bold'
+  },
+  {
+    id: 'about-third-party',
+    title: 'Licences Logicielles & Propriété Intellectuelle',
+    category: 'about',
+    categoryLabel: 'À propos & licences',
+    targetSelector: '#about-licenses-card',
+    keywords: ['licences tierces', 'mentions legales', 'copyright', 'open source', 'credits', 'mit', 'skinview3d', 'solar', 'authlib', 'mojang'],
+    icon: 'solar-shield-bold'
+  },
+
+  // Paramètres d'instance / Serveur
+  {
+    id: 'server-ram',
+    title: 'Mémoire RAM allouée au serveur',
+    category: 'performance',
+    categoryLabel: 'Performance Serveur',
+    targetSelector: '#server-ram-card',
+    keywords: ['ram serveur', 'memoire dediee', 'performance serveur', 'ram instance', 'curseur ram', 'lag', 'fps'],
+    isServerOnly: true,
+    icon: 'solar-cpu-bold'
+  },
+  {
+    id: 'server-java',
+    title: 'Moteur d\'exécution Java du serveur',
+    category: 'performance',
+    categoryLabel: 'Performance Serveur',
+    targetSelector: '#server-java-card',
+    keywords: ['java', 'jdk', 'jvm', 'moteur java', 'bundled', 'systeme', 'java 21', 'executable'],
+    isServerOnly: true,
+    icon: 'solar-cup-bold'
+  },
+  {
+    id: 'server-resolution',
+    title: 'Résolution & Format d\'affichage du jeu',
+    category: 'performance',
+    categoryLabel: 'Performance Serveur',
+    targetSelector: '#server-resolution-card',
+    keywords: ['resolution', 'format', 'plein ecran', '1080p', '1440p', 'taille fenetre', 'pixels'],
+    isServerOnly: true,
+    icon: 'solar-window-bold'
+  },
+  {
+    id: 'server-jvm-args',
+    title: 'Arguments JVM du serveur',
+    category: 'performance',
+    categoryLabel: 'Performance Serveur',
+    targetSelector: '#server-jvm-card',
+    keywords: ['jvm', 'arguments jvm', 'flags', 'aikar', 'java flags'],
+    isServerOnly: true,
+    icon: 'solar-cpu-bold'
+  },
+  {
+    id: 'server-optional-mods',
+    title: 'Mods optionnels du serveur',
+    category: 'content',
+    categoryLabel: 'Contenu Serveur',
+    targetSelector: '#server-optional-mods-card',
+    keywords: ['mods', 'mods optionnels', 'shaders', 'ressources', 'textures', 'addons'],
+    isServerOnly: true,
+    icon: 'solar-box-bold'
+  },
+  {
+    id: 'server-maintenance-repair',
+    title: 'Réparation et vérification des fichiers du serveur',
+    category: 'maintenance',
+    categoryLabel: 'Maintenance Serveur',
+    targetSelector: '#server-maintenance-card',
+    keywords: ['reparer', 'verification fichiers', 'restaurer', 'maintenance serveur', 'logs serveur'],
+    isServerOnly: true,
+    icon: 'solar-wrench-bold'
+  }
+]
+
+function normalizeSearchText(str: string): string {
+  return (str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0
+  if (!a.length) return b.length
+  if (!b.length) return a.length
+
+  const row = Array.from({ length: b.length + 1 }, (_, i) => i)
+  for (let i = 1; i <= a.length; i++) {
+    let prev = i
+    for (let j = 1; j <= b.length; j++) {
+      const val = a[i - 1] === b[j - 1] ? row[j - 1] : Math.min(row[j - 1], prev, row[j]) + 1
+      row[j - 1] = prev
+      prev = val
+    }
+    row[b.length] = prev
+  }
+  return row[b.length]
+}
+
+interface ScoredSearchResult {
+  item: SearchIndexItem
+  score: number
+  isFuzzy: boolean
+  matchedQuery: string
+}
+
+function computeSearchMatches(rawQuery: string): ScoredSearchResult[] {
+  const normQuery = normalizeSearchText(rawQuery)
+  if (!normQuery) return []
+
+  const queryTokens = normQuery.split(/\s+/).filter(Boolean)
+  const results: ScoredSearchResult[] = []
+
+  for (const item of SETTINGS_SEARCH_INDEX) {
+    const normTitle = normalizeSearchText(item.title)
+    const normKeywords = item.keywords.map(normalizeSearchText)
+    const normCategory = normalizeSearchText(item.categoryLabel)
+
+    let score = 0
+    let isFuzzy = false
+
+    // 1. Titre commence exactement par la recherche
+    if (normTitle.startsWith(normQuery)) {
+      score += 120
+    } else if (normTitle.includes(normQuery)) {
+      score += 80
+    }
+
+    // 2. Mots-clés exacts ou sous-chaînes
+    for (const kw of normKeywords) {
+      if (kw === normQuery) {
+        score += 100
+      } else if (kw.startsWith(normQuery)) {
+        score += 60
+      } else if (kw.includes(normQuery)) {
+        score += 40
+      }
+    }
+
+    // 3. Catégorie correspond
+    if (normCategory.includes(normQuery)) {
+      score += 30
+    }
+
+    // 4. Token match (ex: "mot passe" -> "mot de passe")
+    const allTokens = [...normTitle.split(/\s+/), ...normKeywords.flatMap(k => k.split(/\s+/))]
+    const matchedTokensCount = queryTokens.filter(qTok => allTokens.some(aTok => aTok.includes(qTok))).length
+    if (matchedTokensCount === queryTokens.length && queryTokens.length > 1) {
+      score += 50
+    }
+
+    // 5. Recherche par similarité floue (Fuzzy match / fautes de frappe si pas de match strict)
+    if (score === 0 && normQuery.length >= 3) {
+      for (const kw of normKeywords) {
+        const dist = levenshteinDistance(normQuery, kw.slice(0, normQuery.length + 2))
+        const maxDist = normQuery.length <= 4 ? 1 : 2
+        if (dist <= maxDist) {
+          score += 25 - dist * 5
+          isFuzzy = true
+          break
+        }
+      }
+
+      if (score === 0) {
+        const titleWords = normTitle.split(/\s+/)
+        for (const tw of titleWords) {
+          if (tw.length >= 3) {
+            const dist = levenshteinDistance(normQuery, tw.slice(0, normQuery.length + 2))
+            const maxDist = normQuery.length <= 4 ? 1 : 2
+            if (dist <= maxDist) {
+              score += 20 - dist * 5
+              isFuzzy = true
+              break
+            }
+          }
+        }
+      }
+    }
+
+    if (score > 0) {
+      results.push({
+        item,
+        score,
+        isFuzzy,
+        matchedQuery: normQuery
+      })
+    }
+  }
+
+  results.sort((a, b) => b.score - a.score)
+  return results
+}
+
+function highlightTargetElement(targetSelector: string) {
+  document.querySelectorAll('.settings-highlight-target').forEach((el) => {
+    el.classList.remove('settings-highlight-target')
+  })
+
+  const target = document.querySelector<HTMLElement>(targetSelector)
+  if (!target) return
+
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  target.classList.add('settings-highlight-target')
+
+  setTimeout(() => {
+    target.classList.remove('settings-highlight-target')
+  }, 2600)
+}
+
+function navigateToSearchResult(item: SearchIndexItem) {
+  // Masquer l'overlay de recherche
+  const overlay = el('settings-search-overlay')
+  const scrollEl = el('settings-scroll')
+  if (overlay) overlay.style.display = 'none'
+  if (scrollEl) scrollEl.style.display = ''
+
+  // Si l'élément est exclusif serveur mais qu'on est en global
+  if (item.isServerOnly && currentSelectedTarget === 'global') {
+    const firstServer = allKnownProfiles[0]?.slug || 'survie'
+    applyServerSelection(firstServer)
+    setServerCategory(item.category)
+  } else if (!item.isServerOnly && currentSelectedTarget !== 'global') {
+    applyServerSelection('global')
+    setCategory(item.category)
+  } else if (item.isServerOnly) {
+    setServerCategory(item.category)
+  } else {
+    // Si c'est un réglage d'une sous-page
+    if (item.subpage) {
+      if (activeCategory !== 'account') {
+        setCategory('account')
+      }
+      const sub2fa = el('account-subpage-2fa')
+      const subSessions = el('account-subpage-sessions')
+      const subSso = el('account-subpage-sso')
+      const profileCard = el('account-profile-card')
+      const securityCard = el('account-security-card')
+      const dangerCard = el('account-danger-card')
+
+      if (profileCard) profileCard.style.display = 'none'
+      if (securityCard) securityCard.style.display = 'none'
+      if (dangerCard) dangerCard.style.display = 'none'
+      if (sub2fa) sub2fa.style.display = 'none'
+      if (subSessions) subSessions.style.display = 'none'
+      if (subSso) subSso.style.display = 'none'
+
+      if (item.subpage === '2fa' && sub2fa) {
+        sub2fa.style.display = 'flex'
+        setHeaderTitle('Compte & sécurité', 'Authentification à multi-facteurs', () => closeAccountSubpages())
+      } else if (item.subpage === 'sessions' && subSessions) {
+        subSessions.style.display = 'flex'
+        setHeaderTitle('Compte & sécurité', 'Appareils connectés', () => closeAccountSubpages())
+      } else if (item.subpage === 'sso' && subSso) {
+        subSso.style.display = 'flex'
+        setHeaderTitle('Compte & sécurité', 'Connexion rapide (SSO)', () => closeAccountSubpages())
+      }
+      scrollEl?.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      setCategory(item.category)
+    }
+  }
+
+  setTimeout(() => {
+    highlightTargetElement(item.targetSelector)
+  }, 120)
+}
+
 function initSettingsSearch() {
   const input = el('settings-search-input') as HTMLInputElement | null
   const clearBtn = el('settings-search-clear') as HTMLButtonElement | null
-  if (!input) return
+  const overlay = el('settings-search-overlay')
+  const resultsList = el('settings-search-results-list')
+  const countPill = el('settings-search-results-count')
+  const scrollEl = el('settings-scroll')
+  if (!input || !overlay || !resultsList) return
+
+  let activeIndex = -1
+
+  const renderResults = (matches: ScoredSearchResult[], query: string) => {
+    activeIndex = -1
+    if (countPill) {
+      countPill.innerText = `${matches.length} résultat${matches.length > 1 ? 's' : ''}`
+    }
+
+    if (matches.length === 0) {
+      resultsList.innerHTML = `
+        <div class="settings-search-empty-card">
+          <div class="search-empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <h4>Aucun résultat pour "${query}"</h4>
+          <p>Vérifiez l'orthographe ou essayez un mot-clé plus générique (ex: "ram", "mot de passe", "thème").</p>
+        </div>
+      `
+      return
+    }
+
+    resultsList.innerHTML = matches.map((match, idx) => {
+      const badgeText = match.isFuzzy ? 'Correspondance proche' : match.item.categoryLabel
+      return `
+        <button type="button" class="settings-search-result-card ${match.isFuzzy ? 'is-fuzzy' : ''}" data-index="${idx}">
+          <div class="search-result-main">
+            <div class="search-result-icon">
+              <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#${match.item.icon}"></use></svg>
+            </div>
+            <div class="search-result-text">
+              <div class="search-result-title">${match.item.title}</div>
+              <div class="search-result-category">
+                <span>${match.item.categoryLabel}</span>
+              </div>
+            </div>
+          </div>
+          <div class="search-result-badges">
+            <span class="search-result-pill ${match.isFuzzy ? 'is-fuzzy' : ''}">${badgeText}</span>
+            <svg class="search-result-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+        </button>
+      `
+    }).join('')
+
+    // Clic sur chaque résultat
+    resultsList.querySelectorAll<HTMLButtonElement>('.settings-search-result-card').forEach((cardBtn) => {
+      cardBtn.addEventListener('click', () => {
+        const idx = Number(cardBtn.dataset.index)
+        const match = matches[idx]
+        if (match) {
+          navigateToSearchResult(match.item)
+        }
+      })
+    })
+  }
+
+  const closeSearchOverlay = () => {
+    overlay.style.display = 'none'
+    if (scrollEl) scrollEl.style.display = ''
+  }
 
   input.addEventListener('input', () => {
-    const query = input.value.trim().toLowerCase()
-    if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none'
+    const rawVal = input.value.trim()
+    if (clearBtn) clearBtn.style.display = rawVal ? 'flex' : 'none'
 
-    const viewId = currentViewKind() === 'global' ? 'global-settings-view' : 'server-settings-view'
-    const view = el(viewId)
-    if (!view) return
-
-    const cards = view.querySelectorAll<HTMLElement>('.settings-card')
-
-    if (!query) {
+    if (!rawVal) {
+      closeSearchOverlay()
       applyCategoryFilter()
       return
     }
 
-    cards.forEach((card) => {
-      const text = (card.textContent || '').toLowerCase()
-      const isMatch = text.includes(query)
-      card.hidden = !isMatch
-    })
+    const matches = computeSearchMatches(rawVal)
+    if (scrollEl) scrollEl.style.display = 'none'
+    overlay.style.display = 'flex'
+    renderResults(matches, rawVal)
   })
+
+  // Navigation clavier (<kbd>↓</kbd> / <kbd>↑</kbd> / <kbd>Entrée</kbd> / <kbd>Échap</kbd>)
+  input.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (overlay.style.display === 'none') return
+
+    const cards = resultsList.querySelectorAll<HTMLButtonElement>('.settings-search-result-card')
+    if (!cards.length) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      activeIndex = (activeIndex + 1) % cards.length
+      updateCardSelection(cards)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      activeIndex = (activeIndex - 1 + cards.length) % cards.length
+      updateCardSelection(cards)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (activeIndex >= 0 && activeIndex < cards.length) {
+        cards[activeIndex].click()
+      } else if (cards.length > 0) {
+        cards[0].click()
+      }
+    } else if (e.key === 'Escape') {
+      closeSearchOverlay()
+    }
+  })
+
+  function updateCardSelection(cards: NodeListOf<HTMLButtonElement>) {
+    cards.forEach((card, idx) => {
+      card.classList.toggle('is-selected', idx === activeIndex)
+      if (idx === activeIndex) {
+        card.scrollIntoView({ block: 'nearest' })
+      }
+    })
+  }
 
   clearBtn?.addEventListener('click', () => {
     input.value = ''
     clearBtn.style.display = 'none'
+    closeSearchOverlay()
     applyCategoryFilter()
     input.focus()
   })
@@ -993,8 +1673,26 @@ function initScrollSpy() {
     const subitems = document.querySelectorAll<HTMLElement>('.settings-subitem-tab')
     if (!subitems.length) return
 
-    let currentCardId: string | null = null
+    // 1. Si on a atteint le bas absolu du scroll, activer automatiquement le dernier sous-élément
+    const isAtBottom = scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight <= 30
+    if (isAtBottom) {
+      const lastSub = subitems[subitems.length - 1]
+      subitems.forEach((btn) => btn.classList.toggle('active', btn === lastSub))
+      return
+    }
+
+    // 2. Si on est tout en haut, activer le premier sous-élément
+    if (scrollEl.scrollTop <= 30) {
+      const firstSub = subitems[0]
+      subitems.forEach((btn) => btn.classList.toggle('active', btn === firstSub))
+      return
+    }
+
+    // 3. Détection par visibilité et intersection au centre de la vue de défilement
+    let bestCardId: string | null = null
+    let maxVisibleRatio = -1
     const scrollRect = scrollEl.getBoundingClientRect()
+    const viewCenter = scrollRect.top + scrollRect.height / 3
 
     subitems.forEach((subBtn) => {
       const cardId = subBtn.dataset.targetCard
@@ -1002,14 +1700,26 @@ function initScrollSpy() {
       const card = document.getElementById(cardId)
       if (!card || card.hidden) return
       const rect = card.getBoundingClientRect()
-      if (rect.top <= scrollRect.top + 160 && rect.bottom >= scrollRect.top + 60) {
-        currentCardId = cardId
+
+      // Calcul de la zone visible dans le viewport scroll
+      const visibleTop = Math.max(rect.top, scrollRect.top)
+      const visibleBottom = Math.min(rect.bottom, scrollRect.bottom)
+      const visibleHeight = Math.max(0, visibleBottom - visibleTop)
+
+      // Score pondéré : visibilité + proximité avec la ligne de mire
+      if (visibleHeight > 0) {
+        const distToCenter = Math.abs((rect.top + rect.bottom) / 2 - viewCenter)
+        const score = visibleHeight - distToCenter * 0.3
+        if (score > maxVisibleRatio) {
+          maxVisibleRatio = score
+          bestCardId = cardId
+        }
       }
     })
 
-    if (currentCardId) {
+    if (bestCardId) {
       subitems.forEach((subBtn) => {
-        subBtn.classList.toggle('active', subBtn.dataset.targetCard === currentCardId)
+        subBtn.classList.toggle('active', subBtn.dataset.targetCard === bestCardId)
       })
     }
   }, { passive: true })
@@ -1221,6 +1931,13 @@ export async function applyServerSelection(targetSlug: string) {
     const ramMax = typeof srvMem?.max === 'number' ? srvMem.max : currentSettings.memory.max
     syncServerRamSliders(ramMin, ramMax)
 
+    // Hydrater le moteur Java propre au serveur
+    const serverJavaSelect = el('server-java-select') as HTMLSelectElement | null
+    if (serverJavaSelect) {
+      const srvJava = currentSettings.serverSettings?.[targetSlug]?.java || currentSettings.java || 'bundled'
+      serverJavaSelect.value = srvJava === 'system' ? 'system' : 'bundled'
+    }
+
     // Hydrater la résolution propre au serveur
     const srvRes = currentSettings.serverSettings?.[targetSlug]?.resolution
     const serverResSelect = el('server-resolution-select') as HTMLSelectElement | null
@@ -1354,9 +2071,11 @@ async function initUIListeners() {
   const serverResSelect = el('server-resolution-select') as HTMLSelectElement | null
   const serverJvmArgs = el('server-jvm-args') as HTMLInputElement | null
   const serverPresetSelect = el('server-client-preset-select') as HTMLSelectElement | null
+  const serverJavaSelect = el('server-java-select') as HTMLSelectElement | null
   serverResSelect?.addEventListener('change', saveSettingsDebounced)
   serverJvmArgs?.addEventListener('input', saveSettingsDebounced)
   serverPresetSelect?.addEventListener('change', saveSettingsDebounced)
+  serverJavaSelect?.addEventListener('change', saveSettingsDebounced)
 
   // Actions de Maintenance & Diagnostics
   const serverRepairBtn = el('server-repair-btn') as HTMLButtonElement | null
@@ -1410,16 +2129,43 @@ async function initUIListeners() {
     )
   })
 
-  // Sélecteur de Thème Clair / Sombre / Système
+  // Sélecteur de Thème Clair / Sombre / Système (avec boutons segmented + icônes)
   const themeSelect = el('theme-select') as HTMLSelectElement | null
+  const themeChips = document.querySelectorAll<HTMLButtonElement>('.theme-chip-btn')
+
+  const updateThemeChipsUI = (pref: string) => {
+    themeChips.forEach((chip) => {
+      const isSelected = chip.dataset.theme === pref
+      chip.classList.toggle('active', isSelected)
+      chip.setAttribute('aria-checked', isSelected ? 'true' : 'false')
+    })
+  }
+
+  themeChips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const themeVal = chip.dataset.theme as ThemePreference
+      if (!themeVal) return
+      setTheme(themeVal)
+      if (themeSelect) themeSelect.value = themeVal
+      updateThemeChipsUI(themeVal)
+    })
+  })
+
   if (themeSelect) {
-    themeSelect.value = getTheme()
+    const initialPref = getTheme()
+    themeSelect.value = initialPref
+    updateThemeChipsUI(initialPref)
+
     themeSelect.addEventListener('change', () => {
       setTheme(themeSelect.value as ThemePreference)
+      updateThemeChipsUI(themeSelect.value)
     })
     onThemeChange((_, pref) => {
       if (themeSelect.value !== pref) themeSelect.value = pref
+      updateThemeChipsUI(pref)
     })
+  } else {
+    updateThemeChipsUI(getTheme())
   }
 }
 
@@ -1444,6 +2190,12 @@ async function saveSettings() {
   const minRam = parseFloat(minInput?.value || '2')
   const maxRam = parseFloat(maxInput?.value || '8')
 
+  const javaVal = javaSelect?.value === 'system'
+    ? 'system'
+    : javaSelect?.value === 'custom'
+      ? currentSettings.java
+      : (javaSelect?.value || currentSettings.java || 'bundled')
+
   const newSettings: IGameSettings = {
     ...currentSettings,
     memory: currentSelectedTarget === 'global'
@@ -1457,12 +2209,8 @@ async function saveSettings() {
       height: 720,
       fullscreen: false
     },
-    java: javaSelect.value === 'system'
-      ? 'system'
-      : javaSelect.value === 'custom'
-        ? currentSettings.java
-        : 'bundled',
-    launcherAction: launcherActionSelect.value as 'close' | 'keep' | 'hide',
+    java: javaVal,
+    launcherAction: (launcherActionSelect?.value || currentSettings.launcherAction) as 'close' | 'keep' | 'hide',
     backgroundSleep: Number(backgroundSleepSelect?.value) || 0,
     launchAtStartup: portableMode
       ? false
@@ -1492,12 +2240,15 @@ async function saveSettings() {
 
     const jvmArgsVal = jvmInput?.value?.trim() || ''
     const presetVal = serverPresetSelect?.value || 'auto'
+    const serverJavaSelect = el('server-java-select') as HTMLSelectElement | null
+    const chosenJava = serverJavaSelect?.value || 'bundled'
 
     const existingCfg = newSettings.serverSettings![currentSelectedTarget] || {}
     const shouldPersistMemory = serverMemoryTouched || existingCfg.memory != null
 
     const nextCfg: IServerGameSettings = {
       ...existingCfg,
+      java: chosenJava,
       resolution: parsedResolution,
       jvmArgs: jvmArgsVal,
       useDefaultJvmArgs: true
@@ -1635,6 +2386,7 @@ function initUiScale() {
   const input = el('ui-scale') as HTMLInputElement
   const minus = el('ui-scale-minus')
   const plus = el('ui-scale-plus')
+  const resetBtn = el('ui-scale-reset')
   if (!input) return
 
   input.addEventListener('input', () => {
@@ -1644,6 +2396,10 @@ function initUiScale() {
   })
   minus?.addEventListener('click', () => stepUiScale(-UI_SCALE_STEP_PCT))
   plus?.addEventListener('click', () => stepUiScale(UI_SCALE_STEP_PCT))
+  resetBtn?.addEventListener('click', () => {
+    input.value = '100'
+    input.dispatchEvent(new Event('input'))
+  })
 }
 
 function initFormValues(_sysResolution: { width: number; height: number }) {
@@ -1674,17 +2430,19 @@ function initFormValues(_sysResolution: { width: number; height: number }) {
   }
 
   const javaVal = currentSettings.java
-  if (javaVal && javaVal !== 'bundled' && javaVal !== 'system') {
-    let customOpt = javaSelect.querySelector<HTMLOptionElement>('option[value="custom"]')
-    if (!customOpt) {
-      customOpt = document.createElement('option')
-      customOpt.value = 'custom'
-      javaSelect.appendChild(customOpt)
+  if (javaSelect) {
+    if (javaVal && javaVal !== 'bundled' && javaVal !== 'system') {
+      let customOpt = javaSelect.querySelector<HTMLOptionElement>('option[value="custom"]')
+      if (!customOpt) {
+        customOpt = document.createElement('option')
+        customOpt.value = 'custom'
+        javaSelect.appendChild(customOpt)
+      }
+      customOpt.textContent = `Personnalisé (${javaVal})`
+      javaSelect.value = 'custom'
+    } else {
+      javaSelect.value = javaVal === 'system' ? 'system' : 'bundled'
     }
-    customOpt.textContent = `Personnalisé (${javaVal})`
-    javaSelect.value = 'custom'
-  } else {
-    javaSelect.value = javaVal === 'system' ? 'system' : 'bundled'
   }
 
   const uiScaleInput = el('ui-scale') as HTMLInputElement

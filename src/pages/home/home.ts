@@ -9,6 +9,7 @@ import { fetchProfiles, isComingSoonProfile } from '../../services/profiles'
 import { targetFor } from '../../services/serverStatus'
 import { FALLBACK_MC_VERSION, FALLBACK_LOADER_VERSION } from '../../services/launcherConfig'
 import { startLaunch, bindLaunch } from '../../services/launch'
+import { game } from '../../ipc'
 import { refreshProfileServer } from '../profile/profile'
 import { refreshServerCard } from '../servers/servers'
 import { homeState } from './state'
@@ -140,6 +141,25 @@ export function initHome() {
 
   const playBtn = el('btn-play')
   const playHeroBtn = el('btn-play-hero')
+  const gameRunningBar = el('game-running-bar')
+  const btnGameKill = el('btn-game-kill') as HTMLButtonElement | null
+  
+  btnGameKill?.addEventListener('click', async () => {
+    btnGameKill.disabled = true
+    btnGameKill.innerHTML = '<svg class="solar-icon spin" aria-hidden="true"><use href="#modey-spinner"></use></svg>&nbsp;Arrêt...'
+    try {
+      await game.kill()
+    } catch (killErr) {
+      console.error('Erreur lors du kill Minecraft:', killErr)
+    } finally {
+      setTimeout(() => {
+        if (btnGameKill) {
+          btnGameKill.disabled = false
+          btnGameKill.innerHTML = '<svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-close-circle-bold"></use></svg><span>Arrêter</span>'
+        }
+      }, 1000)
+    }
+  })
   
   const handleLaunch = () => {
     const current = homeState.selectedProfile
@@ -158,6 +178,15 @@ export function initHome() {
     setPlayVisible(visible) {
       if (playBtn) playBtn.style.display = visible ? 'flex' : 'none'
       if (playHeroBtn) playHeroBtn.style.display = visible ? 'flex' : 'none'
+    },
+    setGameRunning(running) {
+      if (gameRunningBar) {
+        gameRunningBar.style.display = running ? 'flex' : 'none'
+      }
+      if (running) {
+        if (playBtn) playBtn.style.display = 'none'
+        if (playHeroBtn) playHeroBtn.style.display = 'none'
+      }
     },
     setPlayEnabled(enabled) {
       for (const btn of [playBtn, playHeroBtn]) {

@@ -28,6 +28,7 @@ declare global {
         revokeSession: (token: string) => Promise<{ success: boolean; message?: string; error?: string }>
         revokeOtherSessions: () => Promise<{ success: boolean; message?: string; error?: string }>
         refresh: () => Promise<IAuthResponse>
+        getCurrentSession: () => Promise<{ success: boolean; account: any }>
         logout: () => Promise<{ success: boolean }>
       }
       skin: {
@@ -107,6 +108,7 @@ declare global {
         launched: (callback: () => void) => void
 
         launchClose: (callback: (payload: number | { code: number; details?: string } | null) => void) => void
+        kill: () => Promise<{ success: boolean }>
         verifyIntegrity: (slug: string) => Promise<{ success: boolean; total?: number; valid?: number; repaired?: number; error?: string }>
       }
       settings: {
@@ -155,7 +157,8 @@ export const auth = {
   revokeSession: async (token: string) => await window.api.auth.revokeSession(token),
   revokeOtherSessions: async () => await window.api.auth.revokeOtherSessions(),
   logout: async () => await window.api.auth.logout(),
-  refresh: async () => await window.api.auth.refresh()
+  refresh: async () => await window.api.auth.refresh(),
+  getCurrentSession: async () => await window.api.auth.getCurrentSession()
 }
 
 export const skin = {
@@ -232,6 +235,7 @@ export const game = {
   launchLaunch: (callback: (value: LauncherEvents['launch_launch'][0]) => void) => window.api.game.launchLaunch(callback),
   launched: (callback: () => void) => window.api.game.launched(callback),
   launchClose: (callback: (payload: number | { code: number; details?: string } | null) => void) => window.api.game.launchClose(callback),
+  kill: async () => await window.api.game.kill(),
   verifyIntegrity: async (slug: string) => await window.api.game.verifyIntegrity(slug)
 }
 

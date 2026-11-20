@@ -29,6 +29,7 @@ export const IPC = {
     /** @internal */
     removeAccount: 'auth:remove-account',
     refresh: 'auth:refresh',
+    getCurrentSession: 'auth:get-current-session',
     logout: 'auth:logout'
   },
   profiles: {

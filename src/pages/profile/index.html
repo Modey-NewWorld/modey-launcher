@@ -42,7 +42,6 @@
                 <section class="profile-card identity-card">
                   <div class="profile-card-head">
                     <h3><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-card-bold"></use></svg>&nbsp;&nbsp;Informations joueur</h3>
-                    <span class="soon-pill">Officiel</span>
                   </div>
 
                   <div class="identity-head">
@@ -53,62 +52,54 @@
                     </div>
                   </div>
 
-                  <div class="identity-rows">
-                    <div>
-                      <span>UUID Modey</span>
-                      <code id="profile-uuid">—</code>
-                    </div>
-                    <div>
-                      <span>Email</span>
-                      <span class="email-wrap">
-                        <code id="profile-email">••••••••</code>
-                        <button class="eye-btn" id="btn-toggle-email" title="Afficher / masquer l'email" aria-label="Afficher ou masquer l'email">
-                          <svg class="solar-icon solar-bold" id="email-eye-icon" aria-hidden="true"><use href="#solar-eye-bold"></use></svg>
-                        </button>
-                      </span>
-                    </div>
-                  </div>
-
                   <!-- Intégration Compte Discord -->
-                  <div class="identity-discord-block">
-                    <div class="identity-discord-head">
-                      <div class="discord-title-wrap">
-                        <svg class="solar-icon solar-bold" style="color:#5865F2;" aria-hidden="true"><use href="#solar-chat-bold"></use></svg>
-                        <strong>Compte Discord</strong>
+                  <div class="identity-service-card discord-service-card">
+                    <div class="service-card-header">
+                      <div class="service-brand">
+                        <div class="service-icon-wrap discord-icon-wrap">
+                          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-chat-bold"></use></svg>
+                        </div>
+                        <div class="service-title-wrap">
+                          <div class="service-title-line">
+                            <strong>Discord</strong>
+                            <span class="service-pill" id="discord-badge-status">Non lié</span>
+                          </div>
+                          <span class="service-caption">Rôles communautaires, salons exclusifs & synchro du pseudo</span>
+                        </div>
                       </div>
-                      <span class="discord-status-badge" id="discord-badge-status">Non synchronisé</span>
                     </div>
 
-                    <div class="discord-sync-content">
+                    <div class="service-card-body">
                       <!-- Vue NON LIÉ -->
                       <div id="discord-unlinked-view">
-                        <p class="discord-desc">
-                          Liez votre profil Discord pour débloquer automatiquement vos rôles, synchroniser votre pseudo et accéder à l'ensemble des salons de notre communauté.
-                        </p>
-                        <div class="discord-actions-group">
-                          <button class="srv-btn srv-select discord-btn-link" id="btn-link-discord" type="button">
-                            <svg class="solar-icon solar-bold" style="color:#5865F2;" aria-hidden="true"><use href="#solar-chat-bold"></use></svg>&nbsp;&nbsp;Lier mon compte Discord
+                        <div class="service-perks-row">
+                          <span class="perk-tag"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Grade & Salons</span>
+                          <span class="perk-tag"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Annonces en jeu</span>
+                        </div>
+                        <div class="service-actions-row">
+                          <button class="service-action-btn primary discord-btn-main" id="btn-link-discord" type="button">
+                            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-link-bold"></use></svg>&nbsp;Lier mon compte
                           </button>
-                          <button type="button" class="srv-btn srv-discover discord-btn-join" id="btn-join-discord" title="Rejoindre le serveur Discord officiel de Modey">
-                            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-up-right-bold"></use></svg>&nbsp;Rejoindre le Discord
+                          <button type="button" class="service-action-btn secondary" id="btn-join-discord" title="Rejoindre le Discord Modey">
+                            <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-arrow-up-right-bold"></use></svg>&nbsp;Serveur Modey
                           </button>
                         </div>
                       </div>
 
                       <!-- Vue LIÉ -->
                       <div id="discord-linked-view" style="display:none;">
-                        <div class="discord-user-row">
-                          <img src="" id="discord-user-avatar" alt="Avatar Discord" class="discord-avatar-img">
-                          <div class="discord-user-info">
+                        <div class="linked-account-chip">
+                          <img src="" id="discord-user-avatar" alt="Avatar Discord" class="linked-account-avatar">
+                          <div class="linked-account-info">
                             <strong id="discord-user-tag">@Utilisateur</strong>
-                            <span class="discord-sync-label"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Synchronisé avec Modey</span>
+                            <span class="linked-sync-status"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-circle-bold"></use></svg>&nbsp;Compte synchronisé</span>
                           </div>
                         </div>
-                        <div class="discord-actions-group linked-actions">
-                          <button type="button" class="srv-btn srv-discover discord-btn-join" id="btn-open-discord" title="Ouvrir le serveur Discord officiel de Modey">
-                            <svg class="solar-icon solar-bold" style="color:#5865F2;" aria-hidden="true"><use href="#solar-chat-bold"></use></svg>&nbsp;Ouvrir le Discord
+                        <div class="service-actions-row">
+                          <button type="button" class="service-action-btn secondary" id="btn-open-discord" title="Ouvrir le serveur Discord">
+                            <svg class="solar-icon solar-bold" style="color:#5865F2;" aria-hidden="true"><use href="#solar-chat-bold"></use></svg>&nbsp;Ouvrir Discord
                           </button>
-                          <button class="eye-btn discord-unlink-btn" id="btn-unlink-discord" type="button" title="Dissocier ce compte Discord">
+                          <button class="service-action-btn danger-outline" id="btn-unlink-discord" type="button" title="Dissocier ce compte Discord">
                             <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-unlink-bold"></use></svg>&nbsp;Dissocier
                           </button>
                         </div>
@@ -116,23 +107,31 @@
                     </div>
                   </div>
 
-                  <!-- Intégration Licence Minecraft (Microsoft Entitlement) -->
-                  <div class="identity-minecraft-block">
-                    <div class="identity-discord-head">
-                      <div class="discord-title-wrap">
-                        <svg class="solar-icon solar-bold" style="color:#5D8A38;" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>
-                        <strong>Licence officielle Minecraft</strong>
+                  <!-- Intégration Licence Microsoft Minecraft (Entitlement) -->
+                  <div class="identity-service-card minecraft-service-card">
+                    <div class="service-card-header">
+                      <div class="service-brand">
+                        <div class="service-icon-wrap minecraft-icon-wrap">
+                          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-shield-check-bold"></use></svg>
+                        </div>
+                        <div class="service-title-wrap">
+                          <div class="service-title-line">
+                            <strong>Minecraft Java (Microsoft)</strong>
+                            <span class="service-pill" id="minecraft-license-badge">Non lié</span>
+                          </div>
+                          <span class="service-caption">Vérification de licence officielle Mojang / Microsoft</span>
+                        </div>
                       </div>
-                      <span class="discord-status-badge" id="minecraft-license-badge">Non vérifié</span>
                     </div>
 
-                    <div class="discord-sync-content">
-                      <p class="discord-desc">
-                        Prouvez la détention d'un compte Minecraft Java officiel (Microsoft Entitlement) pour débloquer votre badge citoyen certifié et importer automatiquement vos capes officielles du jeu.
-                      </p>
-                      <div class="discord-actions-group">
-                        <button class="srv-btn srv-select disabled" id="btn-verify-minecraft-license" type="button" disabled title="Vérification de licence bientôt disponible avec l'Auth Core">
-                          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-read-bold"></use></svg>&nbsp;&nbsp;Vérifier ma licence Minecraft
+                    <div class="service-card-body">
+                      <div class="service-perks-row">
+                        <span class="perk-tag"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Badge Joueur Officiel</span>
+                        <span class="perk-tag"><svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-bold"></use></svg>&nbsp;Import automatique des Capes</span>
+                      </div>
+                      <div class="service-actions-row">
+                        <button class="service-action-btn primary mc-btn-main disabled" id="btn-verify-minecraft-license" type="button" disabled title="Arrivera très prochainement avec l'Auth Core">
+                          <svg class="solar-icon solar-bold" aria-hidden="true"><use href="#solar-check-read-bold"></use></svg>&nbsp;Lier mon compte Microsoft
                         </button>
                       </div>
                     </div>

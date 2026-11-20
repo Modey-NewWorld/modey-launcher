@@ -238,6 +238,20 @@ export function registerAuthHandlers(mainWindow: Electron.BrowserWindow) {
     }
   })
 
+  // Obtenir la session locale actuelle en toute sécurité
+  ipcMain.handle(IPC.auth.getCurrentSession, async () => {
+    try {
+      if (fs.existsSync(sessionPath())) {
+        const raw = fs.readFileSync(sessionPath(), 'utf-8')
+        const account = JSON.parse(raw)
+        return { success: true, account }
+      }
+    } catch (err: any) {
+      logger.warn('Failed to read current session:', err)
+    }
+    return { success: false, account: null }
+  })
+
   // Rafraîchissement / Restauration de session
   ipcMain.handle(IPC.auth.refresh, async () => {
     if (!fs.existsSync(sessionPath())) {

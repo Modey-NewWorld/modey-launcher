@@ -314,12 +314,6 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
       }
 
 
-      let java: { install: 'auto' } | { install: 'manual'; absolutePath: string } = { install: 'auto' }
-      if (settings.java === 'system' || (settings.java && settings.java !== 'bundled')) {
-        const javaExe = getSystemJava21Path(settings.java === 'system' ? undefined : settings.java)
-        java = { install: 'manual', absolutePath: javaExe }
-      }
-
       // Synchroniser avec server-settings.json s'il a été édité sur disque
       const localDiskCfg = readLocalServerConfig(profileSlug)
       if (localDiskCfg) {
@@ -328,6 +322,14 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
           ...(settings.serverSettings[profileSlug] || {}),
           ...localDiskCfg
         }
+      }
+
+      // Moteur Java : spécifique au serveur si configuré, sinon repli sur le paramètre global
+      const chosenJava = settings.serverSettings?.[profileSlug]?.java || localDiskCfg?.java || settings.java
+      let java: { install: 'auto' } | { install: 'manual'; absolutePath: string } = { install: 'auto' }
+      if (chosenJava === 'system' || (chosenJava && chosenJava !== 'bundled')) {
+        const javaExe = getSystemJava21Path(chosenJava === 'system' ? undefined : chosenJava)
+        java = { install: 'manual', absolutePath: javaExe }
       }
 
       // Résolution d'écran dédiée par serveur (avec repli sur la valeur par défaut ou globale)
@@ -361,6 +363,7 @@ export function registerLauncherHandlers(mainWindow: BrowserWindow) {
 
       // Sauvegarder la configuration effective dans server-settings.json pour ce serveur
       writeLocalServerConfig(profileSlug, {
+        java: chosenJava,
         memory: effectiveMemory,
         optionalMods: settings.serverSettings?.[profileSlug]?.optionalMods || localDiskCfg?.optionalMods || {},
         resolution: effectiveRes,

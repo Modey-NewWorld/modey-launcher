@@ -24,6 +24,7 @@ export interface ISystemInfo {
 }
 
 export interface IServerGameSettings {
+  java?: string
   memory?: {
     min: number
     max: number
